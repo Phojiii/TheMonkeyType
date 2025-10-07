@@ -10,6 +10,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
+          crossOrigin="anonymous"
+        ></script>
+      </head>
       <body>
         <NavBar />
         <main className="ml-20 font-mono antialiased">
