@@ -23,6 +23,13 @@ export default function RootLayout({ children }) {
             })(window,document,'script','dataLayer','${process.env.NEXT_PUBLIC_GTM_ID}');
           `
         }} />
+        <Script
+          id="adsense"
+          strategy="afterInteractive"
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
+          crossOrigin="anonymous"
+        />
         <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
         <script
           async

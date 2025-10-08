@@ -5,6 +5,7 @@ import TopBar from "@/components/TopBar";
 import { makeStreamGenerator } from "@/lib/textbanks";
 import Link from "next/link";
 import Image from "next/image";
+import AdUnit from "@/components/AdUnit";
 
 export default function Home() {
   const [lang, setLang] = useState("english");
@@ -38,7 +39,7 @@ export default function Home() {
       {!focus && (
         <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/TMT_Logo.png" alt="TMT Logo" width={80} height={40} priority />
+            <Image src="/TMT_Logo_2.png" alt="TMT Logo" width={40} height={40} priority />
             <span className="sr-only">TMT - Typing Trainer</span>
           </Link>
           <nav className="text-white/70 flex gap-4 text-sm">
@@ -84,7 +85,7 @@ export default function Home() {
           )}
 
           {loading ? (
-            <div className="skeleton h-40 w-full max-w-5xl mx-auto" />
+            <div className="skeleton h-50 w-full max-w-5xl mx-auto" />
           ) : (
             <TypingTest
               initialText={initialText}
@@ -97,10 +98,23 @@ export default function Home() {
           )}
         </div>
       </section>
+      <aside className="absolute right-0 top-1/4" style={{ width: 320 }}>
+        <AdUnit
+          slot="9194878710"
+          // Let AdSense size it; or force a size with width/height
+          style={{ display: "block", minWidth: 300, minHeight: 250 }}
+          format="auto"
+          responsive={true}
+        />
+      </aside>
+      <div style={{ maxWidth: "100%", margin: "24px auto 0", minHeight: 90 }}>
+        <AdUnit slot="6053710056" />
+      </div>
+
 
       {/* Footer (hidden in focus mode) */}
       {!focus && (
-        <footer className="w-full max-w-6xl mx-auto px-6 pb-6">
+        <footer className="w-full max-w-6xl mx-auto px-6 pb-6 ">
           <div className="text-xs text-white/40 flex items-center justify-between">
             <span>TMT © {new Date().getFullYear()}</span>
             <span>#323437 / #E2B714 • Roboto Mono</span>

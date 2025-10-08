@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
-import { randomParagraph } from "@/lib/textbanks";
+import { makeStreamGenerator } from "@/lib/textbanks";
 
-export async function GET(req){
+export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const lang = searchParams.get("lang") || "english";
-  const paragraph = randomParagraph(lang);
+
+  const gen = makeStreamGenerator({ lang, punctuation: false, numbers: false });
+  const paragraph = gen.nextChunk(60).trim();
+
   return NextResponse.json({ paragraph, lang });
 }
