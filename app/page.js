@@ -12,20 +12,27 @@ export default function Home() {
   const [duration, setDuration] = useState(60);
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
-  const [focus, setFocus] = useState(false); // <-- Focus Mode
+  const [focus, setFocus] = useState(false);
 
   const genRef = useRef(null);
   const [initialText, setInitialText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sessionId, setSessionId] = useState(0); // remount TypingTest cleanly
 
   const rebuildGenerator = () => {
     setLoading(true);
+    // fresh generator -> fresh randomness
     genRef.current = makeStreamGenerator({ lang, punctuation, numbers });
-    const chunk = genRef.current.nextChunk(60);
+    const chunk = genRef.current.nextChunk(80); // start with ~80 tokens
     setInitialText(chunk);
+    // end focus (so UI is visible when you reroll)
+    setFocus(false);
+    // bump session to remount TypingTest (resets hidden input + scroll)
+    setSessionId(s => s + 1);
     setLoading(false);
   };
 
+  // Rebuild whenever options change (language/toggles)
   useEffect(() => { rebuildGenerator(); }, [lang, punctuation, numbers]);
 
   async function supplyMore() {
@@ -60,7 +67,6 @@ export default function Home() {
         />
       )}
 
-      {/* Typing area */}
       <section className="flex-1 flex items-start md:items-center justify-center px-6 py-10">
         <div className="w-full max-w-5xl">
           {/* Helper row (hidden in focus mode) */}
@@ -85,9 +91,10 @@ export default function Home() {
           )}
 
           {loading ? (
-            <div className="skeleton h-50 w-full max-w-5xl mx-auto" />
+            <div className="skeleton h-40 w-full max-w-5xl mx-auto" />
           ) : (
             <TypingTest
+              key={sessionId}        // <— force remount on reroll/options
               initialText={initialText}
               supplyMore={supplyMore}
               durationSec={duration}
@@ -111,10 +118,9 @@ export default function Home() {
         <AdUnit slot="6053710056" />
       </div>
 
-
       {/* Footer (hidden in focus mode) */}
       {!focus && (
-        <footer className="w-full max-w-6xl mx-auto px-6 pb-6 ">
+        <footer className="w-full max-w-6xl mx-auto px-6 pb-6">
           <div className="text-xs text-white/40 flex items-center justify-between">
             <span>TMT © {new Date().getFullYear()}</span>
             <span>#323437 / #E2B714 • Roboto Mono</span>

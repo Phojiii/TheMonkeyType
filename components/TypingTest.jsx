@@ -1,17 +1,14 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { gsap } from "gsap";
+import ResultModal from "./ResultModal";
 
 /**
- * Endless streaming + 3-line viewport + focus mode hooks
- * Props:
- *  - initialText: string
- *  - supplyMore: async () => string
- *  - durationSec: number
- *  - focusMode: boolean            // active? (parent controls)
- *  - onFocusStart: () => void      // called on first keystroke
- *  - onFocusEnd: () => void        // called when timer ends
+ * Streaming + 3-line viewport + focus mode
+ * This version shows:
+ *  - If durationSec === 60: primary = WPM
+ *  - If durationSec !== 60: primary = Words (session), sub = WPM
  */
 export default function TypingTest({
   initialText = "",
@@ -37,12 +34,27 @@ export default function TypingTest({
   const charRefs = useRef([]);
   const rafRef = useRef(null);
 
+  // buffer & marks
   const [buffer, setBuffer] = useState(initialText || "");
   const [marks, setMarks] = useState(new Array((initialText || "").length).fill(0));
+
+  // time left
   const [remaining, setRemaining] = useState(durationSec);
 
+  // 3-line scroll
   const [lineHeightPx, setLineHeightPx] = useState(0);
   const [scrolledLines, setScrolledLines] = useState(0);
+
+  // Results modal
+  const [showResults, setShowResults] = useState(false);
+  useEffect(() => {
+    if (ended) {
+      const timer = setTimeout(() => setShowResults(true), 500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowResults(false);
+    }
+  }, [ended]);
 
   // reset on text/duration change
   useEffect(() => {
@@ -54,7 +66,6 @@ export default function TypingTest({
     setRemaining(durationSec);
     setScrolledLines(0);
     gsap.set(scrollerRef.current, { y: 0 });
-    // ensure focus after any switch
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [initialText, durationSec]);
 
@@ -64,7 +75,7 @@ export default function TypingTest({
     gsap.fromTo(wrapRef.current, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" });
   }, []);
 
-  // refocus whenever focusMode toggles (prevents lost focus)
+  // refocus when focusMode toggles
   useEffect(() => {
     if (!ended) inputRef.current?.focus();
   }, [focusMode, ended]);
@@ -76,7 +87,7 @@ export default function TypingTest({
     return () => window.removeEventListener("keydown", h);
   }, [ended]);
 
-  // measure line-height => viewport = 3 lines
+  // measure line-height => 3-line viewport
   useEffect(() => {
     const el = viewRef.current;
     if (!el) return;
@@ -138,7 +149,7 @@ export default function TypingTest({
   function onKeyDown(e) {
     if (ended) return;
 
-    // Backspace correction
+    // Backspace: correct previous char
     if (e.key === "Backspace") {
       if (idx > 0) {
         setIdx(i => {
@@ -192,24 +203,37 @@ export default function TypingTest({
     e.preventDefault();
   }
 
+  // ---- metrics (fixed) ----
   const elapsedSec = startedAt ? Math.max(0, (Date.now() - startedAt) / 1000) : 0;
-  const wpm = startedAt ? (hits / 5) / Math.max(1, elapsedSec / 60) : 0;
+  const grossWords = hits / 5; // words typed (session so far)
+  const wpm = startedAt ? (grossWords / Math.max(0.001, elapsedSec / 60)) : 0; // true WPM
+
+  // When duration != 60s, show Words as primary & WPM as sub
+  const primaryLabel = durationSec === 60 ? "WPM" : "Words";
+  const primaryValue = durationSec === 60 ? wpm.toFixed(0) : Math.floor(grossWords);
+  const subValue = durationSec === 60 ? null : `WPM ${wpm.toFixed(0)}`;
   const accuracy = hits + errors ? (hits / (hits + errors)) * 100 : 100;
+  const testStats = {
+    wpm,
+    accuracy,
+    hits,
+    words: hits / 5,
+  };
 
   return (
     <div ref={wrapRef} className="w-full max-w-5xl mx-auto" onMouseDown={() => inputRef.current?.focus()}>
-      {/* normal stats (hidden in focus mode) */}
+      {/* stats (hidden during focus) */}
       {!focusMode && (
         <div className="mb-6 flex items-center justify-center gap-8 text-sm">
-          <Stat label="WPM" value={wpm.toFixed(0)} />
+          <Stat label={primaryLabel} value={primaryValue} sub={subValue} />
           <Stat label="Accuracy" value={`${accuracy.toFixed(0)}%`} />
           <Stat label="Time" value={`${remaining}s`} />
         </div>
       )}
 
-      {/* floating timer HUD (shown in focus mode) */}
+      {/* floating timer HUD in focus mode */}
       {focusMode && (
-        <div className="fixed -top-10 left-1/2 -translate-x-1/2 text-base md:text-2xl font-semibold text-brand drop-neon z-50">
+        <div className="fixed -top-10 left-1/2 -translate-x-1/2 text-base md:text-lg font-semibold text-brand drop-neon z-50">
           {remaining}s
         </div>
       )}
@@ -247,32 +271,63 @@ export default function TypingTest({
       </div>
 
       {ended && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-8 flex items-center justify-center gap-3">
-          <button
-            onClick={() => {
+        <>
+        <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 flex items-center justify-center gap-3"
+          >
+            <button
+              onClick={() => {
+                setBuffer(initialText || "");
+                setMarks(new Array((initialText || "").length).fill(0));
+                setIdx(0);
+                setErrors(0);
+                setHits(0);
+                setEnded(false);
+                setStartedAt(null);
+                setRemaining(durationSec);
+                setScrolledLines(0);
+                gsap.set(scrollerRef.current, { y: 0 });
+                inputRef.current?.focus();
+              }}
+              className="btn-primary"
+            >
+              Retry
+            </button>
+          </motion.div>
+          {/* Result Modal */}
+          <ResultModal
+            open={showResults}
+            stats={testStats}
+            onClose={() => setShowResults(false)}
+            onRetry={() => {
+              setShowResults(false);
               setBuffer(initialText || "");
               setMarks(new Array((initialText || "").length).fill(0));
-              setIdx(0); setErrors(0); setHits(0);
-              setEnded(false); setStartedAt(null);
+              setIdx(0);
+              setErrors(0);
+              setHits(0);
+              setEnded(false);
+              setStartedAt(null);
               setRemaining(durationSec);
               setScrolledLines(0);
               gsap.set(scrollerRef.current, { y: 0 });
               inputRef.current?.focus();
             }}
-            className="btn-primary">
-            Retry
-          </button>
-        </motion.div>
+          />
+        </>
       )}
     </div>
   );
 }
 
-function Stat({ label, value }) {
+function Stat({ label, value, sub }) {
   return (
     <div className="text-center">
       <div className="text-white/60">{label}</div>
       <div className="text-xl drop-neon">{value}</div>
+      {sub ? <div className="text-[11px] mt-0.5 text-white/40">{sub}</div> : null}
     </div>
   );
 }
