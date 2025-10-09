@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import TypingTest from "@/components/TypingTest";
 import TopBar from "@/components/TopBar";
 import { makeStreamGenerator } from "@/lib/textbanks";
@@ -19,26 +19,43 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [sessionId, setSessionId] = useState(0); // remount TypingTest cleanly
 
-  const rebuildGenerator = () => {
+  // Track if test is completed to control result display
+  const [testCompleted, setTestCompleted] = useState(false);
+
+  // Rebuild generator and reset test state
+  const rebuildGenerator = useCallback(() => {
     setLoading(true);
-    // fresh generator -> fresh randomness
     genRef.current = makeStreamGenerator({ lang, punctuation, numbers });
-    const chunk = genRef.current.nextChunk(80); // start with ~80 tokens
+    const chunk = genRef.current.nextChunk(80);
     setInitialText(chunk);
-    // end focus (so UI is visible when you reroll)
-    setFocus(false);
-    // bump session to remount TypingTest (resets hidden input + scroll)
     setSessionId(s => s + 1);
+    setFocus(false);
     setLoading(false);
-  };
+    setTestCompleted(false); // Reset result state
+  }, [lang, punctuation, numbers]);
 
   // Rebuild whenever options change (language/toggles)
-  useEffect(() => { rebuildGenerator(); }, [lang, punctuation, numbers]);
+  useEffect(() => { rebuildGenerator(); }, [lang, punctuation, numbers, rebuildGenerator]);
 
   async function supplyMore() {
     if (!genRef.current) return "";
     return genRef.current.nextChunk(60);
   }
+
+  // Keyboard shortcut: Tab + Enter to restart and shuffle
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter" && e.getModifierState("Tab")) {
+        e.preventDefault();
+        rebuildGenerator();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [rebuildGenerator]);
+
+  // Handler to be called when test completes
+  const handleTestComplete = () => setTestCompleted(true);
 
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
@@ -50,8 +67,8 @@ export default function Home() {
             <span className="sr-only">TMT - Typing Trainer</span>
           </Link>
           <nav className="text-white/70 flex gap-4 text-sm">
-            <Link href="/test" className="hover:text-white">Test</Link>
-            <Link href="/focus" className="hover:text-white">Focus</Link>
+            <Link href="/test" className="hover:text-white">TMT</Link>
+            <Link href="/stats" className="hover:text-white">Stats</Link>
             <a href="https://github.com" className="hover:text-white" target="_blank" rel="noreferrer">GitHub</a>
           </nav>
         </header>
@@ -70,8 +87,24 @@ export default function Home() {
       <section className="flex-1 flex items-start md:items-center justify-center px-6 py-10">
         <div className="w-full max-w-5xl">
           {/* Helper row (hidden in focus mode) */}
+          {loading ? (
+            <div className="skeleton h-40 w-full max-w-5xl mx-auto" />
+          ) : (
+            <TypingTest
+              key={sessionId}
+              initialText={initialText}
+              supplyMore={supplyMore}
+              durationSec={duration}
+              focusMode={focus}
+              onFocusStart={() => setFocus(true)}
+              onFocusEnd={() => setFocus(false)}
+              onRestart={rebuildGenerator}
+              onTestComplete={handleTestComplete}
+              showResults={testCompleted}
+            />
+          )}
           {!focus && (
-            <div className="mb-4 flex items-center justify-center gap-3 text-sm">
+            <div className="mb-4 mt-4 flex items-center justify-center gap-3 text-sm">
               <button
                 onClick={rebuildGenerator}
                 className="px-3 py-1.5 rounded-md bg-white/10 border border-white/10 hover:bg-white/15 transition"
@@ -79,36 +112,21 @@ export default function Home() {
                 title="Get different text">
                 ↻ Reroll text
               </button>
-              <span className="text-white/40">•</span>
+              {/* <span className="text-white/40">•</span>
               <span className="text-white/60">Language: <span className="text-white">{lang}</span></span>
               <span className="text-white/40">•</span>
               <span className="text-white/60">Duration: <span className="text-white">{duration}s</span></span>
               <span className="text-white/40">•</span>
               <span className="text-white/60">Punct: <span className="text-white">{punctuation ? "on" : "off"}</span></span>
               <span className="text-white/40">•</span>
-              <span className="text-white/60">Numbers: <span className="text-white">{numbers ? "on" : "off"}</span></span>
+              <span className="text-white/60">Numbers: <span className="text-white">{numbers ? "on" : "off"}</span></span> */}
             </div>
-          )}
-
-          {loading ? (
-            <div className="skeleton h-40 w-full max-w-5xl mx-auto" />
-          ) : (
-            <TypingTest
-              key={sessionId}        // <— force remount on reroll/options
-              initialText={initialText}
-              supplyMore={supplyMore}
-              durationSec={duration}
-              focusMode={focus}
-              onFocusStart={() => setFocus(true)}
-              onFocusEnd={() => setFocus(false)}
-            />
           )}
         </div>
       </section>
       <aside className="absolute right-0 top-1/4" style={{ width: 320 }}>
         <AdUnit
           slot="9194878710"
-          // Let AdSense size it; or force a size with width/height
           style={{ display: "block", minWidth: 300, minHeight: 250 }}
           format="auto"
           responsive={true}

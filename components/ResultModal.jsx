@@ -2,52 +2,113 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { motion } from "framer-motion";
+import Link from "next/link";
+
+const STORAGE_KEY = "tmt_stats";
 
 export default function ResultModal({ open, stats, onClose, onRetry }) {
   const modalRef = useRef(null);
+  const firstButtonRef = useRef(null);
+  const savedOnceRef = useRef(false);
 
+  // Animate in
   useEffect(() => {
     if (open && modalRef.current) {
       gsap.fromTo(
         modalRef.current,
-        { opacity: 0, scale: 0.8, y: 30 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power3.out" }
+        { opacity: 0, scale: 0.86, y: 22 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power3.out" }
       );
+      // focus first button for quicker keyboard control
+      setTimeout(() => firstButtonRef.current?.focus(), 50);
     }
   }, [open]);
 
+  // Save to localStorage once per open
+  useEffect(() => {
+    if (!open || !stats || savedOnceRef.current) return;
+    const entry = {
+      wpm: Number(stats.wpm?.toFixed?.(1) ?? stats.wpm ?? 0),
+      accuracy: Number(stats.accuracy?.toFixed?.(1) ?? stats.accuracy ?? 0),
+      words: Number((stats.words ?? 0).toFixed?.(0) ?? stats.words ?? 0),
+      hits: Number(stats.hits ?? 0),
+      duration: Number(stats.duration ?? 60),
+      date: new Date().toISOString(),
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      existing.push(entry);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+      savedOnceRef.current = true;
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [open, stats]);
+
+  // Keyboard shortcuts: Esc = close, Enter = retry
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); onClose?.(); }
+      if (e.key === "Enter")  { e.preventDefault(); onRetry?.(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose, onRetry]);
+
   if (!open) return null;
 
+  // Backdrop click closes
+  const onBackdrop = (e) => {
+    if (e.target === e.currentTarget) onClose?.();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+      onMouseDown={onBackdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Typing test results"
+    >
       <motion.div
         ref={modalRef}
-        className="bg-[#1e1e1f] rounded-2xl p-8 w-[90%] max-w-1/2 text-center border border-white/10 shadow-lg"
+        className="bg-[#1e1e1f] rounded-2xl p-6 md:p-8 w-[92%] max-w-xl md:max-w-2xl text-center border border-white/10 shadow-lg"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <h2 className="text-2xl font-bold text-brand mb-4">Test Completed!</h2>
+        <h2 className="text-2xl font-bold text-brand mb-2">Test Completed!</h2>
+        <p className="text-white/50 text-xs mb-5">
+          {new Date().toLocaleString()} • {Number(stats?.duration ?? 60)}s session
+        </p>
 
-        <div className="grid grid-cols-2 gap-4 text-left text-white/90 mb-6">
-          <Stat label="WPM" value={stats.wpm.toFixed(0)} />
-          <Stat label="Accuracy" value={`${stats.accuracy.toFixed(1)}%`} />
-          <Stat label="Words Typed" value={stats.words.toFixed(0)} />
-          <Stat label="Characters" value={stats.hits} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left text-white/90 mb-6">
+          <Stat label="WPM" value={Number(stats.wpm).toFixed(0)} />
+          <Stat label="Accuracy" value={`${Number(stats.accuracy).toFixed(1)}%`} />
+          <Stat label="Words" value={Number(stats.words).toFixed(0)} />
+          <Stat label="Characters" value={Number(stats.hits)} />
         </div>
 
-        <div className="flex justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <button
+            ref={firstButtonRef}
             onClick={onRetry}
-            className="px-4 py-2 bg-brand text-ink rounded-md hover:bg-[#d8a800] transition"
+            className="px-4 py-2 bg-brand text-ink rounded-md hover:bg-[#d8a800] transition focus:outline-none focus:ring-2 focus:ring-brand/50"
           >
             Retry
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-white/10 text-white rounded-md hover:bg-white/20 transition"
+            className="px-4 py-2 bg-white/10 text-white rounded-md hover:bg-white/20 transition focus:outline-none focus:ring-2 focus:ring-white/30"
           >
             Close
           </button>
+          <Link
+            href="/stats"
+            className="px-4 py-2 bg-white/10 text-white rounded-md hover:bg-white/20 transition focus:outline-none focus:ring-2 focus:ring-white/30"
+          >
+            View Stats
+          </Link>
         </div>
       </motion.div>
     </div>
@@ -56,9 +117,9 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
 
 function Stat({ label, value }) {
   return (
-    <div>
-      <div className="text-xs text-white/60">{label}</div>
-      <div className="text-lg font-semibold text-white">{value}</div>
+    <div className="rounded-lg bg-white/5 border border-white/10 p-3">
+      <div className="text-[11px] uppercase tracking-wide text-white/60">{label}</div>
+      <div className="text-lg md:text-xl font-semibold text-white">{value}</div>
     </div>
   );
 }

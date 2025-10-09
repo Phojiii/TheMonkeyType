@@ -5,7 +5,7 @@
 /* Roboto Mono */
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
 
-:root{ --bg:#323437; --fg:#ffffff; --accent:#E2B714; }
+:root{ --bg:#323437; --fg:#ffffff; --accent:#C24451; }
 html,body{height:100%}
 body{ background:var(--bg); color:var(--fg); font-family:'Roboto Mono', monospace; }
 

@@ -5,10 +5,9 @@ import { gsap } from "gsap";
 import ResultModal from "./ResultModal";
 
 /**
- * Streaming + 3-line viewport + focus mode
- * This version shows:
- *  - If durationSec === 60: primary = WPM
- *  - If durationSec !== 60: primary = Words (session), sub = WPM
+ * Streaming + 3-line viewport + focus mode + Tab→Enter restart
+ * - If durationSec === 60: primary = WPM
+ * - If durationSec !== 60: primary = Words (session), sub = WPM
  */
 export default function TypingTest({
   initialText = "",
@@ -18,6 +17,7 @@ export default function TypingTest({
   focusMode = false,
   onFocusStart,
   onFocusEnd,
+  onRestart, // <-- Accept onRestart prop (should be rebuildGenerator)
 }) {
   // core state
   const [startedAt, setStartedAt] = useState(null);
@@ -55,6 +55,11 @@ export default function TypingTest({
       setShowResults(false);
     }
   }, [ended]);
+
+  // --- Tab → Enter arming ---
+  const tabArmedRef = useRef(false);
+  const tabTimerRef = useRef(null);
+  const [showTabHint, setShowTabHint] = useState(false);
 
   // reset on text/duration change
   useEffect(() => {
@@ -116,7 +121,9 @@ export default function TypingTest({
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, [startedAt, ended, durationSec, onFocusEnd]);
 
   async function maybePreloadMore(nextIndex) {
@@ -146,8 +153,44 @@ export default function TypingTest({
     }
   }, [idx, lineHeightPx]);
 
+  // unified reset
+  function resetTest() {
+    setBuffer(initialText || "");
+    setMarks(new Array((initialText || "").length).fill(0));
+    setIdx(0);
+    setErrors(0);
+    setHits(0);
+    setEnded(false);
+    setStartedAt(null);
+    setRemaining(durationSec);
+    setScrolledLines(0);
+    gsap.set(scrollerRef.current, { y: 0 });
+    gsap.fromTo(wrapRef.current, { scale: 0.98 }, { scale: 1, duration: 0.15, ease: "power2.out" });
+    inputRef.current?.focus();
+  }
+
   function onKeyDown(e) {
     if (ended) return;
+
+    // Tab → Enter restart (call onRestart for reroll)
+    if (e.key === "Tab") {
+      e.preventDefault(); // keep focus here
+      tabArmedRef.current = true;
+      setShowTabHint(true);
+      clearTimeout(tabTimerRef.current);
+      tabTimerRef.current = setTimeout(() => {
+        tabArmedRef.current = false;
+        setShowTabHint(false);
+      }, 1200);
+      return;
+    }
+    if (e.key === "Enter" && tabArmedRef.current) {
+      e.preventDefault();
+      tabArmedRef.current = false;
+      setShowTabHint(false);
+      if (onRestart) onRestart(); // <-- Call parent reroll
+      return;
+    }
 
     // Backspace: correct previous char
     if (e.key === "Backspace") {
@@ -205,19 +248,20 @@ export default function TypingTest({
 
   // ---- metrics (fixed) ----
   const elapsedSec = startedAt ? Math.max(0, (Date.now() - startedAt) / 1000) : 0;
-  const grossWords = hits / 5; // words typed (session so far)
+  const grossWords = hits / 5; // words typed
   const wpm = startedAt ? (grossWords / Math.max(0.001, elapsedSec / 60)) : 0; // true WPM
 
-  // When duration != 60s, show Words as primary & WPM as sub
   const primaryLabel = durationSec === 60 ? "WPM" : "Words";
   const primaryValue = durationSec === 60 ? wpm.toFixed(0) : Math.floor(grossWords);
   const subValue = durationSec === 60 ? null : `WPM ${wpm.toFixed(0)}`;
   const accuracy = hits + errors ? (hits / (hits + errors)) * 100 : 100;
+
   const testStats = {
     wpm,
     accuracy,
     hits,
-    words: hits / 5,
+    words: grossWords,
+    duration: durationSec
   };
 
   return (
@@ -235,6 +279,13 @@ export default function TypingTest({
       {focusMode && (
         <div className="fixed -top-10 left-1/2 -translate-x-1/2 text-base md:text-lg font-semibold text-brand drop-neon z-50">
           {remaining}s
+        </div>
+      )}
+
+      {/* Tab→Enter hint */}
+      {showTabHint && !ended && (
+        <div className="fixed -bottom-14 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded bg-black/60 border border-white/10 text-white/80 z-50">
+          Tab → Enter to restart
         </div>
       )}
 
@@ -272,49 +323,21 @@ export default function TypingTest({
 
       {ended && (
         <>
-        <motion.div
+          <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-8 flex items-center justify-center gap-3"
           >
-            <button
-              onClick={() => {
-                setBuffer(initialText || "");
-                setMarks(new Array((initialText || "").length).fill(0));
-                setIdx(0);
-                setErrors(0);
-                setHits(0);
-                setEnded(false);
-                setStartedAt(null);
-                setRemaining(durationSec);
-                setScrolledLines(0);
-                gsap.set(scrollerRef.current, { y: 0 });
-                inputRef.current?.focus();
-              }}
-              className="btn-primary"
-            >
-              Retry
-            </button>
+            <button onClick={resetTest} className="btn-primary">Retry</button>
           </motion.div>
+
           {/* Result Modal */}
           <ResultModal
             open={showResults}
             stats={testStats}
-            onClose={() => setShowResults(false)}
-            onRetry={() => {
-              setShowResults(false);
-              setBuffer(initialText || "");
-              setMarks(new Array((initialText || "").length).fill(0));
-              setIdx(0);
-              setErrors(0);
-              setHits(0);
-              setEnded(false);
-              setStartedAt(null);
-              setRemaining(durationSec);
-              setScrolledLines(0);
-              gsap.set(scrollerRef.current, { y: 0 });
-              inputRef.current?.focus();
-            }}
+            onClose={() => { setShowResults(false); inputRef.current?.focus(); }}
+            onRetry={() => { setShowResults(false); resetTest(); }}
+            durationSec={durationSec}
           />
         </>
       )}

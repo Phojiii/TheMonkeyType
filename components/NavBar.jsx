@@ -24,18 +24,18 @@ export default function NavBar() {
           <FaHome className="text-xl text-brand group-hover:text-yellow-400 transition" />
           <span className="text-xs text-white/70 mt-1 hidden xl:block">Home</span>
         </Link>
-        <Link href="/test" className="group flex flex-col items-center">
+        {/* <Link href="/test" className="group flex flex-col items-center">
           <FaKeyboard className="text-xl text-brand group-hover:text-yellow-400 transition" />
           <span className="text-xs text-white/70 mt-1 hidden xl:block">Test</span>
-        </Link>
-        <Link href="/focus" className="group flex flex-col items-center">
+        </Link> */}
+        <Link href="/stats" className="group flex flex-col items-center">
           <FaChartBar className="text-xl text-brand group-hover:text-yellow-400 transition" />
           <span className="text-xs text-white/70 mt-1 hidden xl:block">Stats</span>
         </Link>
-        <Link href="/settings" className="group flex flex-col items-center">
+        {/* <Link href="/settings" className="group flex flex-col items-center">
           <FaCog className="text-xl text-brand group-hover:text-yellow-400 transition" />
           <span className="text-xs text-white/70 mt-1 hidden xl:block">Settings</span>
-        </Link>
+        </Link> */}
       </div>
       {/* Profile & Notification */}
       <div className="flex flex-col items-center gap-6">

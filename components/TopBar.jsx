@@ -20,12 +20,12 @@ export default function TopBar({
       <button
         onClick={(e)=>{ setPunctuation(v=>!v); pulse(e.currentTarget); }}
         className={"topbar-stagger text-xs px-2 py-1 rounded-md transition-all " + (punctuation ? "bg-brand text-ink shadow-[0_0_10px_rgba(226,183,20,0.35)]" : "text-white/60 hover:text-white hover:bg-white/10")}>
-        punctuation
+        @ Punctuation
       </button>
       <button
         onClick={(e)=>{ setNumbers(v=>!v); pulse(e.currentTarget); }}
         className={"topbar-stagger text-xs px-2 py-1 rounded-md transition-all " + (numbers ? "bg-brand text-ink shadow-[0_0_10px_rgba(226,183,20,0.35)]" : "text-white/60 hover:text-white hover:bg-white/10")}>
-        # numbers
+        # Numbers
       </button>
 
       <div className="h-5 w-px bg-white/10 mx-1" />
@@ -44,7 +44,7 @@ export default function TopBar({
       <select
         value={lang}
         onChange={(e)=>setLang(e.target.value)}
-        className="topbar-stagger bg-white/10 border border-white/10 text-white/90 text-sm rounded-md px-3 py-1 focus:outline-none hover:bg-white/15 transition"
+        className="topbar-stagger bg-brand border border-white/10 text-white/90 text-sm rounded-md px-3 py-1 focus:outline-none hover:bg-white/15 transition"
         aria-label="Language">
         <option value="english">English</option>
         <option value="urdu">Urdu</option>
