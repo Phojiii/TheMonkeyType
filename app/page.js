@@ -124,18 +124,18 @@ export default function Home() {
           )}
         </div>
       </section>
-      <aside className="absolute right-0 top-1/4" style={{ width: 320 }}>
+      <aside className="absolute right-0 top-1/4">
         <AdUnit
           slot="9194878710"
-          style={{ display: "block", minWidth: 300, minHeight: 250 }}
-          format="auto"
-          responsive={true}
+          fixed
+          style={{ display: "block", width: 300, height: 250 }}
+          format="rectangle"        // or keep "auto"; width/height will be respected
+          responsive={false}
         />
       </aside>
-      <div style={{ maxWidth: "100%", margin: "24px auto 0", minHeight: 90 }}>
-        <AdUnit slot="6053710056" />
+      <div style={{ maxWidth: "100%", margin: "24px auto 0" }}>
+        <AdUnit slot="6053710056" style={{ display: "block", width: "100%" }} />
       </div>
-
       {/* Footer (hidden in focus mode) */}
       {!focus && (
         <footer className="w-full max-w-6xl mx-auto px-6 pb-6">

@@ -1,8 +1,9 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next"
-import '../app/globals.css';
-import NavBar from '../components/NavBar';
+import { Analytics } from "@vercel/analytics/react";
+import "../app/globals.css";
+import NavBar from "../components/NavBar";
 import Script from "next/script";
+import GTMInitializer from "../components/GTMInitializer"; // <-- client helper
 
 export const metadata = {
   title: "Typing Trainer",
@@ -10,26 +11,26 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const GTM_ID = "G-FT5G53V5QP"; // <-- container ID
+
   return (
     <html lang="en">
       <head>
-        {/* Google Analytics (gtag.js) */}
+        {/* Google Tag Manager */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-FT5G53V5QP"
-          strategy="afterInteractive"
-        />
-        <Script
-          id="gtag-init"
+          id="gtm"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-FT5G53V5QP');
-            `
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','${GTM_ID}');
+            `,
           }}
         />
+
         {/* Google AdSense */}
         <Script
           id="adsense"
@@ -41,6 +42,18 @@ export default function RootLayout({ children }) {
         <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
       </head>
       <body>
+        {/* GTM noscript fallback */}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+
+        {/* Push page_view on route changes */}
+        <GTMInitializer gtmId={GTM_ID} />
         <NavBar />
         <main className="ml-20 font-mono antialiased">
           {children}
