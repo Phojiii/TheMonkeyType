@@ -4,9 +4,10 @@ import "../app/globals.css";
 import NavBar from "../components/NavBar";
 import Script from "next/script";
 import GTMInitializer from "../components/GTMInitializer"; // <-- client helper
+import { Suspense } from "react";
 
 export const metadata = {
-  title: "Typing Trainer",
+  title: "The Monkey Type - Adaptive Typing Practice",
   description: "Adaptive typing practice that learns your weaknesses",
 };
 
@@ -53,7 +54,9 @@ export default function RootLayout({ children }) {
         </noscript>
 
         {/* Push page_view on route changes */}
-        <GTMInitializer gtmId={GTM_ID} />
+        <Suspense fallback={null}>
+          <GTMInitializer gtmId={GTM_ID} />
+        </Suspense>
         <NavBar />
         <main className="ml-20 font-mono antialiased">
           {children}
