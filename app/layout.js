@@ -1,4 +1,5 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next"
 import '../app/globals.css';
 import NavBar from '../components/NavBar';
 import Script from "next/script";
@@ -44,6 +45,7 @@ export default function RootLayout({ children }) {
         <main className="ml-20 font-mono antialiased">
           {children}
           <SpeedInsights />
+          <Analytics />
         </main>
       </body>
     </html>
