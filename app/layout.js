@@ -33,12 +33,11 @@ export default function RootLayout({ children }) {
         />
 
         {/* Google AdSense */}
-        <Script
-          id="adsense"
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
           crossOrigin="anonymous"
-        />
+        ></script>
         <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
       </head>
       <body>
@@ -59,6 +58,7 @@ export default function RootLayout({ children }) {
         <NavBar />
         <main className="ml-20 font-mono antialiased">
           {children}
+          {/* Vercel Speed Insights & Analytics */}
           <SpeedInsights />
           <Analytics />
         </main>
