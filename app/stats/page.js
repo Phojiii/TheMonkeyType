@@ -11,11 +11,10 @@ const KEY = "tmt_stats";
 export default function StatsPage() {
   const [raw, setRaw] = useState([]);
   const [filter, setFilter] = useState("all"); // all | 15 | 30 | 60 | 120
+  const [range, setRange] = useState("7d");    // '12h' | '24h' | '7d' | '30d'
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem(KEY) || "[]");
-
-    // Normalize: coerce duration to a number or null (no silent 60)
     const normalized = (Array.isArray(stored) ? stored : []).map((d) => {
       const dur = Number(d?.duration);
       return {
@@ -24,42 +23,55 @@ export default function StatsPage() {
         wpm: Number(d?.wpm) || 0,
         accuracy: Number(d?.accuracy) || 0,
         words: Number(d?.words) || 0,
+        ts: new Date(d.date).getTime(), // numeric timestamp for charting
       };
     });
-
     setRaw(normalized);
     gsap.fromTo('.stats-stagger', { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.05 });
   }, []);
 
-  const data = useMemo(() => {
+  // duration filter (left controls)
+  const dataByDuration = useMemo(() => {
     const arr = Array.isArray(raw) ? raw : [];
     if (filter === "all") return arr;
     const want = Number(filter);
     return arr.filter((d) => d.duration === want);
   }, [raw, filter]);
 
+  // chart time-range filter
+  const chartData = useMemo(() => {
+    if (!dataByDuration.length) return [];
+    const now = Date.now();
+    const rangeMs = ({
+      '12h': 12 * 60 * 60 * 1000,
+      '24h': 24 * 60 * 60 * 1000,
+      '7d' : 7  * 24 * 60 * 60 * 1000,
+      '30d': 30 * 24 * 60 * 60 * 1000,
+    })[range] || (7 * 24 * 60 * 60 * 1000);
 
-  // ---- aggregates
+    const from = now - rangeMs;
+    const within = dataByDuration.filter(d => d.ts >= from && d.ts <= now);
+
+    // Sort by time ascending so the line draws properly
+    return within.sort((a, b) => a.ts - b.ts);
+  }, [dataByDuration, range]);
+
+  // ---- aggregates (computed on duration-filtered data, not range-filtered)
   const totals = useMemo(() => {
+    const data = dataByDuration;
     if (!data.length) return null;
-    const wpmVals = data.map(d => Number(d.wpm) || 0);
-    const accVals = data.map(d => Number(d.accuracy) || 0);
-    const wordsVals = data.map(d => Number(d.words) || 0);
+    const wpmVals   = data.map(d => d.wpm);
+    const accVals   = data.map(d => d.accuracy);
+    const wordsVals = data.map(d => d.words);
 
-    const bestWpm = Math.max(...wpmVals);
-    const bestAcc = Math.max(...accVals);
-    const avgWpm = wpmVals.reduce((a,b)=>a+b,0) / wpmVals.length;
+    const bestWpm    = Math.max(...wpmVals);
+    const bestAcc    = Math.max(...accVals);
+    const avgWpm     = wpmVals.reduce((a,b)=>a+b,0) / wpmVals.length;
     const totalWords = wordsVals.reduce((a,b)=>a+b,0);
     const totalTests = data.length;
 
-    // last 10 for chart
-    const last10 = data.slice(-10).map(d => ({
-      ...d,
-      dateLabel: new Date(d.date).toLocaleDateString(),
-    }));
-
-    return { bestWpm, bestAcc, avgWpm, totalWords, totalTests, last10 };
-  }, [data]);
+    return { bestWpm, bestAcc, avgWpm, totalWords, totalTests };
+  }, [dataByDuration]);
 
   const clearStats = () => {
     localStorage.removeItem(KEY);
@@ -67,7 +79,6 @@ export default function StatsPage() {
   };
 
   const removeEntry = (iFromEnd) => {
-    // remove a specific row (from latest-first table index)
     const arr = Array.isArray(raw) ? [...raw] : [];
     const idx = arr.length - 1 - iFromEnd;
     if (idx >= 0) {
@@ -76,6 +87,19 @@ export default function StatsPage() {
       setRaw(arr);
     }
   };
+
+  // helpers to format ticks/tooltips based on chosen range
+  const formatTick = (ts) => {
+    const d = new Date(ts);
+    if (range === '12h' || range === '24h') {
+      // show time
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    // show day + time
+    return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatLabel = (ts) => new Date(ts).toLocaleString();
 
   return (
     <main className="min-h-screen bg-ink text-white px-6 py-10">
@@ -90,7 +114,7 @@ export default function StatsPage() {
       {/* Filters + Actions */}
       <section className="max-w-6xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-3 stats-stagger">
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-white/60">Filter:</span>
+          <span className="text-white/60">Session length:</span>
           {["all", 15, 30, 60, 120].map(f => (
             <button
               key={f}
@@ -103,6 +127,25 @@ export default function StatsPage() {
               }
             >
               {f === "all" ? "All" : `${f}s`}
+            </button>
+          ))}
+        </div>
+
+        {/* NEW: Chart range */}
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-white/60">Chart range:</span>
+          {["12h", "24h", "7d", "30d"].map(r => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              className={
+                "px-3 py-1 rounded-md transition " +
+                (range === r
+                  ? "bg-white/90 text-ink"
+                  : "bg-white/10 text-white/80 hover:bg-white/15")
+              }
+            >
+              {r}
             </button>
           ))}
         </div>
@@ -131,29 +174,56 @@ export default function StatsPage() {
       )}
 
       {/* Chart */}
-      {totals && (
-        <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 stats-stagger">
-          <h2 className="text-lg font-semibold mb-4">Performance Over Time (last 10)</h2>
-          <div className="w-full h-72">
+      <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 stats-stagger">
+        <h2 className="text-lg font-semibold mb-4">Performance Over Time ({range})</h2>
+        <div className="w-full h-72">
+          {chartData.length === 0 ? (
+            <div className="w-full h-full flex items-center justify-center text-white/50">
+              No data in selected range.
+            </div>
+          ) : (
             <ResponsiveContainer>
-              <LineChart data={totals.last10}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3a" />
-                <XAxis dataKey="dateLabel" tickFormatter={(d)=> new Date(d).toLocaleDateString()} stroke="#ccc" />
+                <XAxis
+                  dataKey="ts"
+                  type="number"
+                  domain={['dataMin', 'dataMax']}
+                  tickFormatter={formatTick}
+                  stroke="#ccc"
+                />
+                {/* Y axis is numeric (WPM/Accuracy); time is on X axis */}
                 <YAxis stroke="#ccc" />
                 <Tooltip
                   contentStyle={{ background: "#222", border: "none", color: "#fff" }}
-                  labelFormatter={(d) => new Date(d).toLocaleString()}
+                  labelFormatter={formatLabel}
                 />
-                <Line type="monotone" dataKey="wpm" name="WPM" stroke="#E2B714" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="accuracy" name="Accuracy" stroke="#38bdf8" strokeWidth={2} dot={false} />
+                <Line
+                  type="monotone"
+                  dataKey="wpm"
+                  name="WPM"
+                  stroke="#E2B714"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  isAnimationActive={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="accuracy"
+                  name="Accuracy"
+                  stroke="#38bdf8"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  isAnimationActive={false}
+                />
               </LineChart>
             </ResponsiveContainer>
-          </div>
-        </section>
-      )}
+          )}
+        </div>
+      </section>
 
       {/* Table */}
-      {data.length > 0 && (
+      {dataByDuration.length > 0 && (
         <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 overflow-x-auto stats-stagger">
           <h2 className="text-lg font-semibold mb-4">Results ({filter === "all" ? "All" : `${filter}s`})</h2>
           <table className="w-full text-sm text-left border-collapse">
@@ -168,9 +238,9 @@ export default function StatsPage() {
               </tr>
             </thead>
             <tbody>
-              {data.slice().reverse().map((d, i) => (
+              {dataByDuration.slice().reverse().map((d, i) => (
                 <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition">
-                  <td className="py-2 px-3">{new Date(d.date).toLocaleString()}</td>
+                  <td className="py-2 px-3">{new Date(d.ts).toLocaleString()}</td>
                   <td className="py-2 px-3">{d.duration != null ? `${d.duration}s` : "—"}</td>
                   <td className="py-2 px-3 text-brand">{d.wpm}</td>
                   <td className="py-2 px-3 text-sky-400">{d.accuracy}%</td>
@@ -194,7 +264,6 @@ export default function StatsPage() {
 }
 
 /* --- UI bits --- */
-
 function Badge({ title, value, accent = "brand" }) {
   const accents = {
     brand: "text-[#323437] bg-[#E2B714] shadow-[0_0_16px_rgba(226,183,20,0.25)]",

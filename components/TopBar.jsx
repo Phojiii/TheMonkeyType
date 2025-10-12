@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from "react";
 import { gsap } from "gsap";
+import { FaWolfPackBattalion } from "react-icons/fa";
 
 export default function TopBar({
   lang, setLang,
@@ -44,7 +45,7 @@ export default function TopBar({
       <select
         value={lang}
         onChange={(e)=>setLang(e.target.value)}
-        className="topbar-stagger bg-brand border border-white/10 text-white/90 text-sm rounded-md px-3 py-1 focus:outline-none hover:bg-white/15 transition"
+        className="topbar-stagger bg-black/40 border border-white/10 text-white/90 text-sm rounded-md px-3 py-1 focus:outline-none focus:bg-brand hover:bg-brand transition-all duration-200 transform scale-100 hover:scale-110"
         aria-label="Language">
         <option value="english">English</option>
         <option value="urdu">Urdu</option>

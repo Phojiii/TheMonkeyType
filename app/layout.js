@@ -7,8 +7,8 @@ import GTMInitializer from "../components/GTMInitializer"; // <-- client helper
 import { Suspense } from "react";
 
 export const metadata = {
-  title: "The Monkey Type - Adaptive Typing Practice",
-  description: "Adaptive typing practice that learns your weaknesses",
+  title: "The Monkey Type - Online Typing Trainer to Improve Speed & Accuracy",
+  description: "Free Online Typing Trainer takes free typing tests, tracks accuracy, and boosts speed effortlessly. Enhance your typing performance with The Monkey Type.",
 };
 
 export default function RootLayout({ children }) {
@@ -35,7 +35,6 @@ export default function RootLayout({ children }) {
         {/* Google AdSense */}
         <Script
           id="adsense"
-          strategy="afterInteractive"
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
           crossOrigin="anonymous"
