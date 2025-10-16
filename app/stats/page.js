@@ -2,9 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { useUser } from "@clerk/nextjs";
 
 const KEY = "tmt_stats";
 
@@ -12,6 +11,7 @@ export default function StatsPage() {
   const [raw, setRaw] = useState([]);
   const [filter, setFilter] = useState("all"); // all | 15 | 30 | 60 | 120
   const [range, setRange] = useState("7d");    // '12h' | '24h' | '7d' | '30d'
+  const { user, isSignedIn } = useUser();
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem(KEY) || "[]");
@@ -100,6 +100,21 @@ export default function StatsPage() {
   };
 
   const formatLabel = (ts) => new Date(ts).toLocaleString();
+
+  useEffect(() => {
+    if (!isSignedIn || !totals) return;
+
+    const bestScore = {
+      bestWpm: Math.round(totals.bestWpm),
+      bestAccuracy: Math.round(totals.bestAcc),
+    };
+
+    fetch("/api/saveScore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bestScore),
+    }).catch((err) => console.error("Failed to sync score:", err));
+  }, [isSignedIn, totals]);
 
   return (
     <main className="min-h-screen bg-ink text-white px-6 py-10">

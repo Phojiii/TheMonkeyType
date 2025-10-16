@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 
 const STORAGE_KEY = "tmt_stats";
 
@@ -11,6 +12,50 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
   const firstButtonRef = useRef(null);
   const savedOnceRef = useRef(false);
 
+  const { isSignedIn } = useUser();
+
+  // Helper: compute local best from localStorage (fallback)
+  function getLocalBest() {
+    try {
+      const arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      if (!Array.isArray(arr) || arr.length === 0) return null;
+      let bestWpm = 0, bestAccuracy = 0;
+      for (const r of arr) {
+        const wpm = Number(r?.wpm) || 0;
+        const acc = Number(r?.accuracy) || 0;
+        if (wpm > bestWpm) bestWpm = wpm;
+        if (acc > bestAccuracy) bestAccuracy = acc;
+      }
+      return { bestWpm, bestAccuracy };
+    } catch {
+      return null;
+    }
+  }
+
+  // 🔄 Sync to DB once when modal opens (if signed in)
+  useEffect(() => {
+    if (!open || !isSignedIn || !stats) return;
+
+    // Either send current session…
+    let payload = {
+      bestWpm: Math.round(Number(stats.wpm) || 0),
+      bestAccuracy: Math.round(Number(stats.accuracy) || 0),
+    };
+
+    // …or send local best if you prefer:
+    const localBest = getLocalBest();
+    if (localBest && localBest.bestWpm > payload.bestWpm) {
+      payload = localBest;
+    }
+
+    fetch("/api/saveScore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      // credentials: "include", // optional (same-origin by default)
+      body: JSON.stringify(payload),
+    }).catch(console.error);
+  }, [open, isSignedIn, stats]);
+  
   // Animate in
   useEffect(() => {
     if (open && modalRef.current) {
@@ -19,7 +64,6 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
         { opacity: 0, scale: 0.86, y: 22 },
         { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power3.out" }
       );
-      // focus first button for quicker keyboard control
       setTimeout(() => firstButtonRef.current?.focus(), 50);
     }
   }, [open]);
@@ -40,9 +84,7 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
       existing.push(entry);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
       savedOnceRef.current = true;
-    } catch (e) {
-      // ignore storage errors
-    }
+    } catch {}
   }, [open, stats]);
 
   // Keyboard shortcuts: Esc = close, Enter = retry
@@ -58,7 +100,6 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
 
   if (!open) return null;
 
-  // Backdrop click closes
   const onBackdrop = (e) => {
     if (e.target === e.currentTarget) onClose?.();
   };

@@ -103,7 +103,7 @@ export default function Home() {
               showResults={testCompleted}
             />
           )}
-          {!focus && (
+          {!focus &&(
             <div className="mb-4 mt-4 flex items-center justify-center gap-3 text-sm">
               <button
                 onClick={rebuildGenerator}
@@ -112,16 +112,13 @@ export default function Home() {
                 title="Get different text">
                 ↻ Reroll text
               </button>
-              {/* <span className="text-white/40">•</span>
-              <span className="text-white/60">Language: <span className="text-white">{lang}</span></span>
-              <span className="text-white/40">•</span>
-              <span className="text-white/60">Duration: <span className="text-white">{duration}s</span></span>
-              <span className="text-white/40">•</span>
-              <span className="text-white/60">Punct: <span className="text-white">{punctuation ? "on" : "off"}</span></span>
-              <span className="text-white/40">•</span>
-              <span className="text-white/60">Numbers: <span className="text-white">{numbers ? "on" : "off"}</span></span> */}
             </div>
           )}
+          <div className="flex flex-col items-center justify-center text-center mt-10">
+            <span className="mt-1 text-[11px] text-white/40 tracking-wide">
+              <kbd className="bg-white/10 px-1 rounded">Tab</kbd> + <kbd className="bg-white/10 px-1 rounded">Enter</kbd> - Restart Test
+            </span>
+          </div>
         </div>
       </section>
       <aside className="absolute right-0 top-1/4">
