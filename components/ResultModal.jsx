@@ -10,53 +10,92 @@ const STORAGE_KEY = "tmt_stats";
 export default function ResultModal({ open, stats, onClose, onRetry }) {
   const modalRef = useRef(null);
   const firstButtonRef = useRef(null);
-  const savedOnceRef = useRef(false);
+  const savedOnceRef = useRef(false);       // localStorage save guard
+  const pushedToDBRef = useRef(false);      // DB sync guard
 
   const { isSignedIn } = useUser();
 
-  // Helper: compute local best from localStorage (fallback)
-  function getLocalBest() {
+  // ---- helpers --------------------------------------------------------------
+
+  // Get best-for-this-duration from localStorage only (avoid mixing categories)
+  function getLocalBestForDuration(duration) {
     try {
       const arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
       if (!Array.isArray(arr) || arr.length === 0) return null;
-      let bestWpm = 0, bestAccuracy = 0;
+
+      const dur = Number(duration);
+      if (!Number.isFinite(dur)) return null;
+
+      let bestWpm = -1;
+      let bestAccuracy = -1;
+
       for (const r of arr) {
-        const wpm = Number(r?.wpm) || 0;
-        const acc = Number(r?.accuracy) || 0;
-        if (wpm > bestWpm) bestWpm = wpm;
-        if (acc > bestAccuracy) bestAccuracy = acc;
+        const rDur = Number(r?.duration);
+        if (rDur !== dur) continue;
+        const w = Number(r?.wpm) || 0;
+        const a = Number(r?.accuracy) || 0;
+        if (w > bestWpm) bestWpm = w;
+        if (a > bestAccuracy) bestAccuracy = a;
       }
-      return { bestWpm, bestAccuracy };
+
+      if (bestWpm < 0 && bestAccuracy < 0) return null; // none for that duration
+
+      return {
+        bestWpm: Math.max(0, bestWpm),
+        bestAccuracy: Math.max(0, bestAccuracy),
+        duration: dur,
+      };
     } catch {
       return null;
     }
   }
 
-  // 🔄 Sync to DB once when modal opens (if signed in)
-  useEffect(() => {
-    if (!open || !isSignedIn || !stats) return;
+  // ---- DB sync once when modal opens ---------------------------------------
 
-    // Either send current session…
+  useEffect(() => {
+    if (!open || !isSignedIn || !stats || pushedToDBRef.current) return;
+
+    const sessionDur = Number(stats.duration);
+    if (!Number.isFinite(sessionDur)) return; // must have a valid duration
+
+    // current session payload (rounded like your API expects)
     let payload = {
       bestWpm: Math.round(Number(stats.wpm) || 0),
       bestAccuracy: Math.round(Number(stats.accuracy) || 0),
+      duration: sessionDur,
     };
 
-    // …or send local best if you prefer:
-    const localBest = getLocalBest();
-    if (localBest && localBest.bestWpm > payload.bestWpm) {
-      payload = localBest;
+    // if local best for this duration beats current, send that instead
+    const localBest = getLocalBestForDuration(sessionDur);
+    if (localBest) {
+      if (localBest.bestWpm > payload.bestWpm) payload.bestWpm = localBest.bestWpm;
+      if (localBest.bestAccuracy > payload.bestAccuracy) payload.bestAccuracy = localBest.bestAccuracy;
     }
 
-    fetch("/api/saveScore", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // credentials: "include", // optional (same-origin by default)
-      body: JSON.stringify(payload),
-    }).catch(console.error);
+    // Only send if it’s at least meaningful (>= 1 WPM)
+    if (payload.bestWpm > 0) {
+      pushedToDBRef.current = true;
+      (async () => {
+        try {
+          const res = await fetch("/api/saveScore", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) {
+            const txt = await res.text().catch(() => "");
+            console.error("saveScore error:", res.status, txt);
+          }
+        } catch (e) {
+          console.error("saveScore fetch failed:", e);
+        }
+      })();
+    }
   }, [open, isSignedIn, stats]);
-  
-  // Animate in
+
+  // ---- animate in -----------------------------------------------------------
+
   useEffect(() => {
     if (open && modalRef.current) {
       gsap.fromTo(
@@ -68,9 +107,11 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
     }
   }, [open]);
 
-  // Save to localStorage once per open
+  // ---- save this session to localStorage (once per open) --------------------
+
   useEffect(() => {
     if (!open || !stats || savedOnceRef.current) return;
+
     const entry = {
       wpm: Number(stats.wpm?.toFixed?.(1) ?? stats.wpm ?? 0),
       accuracy: Number(stats.accuracy?.toFixed?.(1) ?? stats.accuracy ?? 0),
@@ -84,10 +125,13 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
       existing.push(entry);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
       savedOnceRef.current = true;
-    } catch {}
+    } catch {
+      // ignore storage errors
+    }
   }, [open, stats]);
 
-  // Keyboard shortcuts: Esc = close, Enter = retry
+  // ---- keyboard shortcuts ---------------------------------------------------
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {

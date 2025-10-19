@@ -77,6 +77,39 @@ export default function StatsPage() {
     localStorage.removeItem(KEY);
     setRaw([]);
   };
+  
+  // --- sync best score to server when signed-in and a single duration is selected
+  useEffect(() => {
+    if (!isSignedIn || !totals) return;
+    if (!filter || filter === "all") return; // require specific duration
+
+    const duration = Number(filter);
+    const ALLOWED = [15, 30, 60, 120];
+    if (!ALLOWED.includes(duration)) return;
+
+    const payload = {
+      bestWpm: Math.round(totals.bestWpm),
+      bestAccuracy: Math.round(totals.bestAcc),
+      duration,
+    };
+
+    (async () => {
+      try {
+        const res = await fetch("/api/saveScore", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // <-- ensure cookies are sent so getAuth() works
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          console.error("SaveScore failed:", res.status, text);
+        }
+      } catch (err) {
+        console.error("SaveScore request error:", err);
+      }
+    })();
+  }, [isSignedIn, totals, filter]);
 
   const removeEntry = (iFromEnd) => {
     const arr = Array.isArray(raw) ? [...raw] : [];
@@ -100,22 +133,7 @@ export default function StatsPage() {
   };
 
   const formatLabel = (ts) => new Date(ts).toLocaleString();
-
-  useEffect(() => {
-    if (!isSignedIn || !totals) return;
-
-    const bestScore = {
-      bestWpm: Math.round(totals.bestWpm),
-      bestAccuracy: Math.round(totals.bestAcc),
-    };
-
-    fetch("/api/saveScore", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bestScore),
-    }).catch((err) => console.error("Failed to sync score:", err));
-  }, [isSignedIn, totals]);
-
+  
   return (
     <main className="min-h-screen bg-ink text-white px-6 py-10">
       <header className="flex items-center justify-between mb-8 max-w-6xl mx-auto stats-stagger">
