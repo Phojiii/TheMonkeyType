@@ -5,6 +5,6 @@ export default function robots() {
       allow: '/',
       disallow: '/private/',
     },
-    sitemap: 'https://localhost:3000/sitemap.xml',
+    sitemap: 'https://themonkeytype.com/sitemap.xml',
   }
 }
