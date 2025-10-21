@@ -1,68 +1,42 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
-import "../app/globals.css";
+import "./globals.css";
 import NavBar from "../components/NavBar";
 import Script from "next/script";
-import GTMInitializer from "../components/GTMInitializer"; // <-- client helper
+import GTMInitializer from "../components/GTMInitializer";
 import { Suspense } from "react";
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata = {
-  title: "The Monkey Type - Online Typing Trainer to Improve Speed & Accuracy",
-  description: "Free Online Typing Trainer takes free typing tests, tracks accuracy, and boosts speed effortlessly. Enhance your typing performance with The Monkey Type.",
+  title: "The Monkey Type - Online Typing Trainer",
+  description: "Free Online Typing Trainer...",
+  metadataBase: new URL("https://themonkeytype.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "The Monkey Type",
+    description: "Boost your typing skills with accuracy tracking.",
+    url: "https://themonkeytype.com",
+    siteName: "The Monkey Type",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
 };
+
 
 export default function RootLayout({ children }) {
   const GTM_ID = "G-FT5G53V5QP"; // <-- container ID
 
   return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          colorPrimary: "#E2B714",
-          colorBackground: "#323437",
-          colorText: "#ffffff",
-          fontFamily: "Roboto Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-          borderRadius: "5px",
-        },
-        elements: {
-          // Backdrop + modal container
-          modalBackdrop: "backdrop-blur-sm bg-black/70 z-[1000]",
-          modalContent: "rounded-2xl shadow-2xl border border-white/10 overflow-hidden",
-          // Card / header
-          card: "bg-[#323437] border border-white/10 rounded-2xl shadow-xl",
-          headerTitle: "text-[#E2B714] text-xl",
-          headerSubtitle: "text-white/60",
-          // Social buttons
-          socialButtons: "gap-2",
-          socialButtonsBlockButton:
-            "bg-white/10 hover:bg-white/15 text-white border border-white/10 rounded-lg",
-          socialButtonsBlockButtonText: "text-white",
-          dividerLine: "bg-white/10",
-          dividerText: "text-white/50",
-          // Inputs
-          formFieldLabel: "text-white/70",
-          formFieldInput:
-            "bg-[#2a2c2e] text-white placeholder-white/40 border border-white/10 focus:ring-2 focus:ring-[#E2B714] focus:border-[#E2B714]/60",
-          formFieldInput__error: "border-red-500 focus:ring-red-500",
-          // Primary/secondary actions
-          formButtonPrimary:
-            "bg-[#E2B714] text-[#323437] hover:bg-[#d8a800] rounded-lg font-semibold",
-          button:
-            "rounded-lg",
-          // Footer links
-          footer: "-mt-2",
-          footerAction__signIn: "text-white/60",
-          footerAction__signUp: "text-white/60",
-          footerActionLink: "text-[#E2B714] hover:opacity-90",
-          // UserButton popover (when signed in)
-          userButtonPopoverCard: "bg-[#323437] border border-white/10 shadow-xl",
-          userButtonPopoverActionButton:
-            "hover:bg-white/10 text-white",
-          userPreviewMainIdentifier: "text-white/90",
-        },
-      }}
-    >
+    
 
     <html lang="en">
       <head>
@@ -82,14 +56,63 @@ export default function RootLayout({ children }) {
         />
 
         {/* Google AdSense */}
-        <script
+        <Script
+          id="adsense"
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
           crossOrigin="anonymous"
-        ></script>
+        />
+
         <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
       </head>
       <body>
+        <ClerkProvider
+          appearance={{
+            variables: {
+              colorPrimary: "#E2B714",
+              colorBackground: "#323437",
+              colorText: "#ffffff",
+              fontFamily: "Roboto Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+              borderRadius: "5px",
+            },
+            elements: {
+              // Backdrop + modal container
+              modalBackdrop: "backdrop-blur-sm bg-black/70 z-[1000]",
+              modalContent: "rounded-2xl shadow-2xl border border-white/10 overflow-hidden",
+              // Card / header
+              card: "bg-[#323437] border border-white/10 rounded-2xl shadow-xl",
+              headerTitle: "text-[#E2B714] text-xl",
+              headerSubtitle: "text-white/60",
+              // Social buttons
+              socialButtons: "gap-2",
+              socialButtonsBlockButton:
+                "bg-white/10 hover:bg-white/15 text-white border border-white/10 rounded-lg",
+              socialButtonsBlockButtonText: "text-white",
+              dividerLine: "bg-white/10",
+              dividerText: "text-white/50",
+              // Inputs
+              formFieldLabel: "text-white/70",
+              formFieldInput:
+                "bg-[#2a2c2e] text-white placeholder-white/40 border border-white/10 focus:ring-2 focus:ring-[#E2B714] focus:border-[#E2B714]/60",
+              formFieldInput__error: "border-red-500 focus:ring-red-500",
+              // Primary/secondary actions
+              formButtonPrimary:
+                "bg-[#E2B714] text-[#323437] hover:bg-[#d8a800] rounded-lg font-semibold",
+              button:
+                "rounded-lg",
+              // Footer links
+              footer: "-mt-2",
+              footerAction__signIn: "text-white/60",
+              footerAction__signUp: "text-white/60",
+              footerActionLink: "text-[#E2B714] hover:opacity-90",
+              // UserButton popover (when signed in)
+              userButtonPopoverCard: "bg-[#323437] border border-white/10 shadow-xl",
+              userButtonPopoverActionButton:
+                "hover:bg-white/10 text-white",
+              userPreviewMainIdentifier: "text-white/90",
+            },
+          }}
+        >
         {/* GTM noscript fallback */}
         <noscript>
           <iframe
@@ -101,18 +124,17 @@ export default function RootLayout({ children }) {
         </noscript>
 
         {/* Push page_view on route changes */}
-        <Suspense fallback={null}>
-          <GTMInitializer gtmId={GTM_ID} />
-        </Suspense>
-        <NavBar />
-        <main className="ml-20 font-mono antialiased">
-          {children}
-          {/* Vercel Speed Insights & Analytics */}
-        </main>
-        <SpeedInsights />
-        <Analytics />
+          <Suspense fallback={null}>
+            <GTMInitializer gtmId={GTM_ID} />
+          </Suspense>
+          <NavBar />
+          <main className="ml-20 font-mono antialiased">
+            {children}
+          </main>
+          <SpeedInsights />
+          <Analytics />
+        </ClerkProvider>
       </body>
     </html>
-    </ClerkProvider>
   );
 }
