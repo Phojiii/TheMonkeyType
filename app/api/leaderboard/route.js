@@ -42,17 +42,21 @@ export async function GET(req) {
     let rows;
 
     if (isAll) {
-      // ---- ALL: pick one best row per user (dedup by userId)
       const matchAll = {};
       if (scope === "country" && country) matchAll.country = country;
 
       rows = await Score.aggregate([
         { $match: matchAll },
+        // 1) sort first so $first picks the true best per user
         { $sort: { bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
-        // keep the first (best) doc per userId
+        // 2) one row per user (their best)
         { $group: { _id: "$userId", doc: { $first: "$$ROOT" } } },
         { $replaceRoot: { newRoot: "$doc" } },
+        // 3) re-sort because $group destroys order
+        { $sort: { bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
+        // 4) now cap the list
         { $limit: limit },
+
         {
           $lookup: {
             from: "scores",
@@ -121,7 +125,6 @@ export async function GET(req) {
     let me = null;
     if (userId) {
       if (isAll) {
-        // rank among "best-per-user" set
         const matchAll = {};
         if (scope === "country" && country) matchAll.country = country;
 
@@ -130,20 +133,25 @@ export async function GET(req) {
           { $sort: { bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
           { $group: { _id: "$userId", doc: { $first: "$$ROOT" } } },
           { $replaceRoot: { newRoot: "$doc" } },
+          { $sort: { bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
           { $project: { userId: 1 } }
         ]);
 
         const myIndex = ranked.findIndex(r => r.userId === userId);
         if (myIndex >= 0) me = { userId, rank: myIndex + 1, total: ranked.length };
       } else {
-        // rank within the single category
-        const forRank = await Score.find(baseMatch, { userId: 1 })
-          .sort({ bestWpm: -1, bestAccuracy: -1, updatedAt: -1 })
-          .lean();
+        const forRank = await Score.find(
+          baseMatch,
+          { userId: 1 }
+        ).sort({ bestWpm: -1, bestAccuracy: -1, updatedAt: -1 }).lean();
+
         const myIndex = forRank.findIndex(r => r.userId === userId);
         if (myIndex >= 0) me = { userId, rank: myIndex + 1, total: forRank.length };
       }
     }
+
+
+
 
     const payload = rows.map(r => ({
       id: String(r.id || r._id || ""),
@@ -161,6 +169,7 @@ export async function GET(req) {
         bestAccuracy: Number(x.bestAccuracy || 0)
       }))
     }));
+    console.log(payload); 
 
     return NextResponse.json(
       {

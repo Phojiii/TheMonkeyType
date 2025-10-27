@@ -3,9 +3,10 @@ import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import NavBar from "../components/NavBar";
 import Script from "next/script";
-import GTMInitializer from "../components/GTMInitializer";
 import { Suspense } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
+import GoogleTagManager from "@/components/GoogleTagManager";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 export const metadata = {
   title: "The Monkey Type - Online Typing Trainer",
@@ -56,25 +57,26 @@ export default function RootLayout({ children }) {
         />
 
         {/* Google AdSense */}
-        <Script
-          id="adsense"
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
           crossOrigin="anonymous"
-        />
+        ></script>
 
         <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
       </head>
       <body>
-        {/* GTM noscript fallback */}
+        {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            src="https://www.googletagmanager.com/ns.html?id=GTM-WCXVWLCJ"
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
-          />
+          ></iframe>
         </noscript>
+        <GoogleTagManager />
+        <GoogleAnalytics />
         <ClerkProvider
           appearance={{
             variables: {
@@ -123,9 +125,6 @@ export default function RootLayout({ children }) {
           }}
         >
         {/* Push page_view on route changes */}
-          <Suspense fallback={null}>
-            <GTMInitializer gtmId={GTM_ID} />
-          </Suspense>
           <NavBar />
           <main className="ml-20 font-mono antialiased">
             {children}
