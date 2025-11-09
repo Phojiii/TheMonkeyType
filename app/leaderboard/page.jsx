@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 const FILTER_OPTIONS = [
   { key: "all", label: "All" },
@@ -256,6 +257,7 @@ export default function LeaderboardPage() {
           out of {payload.me.total}
         </div>
       )}
+      <Footer />
     </main>
   );
 }

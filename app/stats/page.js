@@ -4,6 +4,7 @@ import Link from "next/link";
 import { gsap } from "gsap";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useUser } from "@clerk/nextjs";
+import Footer from "@/components/Footer";
 
 const KEY = "tmt_stats";
 
@@ -292,6 +293,7 @@ export default function StatsPage() {
           </table>
         </section>
       )}
+      <Footer />
     </main>
   );
 }

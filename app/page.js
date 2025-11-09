@@ -6,6 +6,7 @@ import { makeStreamGenerator } from "@/lib/textbanks";
 import Link from "next/link";
 import Image from "next/image";
 import AdUnit from "@/components/AdUnit";
+import Footer from "@/components/Footer";
 
 const PREF_KEY = "tmt_prefs";
 
@@ -169,26 +170,21 @@ export default function Home() {
 
       {/* Ads (keep as-is; you can also hide during focus if you prefer) */}
       <aside className="absolute right-0 top-1/4">
-        <AdUnit
+        {!loading && <AdUnit
           slot="9194878710"
           fixed
           style={{ display: "block", width: 300, height: 250 }}
           format="rectangle"
           responsive={false}
-        />
+        />}
       </aside>
       <div style={{ maxWidth: "100%", margin: "24px auto 0" }}>
-        <AdUnit slot="6053710056" style={{ display: "block", width: "100%" }} />
+        {!loading && <AdUnit slot="6053710056" style={{ display: "block", width: "100%" }} /> }
       </div>
 
       {/* Footer (hidden in focus mode) */}
       {!focus && (
-        <footer className="w-full max-w-6xl mx-auto px-6 pb-6">
-          <div className="text-xs text-white/40 flex items-center justify-between">
-            <span>TMT © {new Date().getFullYear()}</span>
-            <span>#323437 / #E2B714 • Roboto Mono</span>
-          </div>
-        </footer>
+        <Footer />
       )}
     </main>
   );
