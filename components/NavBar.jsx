@@ -2,13 +2,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaHome, FaChartBar, FaBell, FaUserCircle, FaTrophy } from "react-icons/fa";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs"; // 👈 import Clerk
+import { FaHome, FaChartBar, FaBell, FaUserCircle, FaTrophy, FaBlog } from "react-icons/fa";
+import { MdAdminPanelSettings } from "react-icons/md";
+import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { useState } from "react";
+import { ADMINS } from "@/lib/admins";
 
 export default function NavBar() {
   const pathname = usePathname();
   const [notifOpen, setNotifOpen] = useState(false);
+  const { user, isLoaded } = useUser();
+  const isAdmin = isLoaded && user && ADMINS.includes(user.id);
 
   return (
     <nav className="fixed top-0 left-0 h-screen w-20 bg-[#232325] flex flex-col items-center justify-between py-6 shadow-lg z-50">
@@ -72,8 +76,19 @@ export default function NavBar() {
         </Link>
         <Link href="/leaderboard" className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20">
           <FaTrophy className={`text-xl transition-all duration-200 ${pathname === "/leaderboard" ? "text-yellow-400" : "text-white/80 group-hover:text-yellow-400"}`} />
-          <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/leaderboard" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Top</span>
+          <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/leaderboard" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Ranking</span>
         </Link>
+
+        <Link href="/blog" className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20">
+          <FaBlog className={`text-xl transition-all duration-200 ${pathname === "/blog" ? "text-yellow-400" : "text-white/80 group-hover:text-yellow-400"}`} />
+          <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/blog" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Blogs</span>
+        </Link>
+        {isAdmin && (
+        <Link href="/admin/blogs" className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20">
+          <MdAdminPanelSettings  className={`text-xl transition-all duration-200 ${pathname === "/admin/blogs" ? "text-yellow-400" : "text-white/80 group-hover:text-yellow-400"}`} />
+          <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/admin/blogs" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Admin</span>
+        </Link>
+        )}
 
       </div>
 
@@ -115,17 +130,4 @@ export default function NavBar() {
     </nav>
   );
 }
-
-
-
-
-
-{/* <Link href="/test" className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20">
-  <FaKeyboard className={`text-xl transition-all duration-200 ${pathname === "/test" ? "text-yellow-400" : "text-white/80 group-hover:text-yellow-400"}`} />
-  <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/test" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Test</span>
-</Link>
-<Link href="/settings" className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20">
-  <FaCog className={`text-xl transition-all duration-200 ${pathname === "/settings" ? "text-yellow-400" : "text-white/80 group-hover:text-yellow-400"}`} />
-  <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/settings" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Settings</span>
-</Link> */}
 
