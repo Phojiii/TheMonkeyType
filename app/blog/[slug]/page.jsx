@@ -3,6 +3,8 @@ import Link from "next/link";
 import sanitizeHtml from "sanitize-html";
 import { marked } from "marked";
 
+export const dynamic = "force-dynamic";
+
 // ✅ Static generation of slugs
 export async function generateStaticParams() {
   const posts = await getAllPosts();
