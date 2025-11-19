@@ -129,6 +129,10 @@ export default function Home() {
       )}
 
       <section className="flex-1 flex items-start md:items-center justify-center px-6 py-10">
+      <h1 className="sr-only">Master Your Typing Speed with a Customizable, Minimalist Typing Test with The Monkey Type</h1>
+      <h2 className="sr-only">Compare Your Typing Speed: Words-Per-Minute (WPM) Tool</h2>
+      <h2 className="sr-only">Free Online Typing tool that gives you different typing modes</h2>
+      <h2 className="sr-only">Improve your typing accuracy with a free test on The Monkey Type</h2>
         <div className="w-full max-w-5xl">
           {loading ? (
             <div className="skeleton h-40 w-full max-w-5xl mx-auto" />
