@@ -131,21 +131,33 @@ export default function RootLayout({ children }) {
           <main className="ml-20 font-mono antialiased">
             {children}
             <Script
-              src="https://nap5k.com/tag.min.js"
+              id="monetag-script"
               strategy="afterInteractive"
-              onLoad={() => {
-                const el = document.createElement("script");
-                el.dataset.zone = "10282269";
-                document.body.appendChild(el);
+              dangerouslySetInnerHTML={{
+                __html: `
+                  (function(s){
+                    s.dataset.zone='10282269';
+                    s.src='https://nap5k.com/tag.min.js';
+                  })([document.documentElement, document.body]
+                    .filter(Boolean)
+                    .pop()
+                    .appendChild(document.createElement('script')));
+                `,
               }}
             />
             <Script
-              src="https://groleegni.net/vignette.min.js"
+              id="monetag-script-2"
               strategy="afterInteractive"
-              onLoad={() => {
-                const el = document.createElement("script");
-                el.dataset.zone = "10282260";
-                document.body.appendChild(el);
+              dangerouslySetInnerHTML={{
+                __html: `
+                  (function(s){
+                    s.dataset.zone='10282260';
+                    s.src='https://groleegni.net/vignette.min.js';
+                  })([document.documentElement, document.body]
+                    .filter(Boolean)
+                    .pop()
+                    .appendChild(document.createElement('script')));
+                `,
               }}
             />
           </main>
