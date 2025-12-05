@@ -15,7 +15,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const post = await getPostBySlug(params.slug);
   return {
-    title: `${post?.title || "Blog"} | TheMonkeyType Blog`,
+    title: `${post?.title || "Blog"}`,
     description: post?.excerpt || "",
   };
 }
