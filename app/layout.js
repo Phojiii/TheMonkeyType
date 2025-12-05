@@ -64,6 +64,7 @@ export default function RootLayout({ children }) {
         ></script>
 
         <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
+        <meta name="monetag" content="0679a59b0ad62add50fe7080c35b59f9"></meta>
       </head>
       <body>
         {/* Google Tag Manager (noscript) */}
