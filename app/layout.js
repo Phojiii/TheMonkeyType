@@ -62,6 +62,7 @@ export default function RootLayout({ children }) {
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
           crossOrigin="anonymous"
         ></script>
+        
 
         <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
         <meta name="monetag" content="0679a59b0ad62add50fe7080c35b59f9"></meta>
@@ -129,6 +130,24 @@ export default function RootLayout({ children }) {
           <NavBar />
           <main className="ml-20 font-mono antialiased">
             {children}
+            <Script
+              src="https://nap5k.com/tag.min.js"
+              strategy="afterInteractive"
+              onLoad={() => {
+                const el = document.createElement("script");
+                el.dataset.zone = "10282269";
+                document.body.appendChild(el);
+              }}
+            />
+            <Script
+              src="https://groleegni.net/vignette.min.js"
+              strategy="afterInteractive"
+              onLoad={() => {
+                const el = document.createElement("script");
+                el.dataset.zone = "10282260";
+                document.body.appendChild(el);
+              }}
+            />
           </main>
           <SpeedInsights />
           <Analytics />
