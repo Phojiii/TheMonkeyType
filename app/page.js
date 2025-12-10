@@ -103,17 +103,20 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
+      {focus && (
+        <div className="mt-20"></div>
+      )}
       {/* Header (hidden in focus mode) */}
       {!focus && (
         <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="md:flex hidden items-center gap-3">
             <Image src="/TMT_Logo_2.png" alt="TMT Logo" width={40} height={40} priority />
             <span className="sr-only">TMT - Typing Trainer</span>
           </Link>
-          <nav className="text-white/70 flex gap-4 text-sm">
-            <Link href="/leaderboard" className="hover:text-white">Leaderboard</Link>
-            <Link href="/stats" className="hover:text-white">Stats</Link>
-            <a href="https://github.com" className="hover:text-white" target="_blank" rel="noreferrer">GitHub</a>
+          <nav className="text-white/70 text-sm text-center block md:m-0 m-auto">
+            <Link href="/leaderboard" className="hover:text-white mx-2">Leaderboard</Link>
+            <Link href="/stats" className="hover:text-white mx-2">Stats</Link>
+            <a href="https://github.com" className="hover:text-white mx-2" target="_blank" rel="noreferrer">GitHub</a>
           </nav>
         </header>
       )}

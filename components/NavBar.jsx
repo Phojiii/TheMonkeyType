@@ -15,119 +15,155 @@ export default function NavBar() {
   const isAdmin = isLoaded && user && ADMINS.includes(user.id);
 
   return (
-    <nav className="fixed top-0 left-0 h-screen w-20 bg-[#232325] flex flex-col items-center justify-between py-6 shadow-lg z-50">
-      {/* Logo */}
-      <div className="mb-4">
-        <Link href="/">
-          <Image
-            src="/TMT_Logo.png"
-            alt="TMT Logo"
-            width={60}
-            height={40}
-            priority
-          />
-        </Link>
-      </div>
+    <>
+      {/* 🖥️ Desktop / Tablet Sidebar */}
+      <nav className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-[#232325] flex-col items-center justify-between py-6 shadow-lg z-50">
+        {/* Logo */}
+        <div className="mb-4">
+          <Link href="/">
+            <Image
+              src="/TMT_Logo.png"
+              alt="TMT Logo"
+              width={60}
+              height={40}
+              priority
+            />
+          </Link>
+        </div>
 
-      {/* Menu */}
-      <div className="flex flex-col gap-8 flex-1 justify-center">
-        <Link
-          href="/"
-          className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20"
-        >
-          <FaHome
-            className={`text-xl transition-all duration-200 ${
-              pathname === "/"
-                ? "text-yellow-400"
-                : "text-white/80 group-hover:text-yellow-400"
-            }`}
-          />
-          <span
-            className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${
-              pathname === "/"
-                ? "text-yellow-400"
-                : "text-white/70 group-hover:text-yellow-400"
-            }`}
+        {/* Menu */}
+        <div className="flex flex-col gap-8 flex-1 justify-center">
+          <NavLink href="/" icon={<FaHome />} label="Home" active={pathname === "/"} />
+          <NavLink href="/stats" icon={<FaChartBar />} label="Stats" active={pathname === "/stats"} />
+          <NavLink href="/leaderboard" icon={<FaTrophy />} label="Ranking" active={pathname === "/leaderboard"} />
+          <NavLink href="/blog" icon={<FaBlog />} label="Blogs" active={pathname === "/blog"} />
+          {isAdmin && (
+            <NavLink href="/admin/blogs" icon={<MdAdminPanelSettings />} label="Admin" active={pathname === "/admin/blogs"} />
+          )}
+        </div>
+
+        {/* Profile / Notification */}
+        <div className="flex flex-col items-center gap-6">
+          {/* Notifications */}
+          <button
+            className="relative group"
+            onClick={() => setNotifOpen(!notifOpen)}
           >
-            Home
-          </span>
+            <FaBell className="text-xl text-white/80 group-hover:text-yellow-400 transition" />
+            <span className="absolute -top-2 -right-2 bg-yellow-400 text-xs rounded-full px-1 text-black font-bold">
+              !
+            </span>
+          </button>
+
+          {/* Auth / Profile */}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="text-2xl text-white/80 hover:text-yellow-400 transition" aria-label="Sign in or sign up">
+                <FaUserCircle className="text-2xl" />
+              </button>
+            </SignInButton>
+          </SignedOut>
+
+          <SignedIn>
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "w-8 h-8",
+                },
+              }}
+            />
+          </SignedIn>
+        </div>
+      </nav>
+
+      {/* 📱 Mobile Top Navbar */}
+      <nav className="md:hidden fixed top-0 left-0 w-full bg-[#232325]/95 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-4 py-2 z-50">
+        {/* Left: Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/TMT_Logo.png" alt="TMT Logo" width={42} height={28} priority />
         </Link>
 
-        <Link
-          href="/stats"
-          className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20"
-        >
-          <FaChartBar
-            className={`text-xl transition-all duration-200 ${
-              pathname === "/stats"
-                ? "text-yellow-400"
-                : "text-white/80 group-hover:text-yellow-400"
-            }`}
-          />
-          <span
-            className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${
-              pathname === "/stats"
-                ? "text-yellow-400"
-                : "text-white/70 group-hover:text-yellow-400"
-            }`}
+        {/* Center: Menu Icons */}
+        <div className="flex items-center gap-5">
+          <LinkIcon href="/" active={pathname === "/"} icon={<FaHome />} />
+          <LinkIcon href="/leaderboard" active={pathname === "/leaderboard"} icon={<FaTrophy />} />
+          <LinkIcon href="/blog" active={pathname === "/blog"} icon={<FaBlog />} />
+          {isAdmin && <LinkIcon href="/admin/blogs" active={pathname === "/admin/blogs"} icon={<MdAdminPanelSettings />} />}
+        </div>
+
+        {/* Right: Profile */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setNotifOpen(!notifOpen)}
+            className="relative"
+            aria-label="Notifications"
           >
-            Stats
-          </span>
-        </Link>
-        <Link href="/leaderboard" className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20">
-          <FaTrophy className={`text-xl transition-all duration-200 ${pathname === "/leaderboard" ? "text-yellow-400" : "text-white/80 group-hover:text-yellow-400"}`} />
-          <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/leaderboard" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Ranking</span>
-        </Link>
+            <FaBell className="text-lg text-white/80 hover:text-yellow-400 transition" />
+            <span className="absolute -top-1 -right-1 bg-yellow-400 text-[10px] rounded-full px-1 text-black font-bold">
+              !
+            </span>
+          </button>
 
-        <Link href="/blog" className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20">
-          <FaBlog className={`text-xl transition-all duration-200 ${pathname === "/blog" ? "text-yellow-400" : "text-white/80 group-hover:text-yellow-400"}`} />
-          <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/blog" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Blogs</span>
-        </Link>
-        {isAdmin && (
-        <Link href="/admin/blogs" className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20">
-          <MdAdminPanelSettings  className={`text-xl transition-all duration-200 ${pathname === "/admin/blogs" ? "text-yellow-400" : "text-white/80 group-hover:text-yellow-400"}`} />
-          <span className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${pathname === "/admin/blogs" ? "text-yellow-400" : "text-white/70 group-hover:text-yellow-400"}`}>Admin</span>
-        </Link>
-        )}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <FaUserCircle className="text-xl text-white/80 hover:text-yellow-400 transition" />
+            </SignInButton>
+          </SignedOut>
 
-      </div>
-
-      {/* Profile & Notification */}
-      <div className="flex flex-col items-center gap-6">
-        {/* Notification */}
-        <button
-          className="relative group"
-          onClick={() => setNotifOpen(!notifOpen)}
-        >
-          <FaBell className="text-xl text-white/80 group-hover:text-yellow-400 transition" />
-          <span className="absolute -top-2 -right-2 bg-yellow-400 text-xs rounded-full px-1 text-black font-bold">
-            !
-          </span>
-        </button>
-
-        {/* Auth / Profile */}
-        <SignedOut>
-          <SignInButton mode="modal">
-            <button
-              className="text-2xl text-white/80 hover:text-yellow-400 transition"
-              aria-label="Sign in or sign up"
-            >
-              <FaUserCircle className="text-2xl text-white/80 hover:text-yellow-400 transition" />
-            </button>
-          </SignInButton>
-        </SignedOut>
-
-        <SignedIn>
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-8 h-8",
-              },
-            }}
-          />
-        </SignedIn>
-      </div>
-    </nav>
+          <SignedIn>
+            <UserButton
+              appearance={{
+                elements: { avatarBox: "w-7 h-7" },
+              }}
+            />
+          </SignedIn>
+        </div>
+      </nav>
+    </>
   );
 }
 
+/* 🔸 Small reusable components for cleanliness */
+function NavLink({ href, icon, label, active }) {
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col items-center p-3 rounded-lg transition-all duration-200 hover:bg-yellow-500/20"
+    >
+      <div
+        className={`text-xl transition-all duration-200 ${
+          active
+            ? "text-yellow-400"
+            : "text-white/80 group-hover:text-yellow-400"
+        }`}
+      >
+        {icon}
+      </div>
+      <span
+        className={`text-xs mt-1 hidden xl:block transition-all duration-200 ${
+          active
+            ? "text-yellow-400"
+            : "text-white/70 group-hover:text-yellow-400"
+        }`}
+      >
+        {label}
+      </span>
+    </Link>
+  );
+}
+
+function LinkIcon({ href, active, icon }) {
+  return (
+    <Link href={href}>
+      <div
+        className={`text-lg transition-all duration-200 ${
+          active
+            ? "text-yellow-400"
+            : "text-white/80 hover:text-yellow-400"
+        }`}
+      >
+        {icon}
+      </div>
+    </Link>
+  );
+}

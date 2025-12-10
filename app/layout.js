@@ -9,14 +9,14 @@ import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 export const metadata = {
-  title: "The Monkey Type - Online Typing Trainer",
-  description: "Free Online Typing Trainer...",
+  title: "Free Online Typing Trainer to Improve Speed & Accuracy",
+  description: "Free Online Typing Trainer takes free typing tests, tracks accuracy, and boosts speed effortlessly. Enhance your typing performance with The Monkey Type",
   metadataBase: new URL("https://themonkeytype.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "The Monkey Type",
+    title: "Free Online Typing Trainer to Improve Typing Speed & Accuracy",
     description: "Boost your typing skills with accuracy tracking.",
     url: "https://themonkeytype.com",
     siteName: "The Monkey Type",
@@ -128,8 +128,9 @@ export default function RootLayout({ children }) {
         >
         {/* Push page_view on route changes */}
           <NavBar />
-          <main className="ml-20 font-mono antialiased">
+          <main className="md:ml-20 md:mt-0 mt-10 ml-0 font-mono antialiased">
             {children}
+            {/* In-Page Push Banner Appear on Top Right Corner */}
             <Script
               id="monetag-script"
               strategy="afterInteractive"
@@ -145,7 +146,8 @@ export default function RootLayout({ children }) {
                 `,
               }}
             />
-            <Script
+            {/* Interstitial Native Banner Appear on the Whole Screen */}
+            {/* <Script
               id="monetag-script-2"
               strategy="afterInteractive"
               dangerouslySetInnerHTML={{
@@ -157,6 +159,46 @@ export default function RootLayout({ children }) {
                     .filter(Boolean)
                     .pop()
                     .appendChild(document.createElement('script')));
+                `,
+              }}
+            /> */}
+            {/* Push Notification */}
+            <Script
+              id="monetag-script-3"
+              src="https://3nbf4.com/act/files/tag.min.js?z=10303688"
+              strategy="afterInteractive"
+              data-cfasync="false"
+              async
+            />
+            {/* On Click Popunder Appears at the Back of the Whole Screen */}
+            {/* <Script
+              id="monetag-script-4"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  (function(s){
+                  s.dataset.zone='10303701';
+                  s.src='https://al5sm.com/tag.min.js';
+                  })([document.documentElement, document.body]
+                  .filter(Boolean)
+                  .pop()
+                  .appendChild(document.createElement('script')));
+                `,
+              }}
+            /> */}
+            {/* Vignette Banner Appears in the Middle of the Screen */}
+            <Script
+              id="monetag-script-5"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  (function(s){
+                  s.dataset.zone='10303725';
+                  s.src='https://gizokraijaw.net/vignette.min.js';
+                  })([document.documentElement, document.body]
+                  .filter(Boolean)
+                  .pop()
+                  .appendChild(document.createElement('script')));
                 `,
               }}
             />
