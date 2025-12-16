@@ -131,7 +131,7 @@ export default function RootLayout({ children }) {
           <main className="md:ml-20 md:mt-0 mt-10 ml-0 font-mono antialiased">
             {children}
             {/* In-Page Push Banner Appear on Top Right Corner */}
-            <Script
+            {/* <Script
               id="monetag-script"
               strategy="afterInteractive"
               dangerouslySetInnerHTML={{
@@ -145,7 +145,7 @@ export default function RootLayout({ children }) {
                     .appendChild(document.createElement('script')));
                 `,
               }}
-            />
+            /> */}
             {/* Interstitial Native Banner Appear on the Whole Screen */}
             {/* <Script
               id="monetag-script-2"
@@ -163,13 +163,13 @@ export default function RootLayout({ children }) {
               }}
             /> */}
             {/* Push Notification */}
-            <Script
+            {/* <Script
               id="monetag-script-3"
               src="https://3nbf4.com/act/files/tag.min.js?z=10303688"
               strategy="afterInteractive"
               data-cfasync="false"
               async
-            />
+            /> */}
             {/* On Click Popunder Appears at the Back of the Whole Screen */}
             {/* <Script
               id="monetag-script-4"
@@ -187,7 +187,7 @@ export default function RootLayout({ children }) {
               }}
             /> */}
             {/* Vignette Banner Appears in the Middle of the Screen */}
-            <Script
+            {/* <Script
               id="monetag-script-5"
               strategy="afterInteractive"
               dangerouslySetInnerHTML={{
@@ -201,7 +201,7 @@ export default function RootLayout({ children }) {
                   .appendChild(document.createElement('script')));
                 `,
               }}
-            />
+            /> */}
           </main>
           <SpeedInsights />
           <Analytics />
