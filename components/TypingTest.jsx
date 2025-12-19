@@ -37,6 +37,7 @@ export default function TypingTest({
   // buffer & marks
   const [buffer, setBuffer] = useState(initialText || "");
   const [marks, setMarks] = useState(new Array((initialText || "").length).fill(0));
+  const [typed, setTyped] = useState([]);
 
   // time left
   const [remaining, setRemaining] = useState(durationSec);
@@ -158,6 +159,7 @@ export default function TypingTest({
     setBuffer(initialText || "");
     setMarks(new Array((initialText || "").length).fill(0));
     setIdx(0);
+    setTyped([]);
     setErrors(0);
     setHits(0);
     setEnded(false);
@@ -225,6 +227,13 @@ export default function TypingTest({
     const ch = buffer[idx] || "";
     const ok = k === ch;
 
+    setTyped(prev => {
+      const next = [...prev];
+      next[idx] = k;
+      return next;
+    });
+
+
     setMarks(old => {
       const next = [...old];
       next[idx] = ok ? 1 : -1;
@@ -233,7 +242,7 @@ export default function TypingTest({
 
     if (ok) {
       setHits(h => h + 1);
-      gsap.fromTo(".caret", { boxShadow: "0 0 0px rgba(226,183,20,0.0)" }, { boxShadow: "0 0 18px rgba(226,183,20,0.7)", duration: 0.12, yoyo: true, repeat: 1 });
+      gsap.fromTo(".caret", { boxShadow: "0 0 0px rgba(226,183,20,0.0)", }, { boxShadow: "rgba(226,183,20,0.7) 0px 3px 0px 0px", duration: 0.12, yoyo: true, repeat: 1, });
     } else {
       setErrors(e => e + 1);
       gsap.fromTo(wrapRef.current, { x: -3 }, { x: 0, duration: 0.15, ease: "power2.out" });
@@ -277,7 +286,7 @@ export default function TypingTest({
 
       {/* floating timer HUD in focus mode */}
       {focusMode && (
-        <div className="fixed -top-10 left-1/2 -translate-x-1/2 text-base md:text-lg font-semibold text-brand drop-neon z-50">
+        <div className="fixed -top-20 left-1/2 -translate-x-1/2 text-base md:text-lg font-semibold text-brand drop-neon z-50">
           {remaining}s
         </div>
       )}
@@ -286,6 +295,12 @@ export default function TypingTest({
       {showTabHint && !ended && (
         <div className="fixed -bottom-14 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded bg-black/60 border border-white/10 text-white/80 z-50">
           Tab → Enter to restart
+        </div>
+      )}
+      {focusMode && !ended && (
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-6 text-sm text-white/60 z-40">
+          <div>WPM: {wpm.toFixed(0)}</div>
+          <div>ACC: {accuracy.toFixed(0)}%</div>
         </div>
       )}
 
@@ -298,11 +313,35 @@ export default function TypingTest({
           {buffer.split("").map((ch, i) => {
             const mark = marks[i];
             const active = i === idx;
+            const userChar = typed[i];
             let cls = "";
-            if (mark === 1) cls = "text-brand";
+            if (mark === 1) cls = "text-brand opacity-50";
             else if (mark === -1) cls = "text-red-500";
             else cls = "text-white/70";
             if (active) cls += " caret underline decoration-2 text-white";
+            if (ch === " ") {
+              return (
+                <span
+                  key={i}
+                  ref={(el) => (charRefs.current[i] = el)}
+                  className="relative inline-block"
+                >
+                  <span className="text-white/50">
+                    {"\u00A0"}
+                  </span>
+                  {userChar && mark === -1 && (
+                    <span className="absolute left-0 top-0 text-red-500 opacity-50">
+                      {userChar}
+                    </span>
+                  )}
+                  {active && (
+                    <span className="absolute left-0 top-0 underline decoration-2 text-white caret">
+                      {"\u00A0"}
+                    </span>
+                  )}
+                </span>
+              );
+            }
             return (
               <span
                 key={i}
@@ -313,6 +352,9 @@ export default function TypingTest({
               </span>
             );
           })}
+
+
+
         </div>
         <input
           ref={inputRef}

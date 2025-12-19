@@ -114,7 +114,7 @@ export default function Home() {
             <span className="sr-only">TMT - Typing Trainer</span>
           </Link>
           <nav className="text-white/70 text-sm text-center block md:m-0 m-auto">
-            <Link href="/leaderboard" className="hover:text-white mx-2">Leaderboard</Link>
+            <Link href="https://discord.gg/5G2WvTYbPR" className="hover:text-white mx-2">Discord</Link>
             <Link href="/stats" className="hover:text-white mx-2">Stats</Link>
             <a href="https://github.com" className="hover:text-white mx-2" target="_blank" rel="noreferrer">GitHub</a>
           </nav>
