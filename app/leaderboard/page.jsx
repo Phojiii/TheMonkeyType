@@ -101,7 +101,8 @@ export default function LeaderboardPage() {
   async function handleChallenge(opponentUserId) {
     // Placeholder until you wire real challenge APIs + UI
     alert(
-      `Challenge flow not wired yet.\nOpponent: ${opponentUserId}\n\nNext step: create /api/challenge/create + /competitive/challenge/[id].`
+      `Stay Tuned! Challenge feature coming soon.`
+      //`Challenge flow not wired yet.\nOpponent: ${opponentUserId}\n\nNext step: create /api/challenge/create + /competitive/challenge/[id].`
     );
   }
   async function handleUpdateRecords() {
