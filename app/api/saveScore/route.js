@@ -7,31 +7,53 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ALLOWED = new Set([15, 30, 60, 120]);
+const ALLOWED_MODES = new Set(["classic", "competitive"]);
 
 export async function POST(req) {
   try {
-    // debug: log incoming request body (non-sensitive) to help trace failures
-    let bodyPreview = null;
-    const { userId } = getAuth(req);
+    console.log("==== /api/saveScore HIT ====");
+
+    // 🔍 Log headers (important for Clerk)
+    console.log("Headers:", Object.fromEntries(req.headers.entries()));
+
+    // 🔍 Clerk auth check
+    const auth = getAuth(req);
+    console.log("getAuth result:", auth);
+
+    const { userId } = auth;
     if (!userId) {
-      console.debug("saveScore: no userId from getAuth()");
+      console.log("❌ NO USER ID — returning 401");
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
+    // 🔍 Current user
     const user = await currentUser();
+    console.log("currentUser():", user ? {
+      id: user.id,
+      username: user.username,
+      email: user.emailAddresses?.[0]?.emailAddress,
+    } : null);
+
     const body = await req.json();
-    try { bodyPreview = JSON.parse(JSON.stringify(body)); } catch {}
-    console.debug("saveScore: userId=", userId, "body=", bodyPreview);
+    console.log("Request body:", body);
 
     const bestWpm = Math.round(Number(body?.bestWpm ?? 0));
     const bestAccuracy = Math.round(Number(body?.bestAccuracy ?? 0));
     const duration = Number(body?.duration);
+
+    const rawMode = String(body?.mode || "classic").toLowerCase();
+    const mode = ALLOWED_MODES.has(rawMode) ? rawMode : "classic";
+
     if (!ALLOWED.has(duration)) {
-      console.debug("saveScore: invalid duration:", body?.duration, "parsed:", duration);
-      return new Response(JSON.stringify({ error: "Invalid duration", received: body?.duration }), { status: 400 });
+      console.log("❌ Invalid duration:", duration);
+      return new Response(
+        JSON.stringify({ error: "Invalid duration", received: body?.duration }),
+        { status: 400 }
+      );
     }
 
     await connectDB();
+    console.log("✅ MongoDB connected");
 
     const headerCountry =
       req.headers.get("x-vercel-ip-country") ||
@@ -40,36 +62,54 @@ export async function POST(req) {
       "";
     const country = (headerCountry || "").toUpperCase();
 
-    const username = user?.username || user?.emailAddresses?.[0]?.emailAddress || "Anonymous";
+    const username =
+      user?.username || user?.emailAddresses?.[0]?.emailAddress || "Anonymous";
     const imageUrl = user?.imageUrl || "";
 
-    // One row per (userId, category), $max updates the personal best safely
+    console.log("Upserting score:", {
+      userId,
+      duration,
+      mode,
+      bestWpm,
+      bestAccuracy,
+      country,
+    });
+
     try {
       await Score.updateOne(
-        { userId, category: duration },
+        { userId, category: duration, mode },
         {
-          $setOnInsert: { userId, category: duration },
-          $set: { username, imageUrl, country },
+          $setOnInsert: { userId, category: duration, mode },
+          $set: { username, imageUrl, country }, // ✅ don't include mode here
           $max: { bestWpm, bestAccuracy },
         },
         { upsert: true }
       );
+
     } catch (err) {
+      console.error("❌ Mongo error:", err);
       if (err?.code === 11000) {
-        // Duplicate because the old unique index on userId still exists
-        return new Response(JSON.stringify({
-          error: "Duplicate key on old index. Drop index userId_1 and create a compound unique index on {userId, category}.",
-        }), { status: 409 });
+        return new Response(
+          JSON.stringify({
+            error:
+              "Duplicate key. Ensure unique index is { userId, category, mode }.",
+          }),
+          { status: 409 }
+        );
       }
       throw err;
     }
 
-    // Let ISR cache know
-    try { revalidateTag("leaderboard"); } catch {}
+    try {
+      revalidateTag("leaderboard");
+    } catch (e) {
+      console.log("revalidateTag skipped:", e?.message);
+    }
 
+    console.log("✅ Score saved successfully");
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
-    console.error("Save score error:", err);
+    console.error("🔥 Save score fatal error:", err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }

@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { ADMINS } from "@/lib/admins";
 import AnnouncementModal from "./AnnouncementModal";
 
-const ANNOUNCEMENT_VERSION = "1.0.0"; // Update this to force showing the announcement again
+const ANNOUNCEMENT_VERSION = "1.0.1"; // Update this to force showing the announcement again
 
 export default function NavBar() {
   const pathname = usePathname();

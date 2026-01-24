@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
 import ResultModal from "./ResultModal";
 
@@ -8,6 +8,11 @@ import ResultModal from "./ResultModal";
  * Streaming + 3-line viewport + focus mode + Tab→Enter restart
  * - If durationSec === 60: primary = WPM
  * - If durationSec !== 60: primary = Words (session), sub = WPM
+ *
+ * ✅ Competitive Mode:
+ * - Backspace doesn't delete
+ * - Each Backspace press deducts 0.5s from clock
+ * - Shows tiny "-0.5s" toast
  */
 export default function TypingTest({
   initialText = "",
@@ -17,7 +22,8 @@ export default function TypingTest({
   focusMode = false,
   onFocusStart,
   onFocusEnd,
-  onRestart, // <-- Accept onRestart prop (should be rebuildGenerator)
+  onRestart,
+  competitiveMode = false, // ✅ NEW
 }) {
   // core state
   const [startedAt, setStartedAt] = useState(null);
@@ -42,9 +48,27 @@ export default function TypingTest({
   // time left
   const [remaining, setRemaining] = useState(durationSec);
 
+  // ✅ penalty tracking (0.5s per backspace)
+  const penaltyMsRef = useRef(0);
+  const [showPenaltyToast , setShowPenaltyToast] = useState(false);
+  const toastTimerRef = useRef(null);
+
   // 3-line scroll
   const [lineHeightPx, setLineHeightPx] = useState(0);
   const [scrolledLines, setScrolledLines] = useState(0);
+
+  // Cleanup Effect
+  useEffect(() => {
+    return () => clearTimeout(toastTimerRef.current);
+  }, []);
+
+  // Force-Hide Toast on Test End
+  useEffect(() => {
+    if (ended) {
+      setShowPenaltyToast(false);
+      clearTimeout(toastTimerRef.current);
+    }
+  }, [ended]);
 
   // Results modal
   const [showResults, setShowResults] = useState(false);
@@ -62,16 +86,30 @@ export default function TypingTest({
   const tabTimerRef = useRef(null);
   const [showTabHint, setShowTabHint] = useState(false);
 
+  // ✅ penalty toast
+  const [penaltyToastKey, setPenaltyToastKey] = useState(0);
+
+  const triggerPenaltyToast = () => {
+    setShowPenaltyToast(true);
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setShowPenaltyToast(false), 700);
+  };
+
+
   // reset on text/duration change
   useEffect(() => {
     const base = typeof initialText === "string" ? initialText : (initialText || "").toString();
     setBuffer(base);
     setMarks(new Array(base.length).fill(0));
     setIdx(0); setHits(0); setErrors(0);
+    setTyped([]);
     setEnded(false); setStartedAt(null);
     setRemaining(durationSec);
     setScrolledLines(0);
     gsap.set(scrollerRef.current, { y: 0 });
+
+    penaltyMsRef.current = 0; // ✅ reset penalty
+
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [initialText, durationSec]);
 
@@ -108,19 +146,31 @@ export default function TypingTest({
     return () => window.removeEventListener("resize", recalc);
   }, [scrolledLines]);
 
+  // ✅ effective elapsed includes penalty
+  const getEffectiveElapsedMs = () => {
+    if (!startedAt) return 0;
+    return (Date.now() - startedAt) + penaltyMsRef.current;
+  };
+
   // timer (rAF)
   useEffect(() => {
     if (!startedAt || ended) return;
+
     const tick = () => {
-      const secondsLeft = Math.max(0, Math.ceil(durationSec - (Date.now() - startedAt) / 1000));
+      const effectiveElapsedMs = getEffectiveElapsedMs();
+      const secondsLeft = Math.max(0, Math.ceil(durationSec - (effectiveElapsedMs / 1000)));
+
       setRemaining(secondsLeft);
+
       if (secondsLeft <= 0) {
         setEnded(true);
         onFocusEnd && onFocusEnd();
         return;
       }
+
       rafRef.current = requestAnimationFrame(tick);
     };
+
     rafRef.current = requestAnimationFrame(tick);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -166,9 +216,33 @@ export default function TypingTest({
     setStartedAt(null);
     setRemaining(durationSec);
     setScrolledLines(0);
+    setShowPenaltyToast(false);
+    clearTimeout(toastTimerRef.current);
     gsap.set(scrollerRef.current, { y: 0 });
+
+    penaltyMsRef.current = 0; // ✅ reset penalty
+
     gsap.fromTo(wrapRef.current, { scale: 0.98 }, { scale: 1, duration: 0.15, ease: "power2.out" });
     inputRef.current?.focus();
+  }
+
+  function applyBackspacePenalty() {
+    // deduct 0.5 seconds from clock
+    penaltyMsRef.current += 500;
+    
+    // Update toast key to retrigger animation
+    setPenaltyToastKey(k => k + 1);
+    triggerPenaltyToast();
+
+    // if started, force UI update by nudging remaining right away
+    if (startedAt) {
+      const secondsLeft = Math.max(0, Math.ceil(durationSec - (getEffectiveElapsedMs() / 1000)));
+      setRemaining(secondsLeft);
+      if (secondsLeft <= 0) {
+        setEnded(true);
+        onFocusEnd && onFocusEnd();
+      }
+    }
   }
 
   function onKeyDown(e) {
@@ -176,7 +250,7 @@ export default function TypingTest({
 
     // Tab → Enter restart (call onRestart for reroll)
     if (e.key === "Tab") {
-      e.preventDefault(); // keep focus here
+      e.preventDefault();
       tabArmedRef.current = true;
       setShowTabHint(true);
       clearTimeout(tabTimerRef.current);
@@ -190,12 +264,20 @@ export default function TypingTest({
       e.preventDefault();
       tabArmedRef.current = false;
       setShowTabHint(false);
-      if (onRestart) onRestart(); // <-- Call parent reroll
+      if (onRestart) onRestart();
       return;
     }
 
-    // Backspace: correct previous char
+    // ✅ Competitive Mode: block Backspace + penalty
     if (e.key === "Backspace") {
+      e.preventDefault();
+
+      if (competitiveMode) {
+        applyBackspacePenalty();
+        return;
+      }
+
+      // normal behavior (non-competitive)
       if (idx > 0) {
         setIdx(i => {
           const j = i - 1;
@@ -210,7 +292,6 @@ export default function TypingTest({
           return j;
         });
       }
-      e.preventDefault();
       return;
     }
 
@@ -233,7 +314,6 @@ export default function TypingTest({
       return next;
     });
 
-
     setMarks(old => {
       const next = [...old];
       next[idx] = ok ? 1 : -1;
@@ -242,9 +322,12 @@ export default function TypingTest({
 
     if (ok) {
       setHits(h => h + 1);
-      gsap.fromTo(".caret", { boxShadow: "0 0 0px rgba(226,183,20,0.0)", }, { boxShadow: "rgba(226,183,20,0.7) 0px 3px 0px 0px", duration: 0.12, yoyo: true, repeat: 1, });
+      gsap.fromTo(".caret",
+        { boxShadow: "0 0 0px rgba(226,183,20,0.0)" },
+        { boxShadow: "rgba(226,183,20,0.7) 0px 3px 0px 0px", duration: 0.12, yoyo: true, repeat: 1 }
+      );
     } else {
-      setErrors(e => e + 1);
+      setErrors(er => er + 1);
       gsap.fromTo(wrapRef.current, { x: -3 }, { x: 0, duration: 0.15, ease: "power2.out" });
     }
 
@@ -255,10 +338,10 @@ export default function TypingTest({
     e.preventDefault();
   }
 
-  // ---- metrics (fixed) ----
-  const elapsedSec = startedAt ? Math.max(0, (Date.now() - startedAt) / 1000) : 0;
-  const grossWords = hits / 5; // words typed
-  const wpm = startedAt ? (grossWords / Math.max(0.001, elapsedSec / 60)) : 0; // true WPM
+  // ---- metrics (include penalty in elapsed) ----
+  const elapsedSec = startedAt ? Math.max(0, getEffectiveElapsedMs() / 1000) : 0;
+  const grossWords = hits / 5;
+  const wpm = startedAt ? (grossWords / Math.max(0.001, elapsedSec / 60)) : 0;
 
   const primaryLabel = durationSec === 60 ? "WPM" : "Words";
   const primaryValue = durationSec === 60 ? wpm.toFixed(0) : Math.floor(grossWords);
@@ -270,7 +353,8 @@ export default function TypingTest({
     accuracy,
     hits,
     words: grossWords,
-    duration: durationSec
+    duration: durationSec,
+    mode: competitiveMode ? "competitive" : "classic",
   };
 
   return (
@@ -291,12 +375,31 @@ export default function TypingTest({
         </div>
       )}
 
+      {/* ✅ tiny penalty toast */}
+      <AnimatePresence>
+        {competitiveMode && showPenaltyToast && !ended && (
+          <motion.div
+            key={penaltyToastKey}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.95 }}
+            transition={{ duration: 0.35 }}
+            className="fixed -top-20 left-[55%] -translate-x-1/2 z-[9999] pointer-events-none"
+          >
+            <div className="text-xs font-semibold px-3 py-1 rounded-full bg-red-600/20 border border-red-500/40 text-red-300 shadow">
+              -0.5s
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Tab→Enter hint */}
       {showTabHint && !ended && (
         <div className="fixed -bottom-14 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded bg-black/60 border border-white/10 text-white/80 z-50">
           Tab → Enter to restart
         </div>
       )}
+
       {focusMode && !ended && (
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-6 text-sm text-white/60 z-40">
           <div>WPM: {wpm.toFixed(0)}</div>
@@ -314,11 +417,14 @@ export default function TypingTest({
             const mark = marks[i];
             const active = i === idx;
             const userChar = typed[i];
+
             let cls = "";
             if (mark === 1) cls = "text-brand opacity-50";
             else if (mark === -1) cls = "text-red-500";
             else cls = "text-white/70";
+
             if (active) cls += " caret underline decoration-2 text-white";
+
             if (ch === " ") {
               return (
                 <span
@@ -326,14 +432,14 @@ export default function TypingTest({
                   ref={(el) => (charRefs.current[i] = el)}
                   className="relative inline-block"
                 >
-                  <span className="text-white/50">
-                    {"\u00A0"}
-                  </span>
+                  <span className="text-white/50">{"\u00A0"}</span>
+
                   {userChar && mark === -1 && (
                     <span className="absolute left-0 top-0 text-red-500 opacity-50">
                       {userChar}
                     </span>
                   )}
+
                   {active && (
                     <span className="absolute left-0 top-0 underline decoration-2 text-white caret">
                       {"\u00A0"}
@@ -342,6 +448,7 @@ export default function TypingTest({
                 </span>
               );
             }
+
             return (
               <span
                 key={i}
@@ -352,10 +459,8 @@ export default function TypingTest({
               </span>
             );
           })}
-
-
-
         </div>
+
         <input
           ref={inputRef}
           onKeyDown={onKeyDown}
@@ -373,7 +478,6 @@ export default function TypingTest({
             <button onClick={resetTest} className="btn-primary">Retry</button>
           </motion.div>
 
-          {/* Result Modal */}
           <ResultModal
             open={showResults}
             stats={testStats}

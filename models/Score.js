@@ -10,15 +10,19 @@ const ScoreSchema = new mongoose.Schema(
     bestWpm: { type: Number, default: 0 },
     bestAccuracy: { type: Number, default: 0 },
     country: { type: String, default: "" },
+    mode: { type: String, enum: ["classic", "competitive"], default: "classic", index: true },
+    lastSeenAt: { type: Date, default: null, index: true },
   },
   { timestamps: true, collection: "scores" }
 );
 
+
 // Each user should have at most one row per category
-ScoreSchema.index({ userId: 1, category: 1 }, { unique: true });
+ScoreSchema.index({ userId: 1, category: 1, mode: 1 }, { unique: true });
 
 // Useful leaderboards
 ScoreSchema.index({ category: 1, bestWpm: -1, bestAccuracy: -1 });
 ScoreSchema.index({ category: 1, country: 1, bestWpm: -1, bestAccuracy: -1 });
+ScoreSchema.index({ category: 1, bestWpm: -1, bestAccuracy: -1, mode: 1 });
 
 export default mongoose.models.Score || mongoose.model("Score", ScoreSchema);

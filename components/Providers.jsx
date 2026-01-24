@@ -3,7 +3,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager from "@/components/GoogleTagManager";
-import SnowfallClient from "@/components/SnowfallClient";
+// import SnowfallClient from "@/components/SnowfallClient";
 
 export default function Providers({ children }) {
   return (
@@ -54,7 +54,7 @@ export default function Providers({ children }) {
             },
           }}
         >
-      <SnowfallClient />
+      {/* <SnowfallClient /> */}
       <GoogleTagManager />
       <GoogleAnalytics />
       {children}

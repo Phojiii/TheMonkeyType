@@ -18,10 +18,17 @@ export default function AnnouncementModal({ onClose }) {
         </h2>
 
         <p className="text-sm text-white/80 leading-relaxed">
-          👉 Welcome to The Monkey Type TMT
+          👉 Welcome to The Monkey Type (TMT)
           <br /><br />
-          We are excited to introduce new features and improvements to enhance your typing experience!
+          <span className="inline-block animate-pulse">🏆</span>{" "}
+          Competitive Mode is now live - RACE, RANK, and dominate the Leaderboard.
+          <br /><br />
+          Switch modes, test your skills, and see where you rank 🚀
+          <br /><br />
+          ⚔️ <strong>Coming next</strong>: challenge other players to a 1v1 typing duel.
         </p>
+
+
 
         <div className="mt-5 text-right">
           <button

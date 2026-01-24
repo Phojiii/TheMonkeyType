@@ -1,26 +1,38 @@
 'use client';
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { gsap } from "gsap";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 
-const STORAGE_KEY = "tmt_stats";
+// ✅ NEW: split keys
+const KEY_CLASSIC = "tmt_stats_classic";
+const KEY_COMP = "tmt_stats_competitive";
+
+// ✅ legacy key for migration compatibility (optional)
+const LEGACY_KEY = "tmt_stats";
 
 export default function ResultModal({ open, stats, onClose, onRetry }) {
   const modalRef = useRef(null);
   const firstButtonRef = useRef(null);
-  const savedOnceRef = useRef(false);       // localStorage save guard
-  const pushedToDBRef = useRef(false);      // DB sync guard
+
+  const savedOnceRef = useRef(false);  // localStorage save guard
+  const pushedToDBRef = useRef(false); // DB sync guard
 
   const { isSignedIn } = useUser();
 
-  // ---- helpers --------------------------------------------------------------
+  // ✅ Determine mode + storage key safely
+  const mode = useMemo(() => {
+    const m = String(stats?.mode || "classic").toLowerCase();
+    return m === "competitive" ? "competitive" : "classic";
+  }, [stats?.mode]);
 
-  // Get best-for-this-duration from localStorage only (avoid mixing categories)
+  const storageKey = mode === "competitive" ? KEY_COMP : KEY_CLASSIC;
+
+  // ✅ Helper: best-for-duration from the correct bucket
   function getLocalBestForDuration(duration) {
     try {
-      const arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      const arr = JSON.parse(localStorage.getItem(storageKey) || "[]");
       if (!Array.isArray(arr) || arr.length === 0) return null;
 
       const dur = Number(duration);
@@ -32,13 +44,15 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
       for (const r of arr) {
         const rDur = Number(r?.duration);
         if (rDur !== dur) continue;
+
         const w = Number(r?.wpm) || 0;
         const a = Number(r?.accuracy) || 0;
+
         if (w > bestWpm) bestWpm = w;
         if (a > bestAccuracy) bestAccuracy = a;
       }
 
-      if (bestWpm < 0 && bestAccuracy < 0) return null; // none for that duration
+      if (bestWpm < 0 && bestAccuracy < 0) return null;
 
       return {
         bestWpm: Math.max(0, bestWpm),
@@ -50,29 +64,79 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
     }
   }
 
-  // ---- DB sync once when modal opens ---------------------------------------
+  // ✅ Reset guards when modal closes/opens again
+  useEffect(() => {
+    if (!open) {
+      savedOnceRef.current = false;
+      pushedToDBRef.current = false;
+    }
+  }, [open]);
 
+  // ✅ Animate in
+  useEffect(() => {
+    if (open && modalRef.current) {
+      gsap.fromTo(
+        modalRef.current,
+        { opacity: 0, scale: 0.86, y: 22 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power3.out" }
+      );
+      setTimeout(() => firstButtonRef.current?.focus(), 50);
+    }
+  }, [open]);
+
+  // ✅ Save to localStorage (mode-specific key)
+  useEffect(() => {
+    if (!open || !stats || savedOnceRef.current) return;
+
+    const entry = {
+      mode, // ✅ store mode for debugging
+      wpm: Number(stats.wpm?.toFixed?.(1) ?? stats.wpm ?? 0),
+      accuracy: Number(stats.accuracy?.toFixed?.(1) ?? stats.accuracy ?? 0),
+      words: Number((stats.words ?? 0).toFixed?.(0) ?? stats.words ?? 0),
+      hits: Number(stats.hits ?? 0),
+      duration: Number(stats.duration ?? 60),
+      date: new Date().toISOString(),
+    };
+
+    try {
+      // ✅ Optional: if legacy exists and new classic doesn't, migrate once
+      if (mode === "classic") {
+        const legacy = localStorage.getItem(LEGACY_KEY);
+        const classicExists = localStorage.getItem(KEY_CLASSIC);
+        if (legacy && !classicExists) localStorage.setItem(KEY_CLASSIC, legacy);
+      }
+
+      const existing = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      const safeArr = Array.isArray(existing) ? existing : [];
+      safeArr.push(entry);
+
+      localStorage.setItem(storageKey, JSON.stringify(safeArr));
+      savedOnceRef.current = true;
+    } catch {
+      // ignore
+    }
+  }, [open, stats, storageKey, mode]);
+
+  // ✅ DB sync once when modal opens (use best-for-duration from the same mode bucket)
   useEffect(() => {
     if (!open || !isSignedIn || !stats || pushedToDBRef.current) return;
 
     const sessionDur = Number(stats.duration);
-    if (!Number.isFinite(sessionDur)) return; // must have a valid duration
+    if (!Number.isFinite(sessionDur)) return;
 
-    // current session payload (rounded like your API expects)
     let payload = {
       bestWpm: Math.round(Number(stats.wpm) || 0),
       bestAccuracy: Math.round(Number(stats.accuracy) || 0),
       duration: sessionDur,
+      mode, // ✅ IMPORTANT
     };
 
-    // if local best for this duration beats current, send that instead
     const localBest = getLocalBestForDuration(sessionDur);
     if (localBest) {
       if (localBest.bestWpm > payload.bestWpm) payload.bestWpm = localBest.bestWpm;
       if (localBest.bestAccuracy > payload.bestAccuracy) payload.bestAccuracy = localBest.bestAccuracy;
     }
 
-    // Only send if it’s at least meaningful (>= 1 WPM)
     if (payload.bestWpm > 0) {
       pushedToDBRef.current = true;
       (async () => {
@@ -92,46 +156,9 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
         }
       })();
     }
-  }, [open, isSignedIn, stats]);
+  }, [open, isSignedIn, stats, mode, storageKey]);
 
-  // ---- animate in -----------------------------------------------------------
-
-  useEffect(() => {
-    if (open && modalRef.current) {
-      gsap.fromTo(
-        modalRef.current,
-        { opacity: 0, scale: 0.86, y: 22 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power3.out" }
-      );
-      setTimeout(() => firstButtonRef.current?.focus(), 50);
-    }
-  }, [open]);
-
-  // ---- save this session to localStorage (once per open) --------------------
-
-  useEffect(() => {
-    if (!open || !stats || savedOnceRef.current) return;
-
-    const entry = {
-      wpm: Number(stats.wpm?.toFixed?.(1) ?? stats.wpm ?? 0),
-      accuracy: Number(stats.accuracy?.toFixed?.(1) ?? stats.accuracy ?? 0),
-      words: Number((stats.words ?? 0).toFixed?.(0) ?? stats.words ?? 0),
-      hits: Number(stats.hits ?? 0),
-      duration: Number(stats.duration ?? 60),
-      date: new Date().toISOString(),
-    };
-    try {
-      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      existing.push(entry);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-      savedOnceRef.current = true;
-    } catch {
-      // ignore storage errors
-    }
-  }, [open, stats]);
-
-  // ---- keyboard shortcuts ---------------------------------------------------
-
+  // ✅ Keyboard shortcuts
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {
@@ -162,9 +189,11 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <h2 className="text-2xl font-bold text-brand mb-2">Test Completed!</h2>
+        <h2 className="text-2xl font-bold text-brand mb-1">Test Completed!</h2>
+
         <p className="text-white/50 text-xs mb-5">
-          {new Date().toLocaleString()} • {Number(stats?.duration ?? 60)}s session
+          {new Date().toLocaleString()} • {Number(stats?.duration ?? 60)}s •{" "}
+          <span className="text-white/60">{mode === "competitive" ? "Competitive" : "Classic"}</span>
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left text-white/90 mb-6">

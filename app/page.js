@@ -17,6 +17,9 @@ export default function Home() {
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
 
+  // ✅ NEW: Competitive mode
+  const [competitiveMode, setCompetitiveMode] = useState(false);
+
   // focus mode
   const [focus, setFocus] = useState(false);
 
@@ -24,9 +27,9 @@ export default function Home() {
   const genRef = useRef(null);
   const [initialText, setInitialText] = useState("");
   const [loading, setLoading] = useState(true);
-  const [sessionId, setSessionId] = useState(0); // remount TypingTest cleanly
+  const [sessionId, setSessionId] = useState(0);
 
-  // results modal trigger (handled inside TypingTest but we lift a boolean)
+  // results modal trigger
   const [testCompleted, setTestCompleted] = useState(false);
 
   // ---- load prefs once
@@ -39,6 +42,7 @@ export default function Home() {
       if (Number.isFinite(p.duration)) setDuration(p.duration);
       if (typeof p.punctuation === "boolean") setPunctuation(p.punctuation);
       if (typeof p.numbers === "boolean") setNumbers(p.numbers);
+      if (typeof p.competitiveMode === "boolean") setCompetitiveMode(p.competitiveMode);
     } catch {}
   }, []);
 
@@ -47,10 +51,10 @@ export default function Home() {
     try {
       localStorage.setItem(
         PREF_KEY,
-        JSON.stringify({ lang, duration, punctuation, numbers })
+        JSON.stringify({ lang, duration, punctuation, numbers, competitiveMode })
       );
     } catch {}
-  }, [lang, duration, punctuation, numbers]);
+  }, [lang, duration, punctuation, numbers, competitiveMode]);
 
   // ---- generator (and restart)
   const rebuildGenerator = useCallback(() => {
@@ -63,15 +67,12 @@ export default function Home() {
       console.error("Generator error:", e);
       setInitialText("keep calm and type on — generator failed to produce text");
     }
-    // clean remount and state
     setSessionId((s) => s + 1);
     setFocus(false);
     setTestCompleted(false);
     setLoading(false);
   }, [lang, punctuation, numbers]);
 
-  // Rebuild when language/punctuation/numbers change.
-  // (Duration is handled inside TypingTest for accurate countdown reset.)
   useEffect(() => {
     rebuildGenerator();
   }, [lang, punctuation, numbers, rebuildGenerator]);
@@ -103,9 +104,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      {focus && (
-        <div className="mt-20"></div>
-      )}
+      {focus && <div className="mt-20"></div>}
+
       {/* Header (hidden in focus mode) */}
       {!focus && (
         <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
@@ -132,10 +132,11 @@ export default function Home() {
       )}
 
       <section className="flex-1 flex items-start md:items-center justify-center px-6 py-10">
-      <h1 className="sr-only">Master Your Typing Speed with a Customizable, Minimalist Typing Test with The Monkey Type</h1>
-      <h2 className="sr-only">Compare Your Typing Speed: Words-Per-Minute (WPM) Tool</h2>
-      <h2 className="sr-only">Free Online Typing tool that gives you different typing modes</h2>
-      <h2 className="sr-only">Improve your typing accuracy with a free test on The Monkey Type</h2>
+        <h1 className="sr-only">Master Your Typing Speed with a Customizable, Minimalist Typing Test with The Monkey Type</h1>
+        <h2 className="sr-only">Compare Your Typing Speed: Words-Per-Minute (WPM) Tool</h2>
+        <h2 className="sr-only">Free Online Typing tool that gives you different typing modes</h2>
+        <h2 className="sr-only">Improve your typing accuracy with a free test on The Monkey Type</h2>
+
         <div className="w-full max-w-5xl">
           {loading ? (
             <div className="skeleton h-40 w-full max-w-5xl mx-auto" />
@@ -151,11 +152,13 @@ export default function Home() {
               onRestart={rebuildGenerator}
               onTestComplete={handleTestComplete}
               showResults={testCompleted}
+              // ✅ NEW
+              competitiveMode={competitiveMode}
             />
           )}
 
-          {/* Restart button (always shown; matches Tab+Enter) */}
-          <div className="mb-4 mt-4 flex items-center justify-center gap-3 text-sm">
+          {/* Buttons */}
+          <div className="mb-4 mt-4 flex flex-wrap items-center justify-center gap-3 text-sm">
             <button
               onClick={rebuildGenerator}
               className="px-3 py-1.5 rounded-md bg-white/10 border border-white/10 hover:bg-white/15 transition"
@@ -164,35 +167,57 @@ export default function Home() {
             >
               ↻ Restart
             </button>
+
+            {/* ✅ Competitive Mode toggle */}
+            <button
+              onClick={() => setCompetitiveMode(v => !v)}
+              className={`px-3 py-1.5 rounded-md border transition ${
+                competitiveMode
+                  ? "bg-brand text-ink border-brand shadow-[0_0_10px_rgba(226,183,20,0.35)]"
+                  : "bg-white/10 text-white border-white/10 hover:bg-white/15"
+              }`}
+              aria-label="Toggle competitive mode"
+              title="Competitive Mode"
+            >
+              🏁 Competitive: {competitiveMode ? "ON" : "OFF"}
+            </button>
+
+            {competitiveMode && (
+              <span className="text-xs text-white/50">
+                Backspace = -0.5s penalty
+              </span>
+            )}
           </div>
 
-          {/* Hotkey hint (always visible, including focus mode) */}
+          {/* Hotkey hint */}
           <div className="flex flex-col items-center justify-center text-center mt-10">
             <span className="mt-1 text-[11px] text-white/40 tracking-wide">
-              <kbd className="bg-white/10 px-1 rounded">Tab</kbd> + <kbd className="bg-white/10 px-1 rounded">Enter</kbd> — Restart Test
+              <kbd className="bg-white/10 px-1 rounded">Tab</kbd> +{" "}
+              <kbd className="bg-white/10 px-1 rounded">Enter</kbd> — Restart Test
             </span>
           </div>
         </div>
       </section>
 
-      {/* Ads (keep as-is; you can also hide during focus if you prefer) */}
+      {/* Ads */}
       <aside className="absolute right-0 top-1/4">
-        {!loading && <AdUnit
-          slot="9194878710"
-          fixed
-          style={{ display: "block", width: 300, height: 250 }}
-          format="rectangle"
-          responsive={false}
-        />}
+        {!loading && (
+          <AdUnit
+            slot="9194878710"
+            fixed
+            style={{ display: "block", width: 300, height: 250 }}
+            format="rectangle"
+            responsive={false}
+          />
+        )}
       </aside>
+
       <div style={{ maxWidth: "100%", margin: "24px auto 0" }}>
-        {!loading && <AdUnit slot="6053710056" style={{ display: "block", width: "100%" }} /> }
+        {!loading && <AdUnit slot="6053710056" style={{ display: "block", width: "100%" }} />}
       </div>
 
-      {/* Footer (hidden in focus mode) */}
-      {!focus && (
-        <Footer />
-      )}
+      {/* Footer */}
+      {!focus && <Footer />}
     </main>
   );
 }

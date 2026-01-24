@@ -5,6 +5,24 @@
       "@/*": [
         "*"
       ]
-    }
-  }
+    },
+    "skipLibCheck": true,
+    "allowJs": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "src/**/*",
+    "*.js",
+    "*.json",
+    "app/**/*",
+    "lib/**/*",
+    "models/**/*",
+    "pages/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next"
+  ]
 }
