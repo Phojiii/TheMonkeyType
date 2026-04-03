@@ -23,6 +23,8 @@ export default function TypingTest({
   onFocusStart,
   onFocusEnd,
   onRestart,
+  onComplete,
+  showResultModal = true,
   competitiveMode = false, // ✅ NEW
 }) {
   // core state
@@ -73,13 +75,13 @@ export default function TypingTest({
   // Results modal
   const [showResults, setShowResults] = useState(false);
   useEffect(() => {
-    if (ended) {
+    if (ended && showResultModal) {
       const timer = setTimeout(() => setShowResults(true), 500);
       return () => clearTimeout(timer);
-    } else {
-      setShowResults(false);
     }
-  }, [ended]);
+
+    setShowResults(false);
+  }, [ended, showResultModal]);
 
   // --- Tab → Enter arming ---
   const tabArmedRef = useRef(false);
@@ -88,6 +90,7 @@ export default function TypingTest({
 
   // ✅ penalty toast
   const [penaltyToastKey, setPenaltyToastKey] = useState(0);
+  const completedRef = useRef(false);
 
   const triggerPenaltyToast = () => {
     setShowPenaltyToast(true);
@@ -109,6 +112,7 @@ export default function TypingTest({
     gsap.set(scrollerRef.current, { y: 0 });
 
     penaltyMsRef.current = 0; // ✅ reset penalty
+    completedRef.current = false;
 
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [initialText, durationSec]);
@@ -356,6 +360,12 @@ export default function TypingTest({
     duration: durationSec,
     mode: competitiveMode ? "competitive" : "classic",
   };
+
+  useEffect(() => {
+    if (!ended || completedRef.current) return;
+    completedRef.current = true;
+    onComplete && onComplete(testStats);
+  }, [ended, onComplete, testStats]);
 
   return (
     <div ref={wrapRef} className="w-full max-w-5xl mx-auto" onMouseDown={() => inputRef.current?.focus()}>

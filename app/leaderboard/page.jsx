@@ -1,7 +1,7 @@
-
-// app/leaderboard/page.jsx
 "use client";
-import { useEffect, useState, useMemo } from "react";
+
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,31 +25,26 @@ const MODE_OPTIONS = [
   { key: "competitive", label: "Competitive" },
 ];
 
-
 export default function LeaderboardPage() {
+  const router = useRouter();
   const { user, isSignedIn, isLoaded } = useUser();
 
   const [mode, setMode] = useState("classic");
   const [category, setCategory] = useState("all");
   const [scope, setScope] = useState("global");
   const [country, setCountry] = useState("");
-
   const [payload, setPayload] = useState({ scores: [], meta: {}, me: null });
   const [loading, setLoading] = useState(false);
-
   const [updating, setUpdating] = useState(false);
+  const [challenging, setChallenging] = useState("");
 
   const subtitle = useMemo(() => {
     const catLabel = category === "all" ? "All durations" : `${category}s only`;
-    const scopeLabel =
-      scope === "country"
-        ? `Your country${country ? ` (${country})` : ""}`
-        : "Global";
+    const scopeLabel = scope === "country" ? `Your country${country ? ` (${country})` : ""}` : "Global";
     const modeLabel = mode === "competitive" ? "Competitive" : "Classic";
-    return `${catLabel} • ${scopeLabel} • ${modeLabel}`;
+    return `${catLabel} � ${scopeLabel} � ${modeLabel}`;
   }, [category, scope, country, mode]);
 
-  // Presence ping (only when signed in)
   useEffect(() => {
     if (!isSignedIn) return;
 
@@ -60,15 +55,14 @@ export default function LeaderboardPage() {
     };
 
     ping();
-    const t = setInterval(ping, 25_000);
-    return () => clearInterval(t);
+    const timer = setInterval(ping, 25000);
+    return () => clearInterval(timer);
   }, [isSignedIn]);
 
-  // Fetch leaderboard (include mode)
   useEffect(() => {
     let cancelled = false;
 
-    async function run() {
+    async function load() {
       setLoading(true);
       try {
         const params = new URLSearchParams({ category, scope, mode });
@@ -78,331 +72,314 @@ export default function LeaderboardPage() {
         const data = await res.json();
 
         if (!cancelled) {
-          if (Array.isArray(data?.scores)) setPayload(data);
-          else setPayload({ scores: [], meta: {}, me: null });
+          setPayload(Array.isArray(data?.scores) ? data : { scores: [], meta: {}, me: null });
         }
-      } catch (e) {
-        console.error("Leaderboard fetch failed:", e);
+      } catch (error) {
+        console.error("Leaderboard fetch failed:", error);
         if (!cancelled) setPayload({ scores: [], meta: {}, me: null });
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    run();
+    load();
     return () => {
       cancelled = true;
     };
   }, [category, scope, country, mode]);
 
   const scores = Array.isArray(payload?.scores) ? payload.scores : [];
-  const effectiveCategory = payload?.meta?.category; // "all" or number
+  const effectiveCategory = payload?.meta?.category;
 
-  async function handleChallenge(opponentUserId) {
-    // Placeholder until you wire real challenge APIs + UI
-    alert(
-      `Stay Tuned! Challenge feature coming soon.`
-      //`Challenge flow not wired yet.\nOpponent: ${opponentUserId}\n\nNext step: create /api/challenge/create + /competitive/challenge/[id].`
-    );
+  async function handleChallenge(row) {
+    if (!row?.userId || challenging) return;
+
+    setChallenging(row.userId);
+    try {
+      const duration = Number(category === "all" ? row.category || 60 : category);
+      const res = await fetch("/api/challenge/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ opponentUserId: row.userId, duration }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data?.challengeId) {
+          router.push(`/challenge/${data.challengeId}`);
+          return;
+        }
+        throw new Error(data?.error || "Failed to create challenge");
+      }
+
+      router.push(`/challenge/${data.challengeId}`);
+    } catch (error) {
+      alert(error.message || "Failed to create challenge");
+    } finally {
+      setChallenging("");
+    }
   }
+
   async function handleUpdateRecords() {
     if (!isSignedIn) return;
-
     setUpdating(true);
 
-    const KEYS = [
+    const keys = [
       { key: "tmt_stats_classic", mode: "classic" },
       { key: "tmt_stats_competitive", mode: "competitive" },
     ];
 
     try {
-      for (const { key, mode } of KEYS) {
-        const raw = JSON.parse(localStorage.getItem(key) || "[]");
+      for (const entry of keys) {
+        const raw = JSON.parse(localStorage.getItem(entry.key) || "[]");
         if (!Array.isArray(raw)) continue;
 
-        // group best per duration
         const bestByDuration = {};
 
-        for (const r of raw) {
-          const d = Number(r.duration);
-          if (![15, 30, 60, 120].includes(d)) continue;
+        for (const record of raw) {
+          const duration = Number(record.duration);
+          if (![15, 30, 60, 120].includes(duration)) continue;
 
-          const wpm = Math.round(Number(r.wpm) || 0);
-          const acc = Math.round(Number(r.accuracy) || 0);
+          const wpm = Math.round(Number(record.wpm) || 0);
+          const acc = Math.round(Number(record.accuracy) || 0);
 
-          if (!bestByDuration[d]) {
-            bestByDuration[d] = { wpm, acc };
+          if (!bestByDuration[duration]) {
+            bestByDuration[duration] = { wpm, acc };
           } else {
-            bestByDuration[d].wpm = Math.max(bestByDuration[d].wpm, wpm);
-            bestByDuration[d].acc = Math.max(bestByDuration[d].acc, acc);
+            bestByDuration[duration].wpm = Math.max(bestByDuration[duration].wpm, wpm);
+            bestByDuration[duration].acc = Math.max(bestByDuration[duration].acc, acc);
           }
         }
 
-        // push to server
-        for (const [duration, v] of Object.entries(bestByDuration)) {
+        for (const [duration, value] of Object.entries(bestByDuration)) {
           await fetch("/api/saveScore", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({
-              mode,
+              mode: entry.mode,
               duration: Number(duration),
-              bestWpm: v.wpm,
-              bestAccuracy: v.acc,
+              bestWpm: value.wpm,
+              bestAccuracy: value.acc,
             }),
           });
         }
       }
 
-      alert("Records updated successfully 🚀");
-    } catch (err) {
-      console.error("Update records failed:", err);
+      alert("Records updated successfully");
+    } catch (error) {
+      console.error("Update records failed:", error);
       alert("Failed to update records");
     } finally {
       setUpdating(false);
     }
   }
 
-
   return (
-    <main className="min-h-screen bg-ink text-white px-6 py-10">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center max-w-6xl mx-auto mb-4 gap-4">
+    <main className="min-h-screen bg-ink px-6 py-10 text-white">
+      <header className="mx-auto mb-4 flex max-w-6xl flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold text-brand">Leaderboard</h1>
           <p className="text-sm text-white/60">{subtitle}</p>
         </div>
+
         <button
           onClick={handleUpdateRecords}
           disabled={!isSignedIn || updating}
-          className={`px-3 py-1 rounded-md text-sm transition ${
+          className={`rounded-md px-3 py-1 text-sm transition ${
             !isSignedIn
-              ? "bg-white/5 text-white/40 cursor-not-allowed"
+              ? "cursor-not-allowed bg-white/5 text-white/40"
               : "bg-brand text-black hover:brightness-110"
           }`}
         >
-          {updating ? "Updating…" : "Update Records"}
+          {updating ? "Updating..." : "Update Records"}
         </button>
 
-
         <div className="flex flex-wrap items-center gap-3">
-          {/* Mode tabs */}
           <div className="flex gap-2" role="tablist" aria-label="Mode filters">
-            {MODE_OPTIONS.map((o) => {
-              const active = mode === o.key;
+            {MODE_OPTIONS.map((option) => {
+              const active = mode === option.key;
               return (
                 <button
-                  key={o.key}
+                  key={option.key}
                   type="button"
                   role="tab"
                   aria-pressed={active}
-                  onClick={() => setMode(o.key)}
-                  className={`px-3 py-1 rounded-md text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
+                  onClick={() => setMode(option.key)}
+                  className={`rounded-md px-3 py-1 text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
                     active
-                      ? "bg-brand text-black font-semibold"
+                      ? "bg-brand font-semibold text-black"
                       : "bg-white/5 text-white hover:bg-white/10"
                   }`}
                 >
-                  {o.label}
+                  {option.label}
                 </button>
               );
             })}
           </div>
 
-          {/* Duration chips */}
-          <div className="flex gap-2 ml-1" role="tablist" aria-label="Duration filters">
-            {FILTER_OPTIONS.map((o) => {
-              const active = category === o.key;
+          <div className="ml-1 flex gap-2" role="tablist" aria-label="Duration filters">
+            {FILTER_OPTIONS.map((option) => {
+              const active = category === option.key;
               return (
                 <button
-                  key={o.key}
+                  key={option.key}
                   type="button"
                   role="tab"
                   aria-pressed={active}
-                  onClick={() => setCategory(o.key)}
-                  className={`px-3 py-1 rounded-md text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
+                  onClick={() => setCategory(option.key)}
+                  className={`rounded-md px-3 py-1 text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
                     active
-                      ? "bg-brand text-black font-semibold"
+                      ? "bg-brand font-semibold text-black"
                       : "bg-white/5 text-white hover:bg-white/10"
                   }`}
                 >
-                  {o.label}
+                  {option.label}
                 </button>
               );
             })}
           </div>
 
-          {/* Scope toggle */}
-          <div className="flex gap-2 ml-1" role="tablist" aria-label="Scope filters">
-            {SCOPE_OPTIONS.map((o) => {
-              const active = scope === o.key;
+          <div className="ml-1 flex gap-2" role="tablist" aria-label="Scope filters">
+            {SCOPE_OPTIONS.map((option) => {
+              const active = scope === option.key;
               return (
                 <button
-                  key={o.key}
+                  key={option.key}
                   type="button"
                   role="tab"
                   aria-pressed={active}
-                  onClick={() => setScope(o.key)}
-                  className={`px-3 py-1 rounded-md text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
+                  onClick={() => setScope(option.key)}
+                  className={`rounded-md px-3 py-1 text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
                     active
-                      ? "bg-brand text-black font-semibold"
+                      ? "bg-brand font-semibold text-black"
                       : "bg-white/5 text-white hover:bg-white/10"
                   }`}
                 >
-                  {o.label}
+                  {option.label}
                 </button>
               );
             })}
           </div>
 
-          {/* Country override */}
           <input
             placeholder="ISO Country (e.g. PK)"
             value={country}
             onChange={(e) => setCountry(e.target.value.toUpperCase())}
             disabled={scope !== "country"}
-            className={`ml-2 px-2 py-1 rounded border text-sm ${
+            className={`ml-2 rounded border px-2 py-1 text-sm ${
               scope === "country"
-                ? "bg-white/10 border-white/10"
-                : "bg-white/5 border-white/5 opacity-50 cursor-not-allowed"
+                ? "border-white/10 bg-white/10"
+                : "cursor-not-allowed border-white/5 bg-white/5 opacity-50"
             }`}
           />
 
-          <Link href="/" className="text-sm text-white/60 hover:text-white ml-3">
-            ← Back
+          <Link href="/" className="ml-3 text-sm text-white/60 hover:text-white">
+            Back
           </Link>
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto bg-white/5 rounded-xl border border-white/10 shadow-lg overflow-x-auto">
+      <section className="mx-auto max-w-6xl overflow-x-auto rounded-xl border border-white/10 bg-white/5 shadow-lg">
         {!isLoaded ? (
-          <div className="text-center py-8 text-white/50">Loading user...</div>
+          <div className="py-8 text-center text-white/50">Loading user...</div>
         ) : loading ? (
-          <div className="text-center py-8 text-white/50">Loading...</div>
+          <div className="py-8 text-center text-white/50">Loading...</div>
         ) : scores.length === 0 ? (
-          <div className="text-center py-10 text-white/50">No scores available yet.</div>
+          <div className="py-10 text-center text-white/50">No scores available yet.</div>
         ) : (
           <table className="w-full text-left text-sm">
             <thead className="bg-white/10 text-white/60">
               <tr>
-                <th className="py-3 px-4">Rank</th>
-                <th className="py-3 px-4">User</th>
-                <th className="py-3 px-4">WPM</th>
-                <th className="py-3 px-4">Accuracy</th>
-                <th className="py-3 px-4">Category</th>
-                <th className="py-3 px-4">Country</th>
-                <th className="py-3 px-4">Other PBs</th>
-                {mode === "competitive" && (
-                  <th className="py-3 px-4 text-right">Action</th>
-                )}
+                <th className="px-4 py-3">Rank</th>
+                <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">WPM</th>
+                <th className="px-4 py-3">Accuracy</th>
+                <th className="px-4 py-3">Category</th>
+                <th className="px-4 py-3">Country</th>
+                <th className="px-4 py-3">Other PBs</th>
+                {mode === "competitive" && <th className="px-4 py-3 text-right">Action</th>}
               </tr>
             </thead>
-
             <tbody>
-              {scores.map((s, i) => {
-                const isMe = !!(user && s.userId === user.id);
-
-                const online =
-                  !!s.lastSeenAt &&
-                  Date.now() - new Date(s.lastSeenAt).getTime() < 45_000;
-
-                // Chips for other PBs (exclude current category if not "all")
-                const otherPBs = (s.pbByCategory || []).filter((pb) =>
-                  effectiveCategory === "all"
-                    ? true
-                    : pb.category !== Number(effectiveCategory)
+              {scores.map((score, index) => {
+                const isMe = !!(user && score.userId === user.id);
+                const online = !!score.lastSeenAt && Date.now() - new Date(score.lastSeenAt).getTime() < 45000;
+                const otherPBs = (score.pbByCategory || []).filter((pb) =>
+                  effectiveCategory === "all" ? true : pb.category !== Number(effectiveCategory)
                 );
 
                 return (
                   <tr
-                    key={s.id || `${s.userId}-${s.category}` || i}
-                    className={`transition ${
-                      isMe ? "bg-[#E2B714]/20" : "hover:bg-white/10"
-                    }`}
+                    key={score.id || `${score.userId}-${score.category}-${index}`}
+                    className={`transition ${isMe ? "bg-[#E2B714]/20" : "hover:bg-white/10"}`}
                   >
-                    <td className="py-3 px-4 font-semibold text-white/90">{i + 1}</td>
-
-                    <td className="py-3 px-4">
+                    <td className="px-4 py-3 font-semibold text-white/90">{index + 1}</td>
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <span
                           title={online ? "Online" : "Offline"}
-                          className={`inline-block w-2.5 h-2.5 rounded-full ${
-                            online ? "bg-green-400" : "bg-white/20"
-                          }`}
+                          className={`inline-block h-2.5 w-2.5 rounded-full ${online ? "bg-green-400" : "bg-white/20"}`}
                         />
-                        {s.imageUrl ? (
+                        {score.imageUrl ? (
                           <Image
-                            src={s.imageUrl}
-                            alt={s.username || "User"}
+                            src={score.imageUrl}
+                            alt={score.username || "User"}
                             width={32}
                             height={32}
                             className="rounded-full"
+                            style={{ width: "32", height: "32" }}
                             unoptimized
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-white/10" />
+                          <div className="h-8 w-8 rounded-full bg-white/10" />
                         )}
-                        <span className="truncate max-w-[180px]">
-                          {s.username || "Anonymous"}
-                        </span>
-                        {isMe && (
-                          <span className="ml-1 text-[10px] text-brand">(You)</span>
-                        )}
+                        <span className="max-w-[180px] truncate">{score.username || "Anonymous"}</span>
+                        {isMe && <span className="ml-1 text-[10px] text-brand">(You)</span>}
                       </div>
                     </td>
-
-                    <td className="py-3 px-4 text-brand font-semibold">
-                      {Number(s.bestWpm || 0)}
-                    </td>
-                    <td className="py-3 px-4 text-sky-400">
-                      {Number(s.bestAccuracy || 0)}%
-                    </td>
-                    <td className="py-3 px-4 text-white/80">
-                      {s.category ? `${s.category}s` : "—"}
-                    </td>
-                    <td className="py-3 px-4 text-white/60">{s.country || "—"}</td>
-
-                    <td className="py-3 px-4">
+                    <td className="px-4 py-3 font-semibold text-brand">{Number(score.bestWpm || 0)}</td>
+                    <td className="px-4 py-3 text-sky-400">{Number(score.bestAccuracy || 0)}%</td>
+                    <td className="px-4 py-3 text-white/80">{score.category ? `${score.category}s` : "-"}</td>
+                    <td className="px-4 py-3 text-white/60">{score.country || "-"}</td>
+                    <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {otherPBs.length === 0 ? (
-                          <span className="text-white/40 text-xs">—</span>
+                          <span className="text-xs text-white/40">-</span>
                         ) : (
                           otherPBs.map((pb) => (
                             <span
-                              key={`${s.userId}-${pb.category}`}
-                              title={`${pb.category}s • ${pb.bestWpm} WPM`}
-                              className="text-[11px] px-2 py-0.5 rounded-md bg-white/10 border border-white/10 text-white/80"
+                              key={`${score.userId}-${pb.category}`}
+                              title={`${pb.category}s � ${pb.bestWpm} WPM`}
+                              className="rounded-md border border-white/10 bg-white/10 px-2 py-0.5 text-[11px] text-white/80"
                             >
-                              {pb.category}s{" "}
-                              <span className="text-brand font-semibold">
-                                {pb.bestWpm}
-                              </span>
+                              {pb.category}s <span className="font-semibold text-brand">{pb.bestWpm}</span>
                             </span>
                           ))
                         )}
                       </div>
                     </td>
-
                     {mode === "competitive" && (
-                      <td className="py-3 px-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <button
-                          onClick={() => handleChallenge(s.userId)}
-                          disabled={!online || isMe || !isSignedIn}
+                          onClick={() => handleChallenge(score)}
+                          disabled={!online || isMe || !isSignedIn || challenging === score.userId}
                           title={
                             !isSignedIn
                               ? "Sign in to challenge"
                               : isMe
-                              ? "You can't challenge yourself"
+                              ? "You cannot challenge yourself"
                               : online
                               ? "Challenge this user"
                               : "User is offline"
                           }
-                          className={`text-xs px-3 py-1 rounded-md border transition ${
+                          className={`rounded-md border px-3 py-1 text-xs transition ${
                             !isSignedIn || !online || isMe
-                              ? "bg-white/5 border-white/10 text-white/30 cursor-not-allowed"
-                              : "bg-brand text-black border-brand hover:brightness-110"
+                              ? "cursor-not-allowed border-white/10 bg-white/5 text-white/30"
+                              : "border-brand bg-brand text-black hover:brightness-110"
                           }`}
                         >
-                          Challenge
+                          {challenging === score.userId ? "Sending..." : "Challenge"}
                         </button>
                       </td>
                     )}
@@ -414,16 +391,10 @@ export default function LeaderboardPage() {
         )}
       </section>
 
-      {/* Current user rank */}
       {payload?.me && (
-        <div className="max-w-6xl mx-auto mt-4 text-sm text-white/70">
-          Your rank in{" "}
-          {scope === "country"
-            ? payload?.meta?.country || "your country"
-            : "global"}{" "}
-          / {category} / {mode}:{" "}
-          <span className="text-brand font-semibold">#{payload.me.rank}</span>{" "}
-          out of {payload.me.total}
+        <div className="mx-auto mt-4 max-w-6xl text-sm text-white/70">
+          Your rank in {scope === "country" ? payload?.meta?.country || "your country" : "global"} / {category} / {mode}:{" "}
+          <span className="font-semibold text-brand">#{payload.me.rank}</span> out of {payload.me.total}
         </div>
       )}
 

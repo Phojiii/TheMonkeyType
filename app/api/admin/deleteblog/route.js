@@ -1,7 +1,10 @@
-import { del } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { ADMINS } from "@/lib/admins";
+import { connectDB } from "@/lib/mongodb";
+import Blog from "@/models/Blog";
+
+export const runtime = "nodejs";
 
 export async function DELETE(req) {
   try {
@@ -14,7 +17,12 @@ export async function DELETE(req) {
     if (!slug)
       return NextResponse.json({ error: "Missing slug" }, { status: 400 });
 
-    await del(`blogs/${slug}.md`);
+    await connectDB();
+    const deleted = await Blog.findOneAndDelete({ slug });
+    if (!deleted) {
+      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Delete blog error:", err);

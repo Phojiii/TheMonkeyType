@@ -20,12 +20,14 @@ export default function AnnouncementModal({ onClose }) {
         <p className="text-sm text-white/80 leading-relaxed">
           👉 Welcome to The Monkey Type (TMT)
           <br /><br />
-          <span className="inline-block animate-pulse">🏆</span>{" "}
-          Competitive Mode is now live - RACE, RANK, and dominate the Leaderboard.
+          <span className="inline-block animate-pulse">⚔️</span>{" "}
+          Competitive Mode just leveled up — 1v1 Duels are now LIVE!
           <br /><br />
-          Switch modes, test your skills, and see where you rank 🚀
+          Challenge other players, go head-to-head in real-time speed runs, and prove who's the fastest 🏆
           <br /><br />
-          ⚔️ <strong>Coming next</strong>: challenge other players to a 1v1 typing duel.
+          Climb the leaderboard, sharpen your skills, and dominate your opponents 🚀
+          <br /><br />
+          💥 Do you have what it takes to be #1?
         </p>
 
 

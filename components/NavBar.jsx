@@ -12,16 +12,16 @@ import {
   FaBlog,
 } from "react-icons/fa";
 import { MdAdminPanelSettings } from "react-icons/md";
-import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { ADMINS } from "@/lib/admins";
 import AnnouncementModal from "./AnnouncementModal";
 
-const ANNOUNCEMENT_VERSION = "1.0.1"; // Update this to force showing the announcement again
+const ANNOUNCEMENT_VERSION = "1.0.2"; // Update this to force showing the announcement again
 
 export default function NavBar() {
   const pathname = usePathname();
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const isAdmin = isLoaded && user && ADMINS.includes(user.id);
 
   const [notifOpen, setNotifOpen] = useState(false);
@@ -50,7 +50,7 @@ export default function NavBar() {
       <nav className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-[#232325] flex-col items-center justify-between py-6 shadow-lg z-50">
         {/* Logo */}
         <Link href="/">
-          <Image src="/TMT_Logo.png" alt="TMT Logo" width={60} height={40} priority />
+          <Image src="/TMT_Logo.png" alt="TMT Logo" width={60} height={40} priority style={{ width: "auto", height: "auto" }} />
         </Link>
 
         {/* Menu */}
@@ -95,22 +95,20 @@ export default function NavBar() {
           {notifOpen && <AnnouncementModal onClose={closeAnnouncement} />}
 
           {/* Auth */}
-          <SignedOut>
+          {!isSignedIn ? (
             <SignInButton mode="modal">
               <FaUserCircle className="text-2xl text-white/80 hover:text-yellow-400 transition" />
             </SignInButton>
-          </SignedOut>
-
-          <SignedIn>
+          ) : (
             <UserButton appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
-          </SignedIn>
+          )}
         </div>
       </nav>
 
       {/* 📱 Mobile Navbar */}
       <nav className="md:hidden fixed top-0 left-0 w-full bg-[#232325]/95 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-4 py-2 z-50">
         <Link href="/">
-          <Image src="/TMT_Logo.png" alt="TMT Logo" width={42} height={28} priority />
+          <Image src="/TMT_Logo.png" alt="TMT Logo" width={42} height={28} priority style={{ width: "auto", height: "auto" }} />
         </Link>
 
         <div className="flex items-center gap-5">

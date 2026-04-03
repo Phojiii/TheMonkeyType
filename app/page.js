@@ -110,7 +110,7 @@ export default function Home() {
       {!focus && (
         <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
           <Link href="/" className="md:flex hidden items-center gap-3">
-            <Image src="/TMT_Logo_2.png" alt="TMT Logo" width={40} height={40} priority />
+            <Image src="/TMT_Logo_2.png" alt="TMT Logo" width={40} height={40} priority style={{ width: "auto", height: "auto" }} />
             <span className="sr-only">TMT - Typing Trainer</span>
           </Link>
           <nav className="text-white/70 text-sm text-center block md:m-0 m-auto">

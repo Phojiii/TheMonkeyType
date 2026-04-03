@@ -17,6 +17,7 @@ import Footer from "@/components/Footer";
 const LEGACY_KEY = "tmt_stats";
 const KEY_CLASSIC = "tmt_stats_classic";
 const KEY_COMP = "tmt_stats_competitive";
+const CHALLENGE_HISTORY_KEY_PREFIX = "tmt_challenge_history";
 
 export default function StatsPage() {
   const [mode, setMode] = useState("classic");
@@ -25,8 +26,9 @@ export default function StatsPage() {
   const [raw, setRaw] = useState([]);
   const [filter, setFilter] = useState("all");
   const [range, setRange] = useState("7d");
+  const [challengeHistory, setChallengeHistory] = useState([]);
 
-  const { isSignedIn } = useUser();
+  const { user, isSignedIn } = useUser();
 
   // ✅ migrate legacy -> classic once (so old users see stats)
   useEffect(() => {
@@ -95,6 +97,48 @@ export default function StatsPage() {
     return within.sort((a, b) => a.ts - b.ts);
   }, [dataByDuration, range]);
 
+  useEffect(() => {
+    if (!user?.id) {
+      setChallengeHistory([]);
+      return;
+    }
+
+    try {
+      const key = `${CHALLENGE_HISTORY_KEY_PREFIX}_${user.id}`;
+      const stored = JSON.parse(localStorage.getItem(key) || "[]");
+      const normalized = (Array.isArray(stored) ? stored : []).map((entry) => ({
+        ...entry,
+        duration: Number(entry?.duration) || 0,
+        myWpm: Number(entry?.myWpm) || 0,
+        myAccuracy: Number(entry?.myAccuracy) || 0,
+        opponentWpm: Number(entry?.opponentWpm) || 0,
+        opponentAccuracy: Number(entry?.opponentAccuracy) || 0,
+        ts: new Date(entry?.date).getTime(),
+      }));
+      setChallengeHistory(normalized);
+    } catch {
+      setChallengeHistory([]);
+    }
+  }, [user?.id]);
+
+  const challengeTotals = useMemo(() => {
+    if (!challengeHistory.length) return null;
+
+    const wins = challengeHistory.filter((entry) => entry.outcome === "win").length;
+    const losses = challengeHistory.filter((entry) => entry.outcome === "loss").length;
+    const draws = challengeHistory.filter((entry) => entry.outcome === "draw").length;
+    const bestWpm = Math.max(...challengeHistory.map((entry) => entry.myWpm || 0), 0);
+
+    return {
+      total: challengeHistory.length,
+      wins,
+      losses,
+      draws,
+      winRate: challengeHistory.length ? (wins / challengeHistory.length) * 100 : 0,
+      bestWpm,
+    };
+  }, [challengeHistory]);
+
   const totals = useMemo(() => {
     const data = dataByDuration;
     if (!data.length) return null;
@@ -116,6 +160,19 @@ export default function StatsPage() {
     localStorage.removeItem(storageKey);
     setRaw([]);
   };
+
+  function clearChallengeHistory() {
+    if (!user?.id) return;
+    localStorage.removeItem(`${CHALLENGE_HISTORY_KEY_PREFIX}_${user.id}`);
+    setChallengeHistory([]);
+  }
+
+  function removeChallengeEntry(challengeId) {
+    if (!user?.id) return;
+    const next = challengeHistory.filter((entry) => entry.challengeId !== challengeId);
+    localStorage.setItem(`${CHALLENGE_HISTORY_KEY_PREFIX}_${user.id}`, JSON.stringify(next));
+    setChallengeHistory(next);
+  }
 
   // ✅ sync best score to server (includes mode)
   useEffect(() => {
@@ -381,6 +438,85 @@ export default function StatsPage() {
           </table>
         </section>
       )}
+
+      <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 stats-stagger">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Challenge History</h2>
+            <p className="mt-1 text-sm text-white/60">Local 1v1 record for your signed-in account.</p>
+          </div>
+          <button
+            onClick={clearChallengeHistory}
+            disabled={!challengeHistory.length}
+            className="px-3 py-1.5 rounded-md bg-red-600/70 hover:bg-red-600 transition text-sm disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Clear Challenge History
+          </button>
+        </div>
+
+        {challengeTotals ? (
+          <>
+            <div className="mt-6 grid gap-4 md:grid-cols-5">
+              <Badge title="Challenges" value={challengeTotals.total} accent="zinc" />
+              <Badge title="Wins" value={challengeTotals.wins} accent="brand" />
+              <Badge title="Losses" value={challengeTotals.losses} accent="slate" />
+              <Badge title="Draws" value={challengeTotals.draws} accent="sky" />
+              <Badge title="Win Rate" value={`${Math.round(challengeTotals.winRate)}%`} accent="amber" />
+            </div>
+
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="text-white/70 border-b border-white/10">
+                  <tr>
+                    <th className="py-2 px-3">Date</th>
+                    <th className="py-2 px-3">Opponent</th>
+                    <th className="py-2 px-3">Duration</th>
+                    <th className="py-2 px-3">Result</th>
+                    <th className="py-2 px-3">Your WPM</th>
+                    <th className="py-2 px-3">Opponent WPM</th>
+                    <th className="py-2 px-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {challengeHistory
+                    .slice()
+                    .sort((a, b) => b.ts - a.ts)
+                    .map((entry) => (
+                      <tr key={entry.challengeId} className="border-b border-white/5 hover:bg-white/5 transition">
+                        <td className="py-2 px-3">{new Date(entry.ts).toLocaleString()}</td>
+                        <td className="py-2 px-3">{entry.opponentUsername}</td>
+                        <td className="py-2 px-3">{entry.duration}s</td>
+                        <td className="py-2 px-3">
+                          <span className={
+                            entry.outcome === "win"
+                              ? "text-brand"
+                              : entry.outcome === "loss"
+                              ? "text-red-400"
+                              : "text-sky-400"
+                          }>
+                            {entry.outcome}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-brand">{entry.myWpm}</td>
+                        <td className="py-2 px-3 text-white/80">{entry.opponentWpm}</td>
+                        <td className="py-2 px-3 text-right">
+                          <button
+                            onClick={() => removeChallengeEntry(entry.challengeId)}
+                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 transition"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          <div className="mt-6 text-sm text-white/50">No challenge results saved yet.</div>
+        )}
+      </section>
 
       <Footer />
     </main>

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
-import { put } from "@vercel/blob";
 import { ADMINS } from "@/lib/admins";
+import { connectDB } from "@/lib/mongodb";
+import Blog from "@/models/Blog";
+
+export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
@@ -14,7 +17,7 @@ export async function POST(req) {
     const author = formData.get("author");
     const excerpt = formData.get("excerpt");
     const content = formData.get("content");
-    const cover = formData.get("cover"); // this can now be a Cloudinary URL string
+    const cover = formData.get("cover");
 
     if (!title || !content) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -26,27 +29,36 @@ export async function POST(req) {
       .replace(/(^-|-$)+/g, "")
       .trim();
 
-    // ✅ Use Cloudinary URL directly if provided
+    if (!slug) {
+      return NextResponse.json({ error: "Invalid title" }, { status: 400 });
+    }
+
     let coverUrl = "";
     if (cover && typeof cover === "string" && cover.startsWith("http")) {
       coverUrl = cover;
     }
 
-    const markdown = `---
-title: "${title}"
-author: "${author || "TheMonkeyType Team"}"
-date: "${new Date().toISOString()}"
-excerpt: "${excerpt || ""}"
-cover: "${coverUrl}"
----
+    await connectDB();
 
-${content}
-`;
+    const existing = await Blog.findOne({ slug }).lean();
+    if (existing) {
+      return NextResponse.json(
+        { error: "A blog with this title already exists" },
+        { status: 409 }
+      );
+    }
 
-    // Upload Markdown file to Vercel Blob (this stays the same)
-    const mdBlob = await put(`blogs/${slug}.md`, markdown, { access: "public" });
+    await Blog.create({
+      slug,
+      title,
+      author: author || "TheMonkeyType Team",
+      date: new Date(),
+      excerpt: excerpt || "",
+      cover: coverUrl,
+      content,
+    });
 
-    return NextResponse.json({ success: true, slug, url: mdBlob.url });
+    return NextResponse.json({ success: true, slug });
   } catch (err) {
     console.error("Blog upload error:", err);
     return NextResponse.json({ error: "Failed to upload" }, { status: 500 });
