@@ -2,6 +2,7 @@ import { getAllPosts } from "@/lib/blog";
 import BlogListClient from "./BlogListClient";
 import { currentUser } from "@clerk/nextjs/server";
 import { ADMINS } from "@/lib/admins";
+import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "Blog | TheMonkeyType",
@@ -21,9 +22,9 @@ export default async function BlogPage() {
           Learn typing techniques, read community updates, and explore new features.
         </p>
 
-        {/* Pass posts + admin flag to client component */}
         <BlogListClient posts={posts} isAdmin={isAdmin} />
       </section>
+      <Footer />
     </main>
   );
 }

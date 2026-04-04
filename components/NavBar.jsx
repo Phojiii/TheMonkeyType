@@ -47,7 +47,7 @@ export default function NavBar() {
   return (
     <>
       {/* 🖥️ Desktop Sidebar */}
-      <nav className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-[#232325] flex-col items-center justify-between py-6 shadow-lg z-50">
+      <nav className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-[#23232583] flex-col items-center justify-between py-6 shadow-lg z-50 backdrop-blur-sm">
         {/* Logo */}
         <Link href="/">
           <Image src="/TMT_Logo.png" alt="TMT Logo" width={60} height={40} priority style={{ width: "auto", height: "auto" }} />

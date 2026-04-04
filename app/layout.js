@@ -5,6 +5,11 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import Providers from "../components/Providers";
 
+const googleSiteVerification =
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
+  process.env.GOOGLE_SITE_VERIFICATION ||
+  "";
+
 export const metadata = {
   title: "Free Online Typing Trainer to Improve Speed & Accuracy",
   description:
@@ -13,6 +18,11 @@ export const metadata = {
   alternates: {
     canonical: "/",
   },
+  verification: googleSiteVerification
+    ? {
+        google: googleSiteVerification,
+      }
+    : undefined,
   openGraph: {
     title: "Free Online Typing Trainer to Improve Typing Speed & Accuracy",
     description: "Boost your typing skills with accuracy tracking.",
@@ -36,7 +46,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Google Tag Manager */}
         <Script
           id="gtm"
           strategy="afterInteractive"
@@ -51,7 +60,6 @@ export default function RootLayout({ children }) {
           }}
         />
 
-        {/* AdSense */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
@@ -63,7 +71,6 @@ export default function RootLayout({ children }) {
       </head>
 
       <body>
-        {/* GTM noscript */}
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-WCXVWLCJ"
