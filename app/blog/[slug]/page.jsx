@@ -1,4 +1,4 @@
-import { getAllPosts, getPostBySlug } from "@/lib/blog";
+ï»¿import { getAllPosts, getPostBySlug } from "@/lib/blog";
 import Link from "next/link";
 import sanitizeHtml from "sanitize-html";
 import { marked } from "marked";
@@ -72,13 +72,13 @@ export default async function BlogPostPage({ params }) {
 
         <div className="text-sm text-white/60 mb-8 flex items-center justify-between border-b border-white/10 pb-4">
           <p>
-            {new Date(post.date).toLocaleDateString()} • {post.author}
+            {new Date(post.date).toLocaleDateString()} | {post.author}
           </p>
           <Link
             href="/blog"
             className="text-yellow-400 hover:text-yellow-300 transition font-semibold"
           >
-            &larr; Back to Blog
+            Back to Blog
           </Link>
         </div>
 
@@ -108,4 +108,3 @@ export default async function BlogPostPage({ params }) {
     </main>
   );
 }
-
