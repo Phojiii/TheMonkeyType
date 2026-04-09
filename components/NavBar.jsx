@@ -92,8 +92,6 @@ export default function NavBar() {
             )}
           </button>
 
-          {notifOpen && <AnnouncementModal onClose={closeAnnouncement} />}
-
           {/* Auth */}
           {!isSignedIn ? (
             <SignInButton mode="modal">
@@ -104,6 +102,7 @@ export default function NavBar() {
           )}
         </div>
       </nav>
+      {notifOpen && <AnnouncementModal onClose={closeAnnouncement} />}
 
       {/* 📱 Mobile Navbar */}
       <nav className="md:hidden fixed top-0 left-0 w-full bg-[#232325]/95 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-4 py-2 z-50">
