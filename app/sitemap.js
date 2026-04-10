@@ -1,4 +1,4 @@
-import { getAllPosts } from "@/lib/blog";
+﻿import { getAllPosts } from "@/lib/blog";
 
 export default async function sitemap() {
   const baseUrl = "https://themonkeytype.com";
@@ -12,6 +12,7 @@ export default async function sitemap() {
     { url: `${baseUrl}/stats`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/privacy`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${baseUrl}/terms`, changeFrequency: "yearly", priority: 0.5 },
+    { url: `${baseUrl}/security-policy`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${baseUrl}/blog`, changeFrequency: "weekly", priority: 0.7 },
   ];
 
