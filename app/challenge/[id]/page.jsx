@@ -8,6 +8,10 @@ import TypingTest from "@/components/TypingTest";
 
 const CHALLENGE_HISTORY_KEY_PREFIX = "tmt_challenge_history";
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function persistChallengeResult(userId, challenge) {
   if (!userId || !challenge?.id || challenge.status !== "done") return;
 
@@ -53,12 +57,17 @@ export default function ChallengePage({ params }) {
   const [responding, setResponding] = useState(false);
   const [error, setError] = useState("");
   const historySavedRef = useRef("");
+  const challengeRef = useRef(null);
+
+  useEffect(() => {
+    challengeRef.current = challenge;
+  }, [challenge]);
 
   useEffect(() => {
     if (!isLoaded) return;
 
     if (!authReady || !challengeId) {
-      setLoading(false);
+      if (!challengeRef.current) setLoading(false);
       return;
     }
 
@@ -66,23 +75,34 @@ export default function ChallengePage({ params }) {
 
     const load = async () => {
       try {
-        const res = await fetch(`/api/challenge/${challengeId}`, { cache: "no-store" });
+        const res = await fetch(`/api/challenge/${challengeId}`, {
+          cache: "no-store",
+          credentials: "include",
+        });
         if (res.status === 401) {
-          if (!cancelled) {
-            setChallenge(null);
-            setError("");
-          }
+          // Keep the current challenge onscreen if Clerk briefly refreshes auth mid-run.
           return;
         }
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Failed to load challenge");
+        if (!res.ok) {
+          const nextError = data?.error || "Failed to load challenge";
+
+          if (!cancelled && !challengeRef.current) {
+            setError(nextError);
+          }
+
+          return;
+        }
+
         if (!cancelled) {
           setChallenge(data.challenge);
           setError("");
         }
       } catch (err) {
-        if (!cancelled) setError(err.message || "Failed to load challenge");
+        if (!cancelled && !challengeRef.current) {
+          setError(err.message || "Failed to load challenge");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -109,11 +129,25 @@ export default function ChallengePage({ params }) {
     return challenge.winnerId === challenge.me.userId ? "You won" : `${challenge.opponent.username} won`;
   }, [challenge]);
 
+  async function fetchWithAuthRetry(input, init = {}, retries = 1) {
+    const response = await fetch(input, {
+      credentials: "include",
+      ...init,
+    });
+
+    if (response.status === 401 && retries > 0) {
+      await delay(500);
+      return fetchWithAuthRetry(input, init, retries - 1);
+    }
+
+    return response;
+  }
+
   async function respond(action) {
     if (!challenge?.id) return;
     setResponding(true);
     try {
-      const res = await fetch("/api/challenge/respond", {
+      const res = await fetchWithAuthRetry("/api/challenge/respond", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ challengeId: challenge.id, action }),
@@ -134,15 +168,49 @@ export default function ChallengePage({ params }) {
   async function submitResult(stats) {
     if (!challenge?.id || submitting) return;
     setSubmitting(true);
+
+    const normalizedStats = {
+      wpm: Math.max(0, Math.round(Number(stats?.wpm) || 0)),
+      accuracy: Math.max(0, Math.round(Number(stats?.accuracy) || 0)),
+      words: Math.max(0, Math.round(Number(stats?.words) || 0)),
+      hits: Math.max(0, Math.round(Number(stats?.hits) || 0)),
+    };
+
+    setChallenge((current) => {
+      if (!current) return current;
+
+      const mine = {
+        ...normalizedStats,
+        finishedAt: new Date().toISOString(),
+      };
+
+      return current.role === "creator"
+        ? { ...current, me: { ...current.me, result: mine } }
+        : { ...current, me: { ...current.me, result: mine } };
+    });
+
     try {
-      const res = await fetch(`/api/challenge/${challenge.id}/submit`, {
+      const res = await fetchWithAuthRetry(`/api/challenge/${challenge.id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(stats),
+        body: JSON.stringify(normalizedStats),
       });
+
+      if (res.status === 401) {
+        return;
+      }
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to submit result");
-      const refresh = await fetch(`/api/challenge/${challenge.id}`, { cache: "no-store" });
+
+      const refresh = await fetchWithAuthRetry(`/api/challenge/${challenge.id}`, {
+        cache: "no-store",
+      });
+
+      if (refresh.status === 401) {
+        return;
+      }
+
       const fresh = await refresh.json();
       if (!refresh.ok) throw new Error(fresh?.error || "Failed to refresh challenge");
       setChallenge(fresh.challenge);

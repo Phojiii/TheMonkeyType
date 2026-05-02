@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import ChallengeInbox from "@/components/ChallengeInbox";
+import OnlineUsersWidget from "@/components/OnlineUsersWidget";
 
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -52,6 +53,7 @@ export default function Providers({ children }) {
       <GoogleTagManager />
       <GoogleAnalytics />
       <ChallengeInbox />
+      <OnlineUsersWidget />
       {children}
     </ClerkProvider>
   );
