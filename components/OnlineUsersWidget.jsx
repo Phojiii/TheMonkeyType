@@ -124,7 +124,7 @@ export default function OnlineUsersWidget() {
   }
 
   return (
-    <div className={`fixed right-4 bottom-[20%] z-[85] ${isChallengePage ? "bottom-28" : "bottom-28 md:bottom-24"}`}>
+    <div className={`fixed right-4 z-[85] ${isChallengePage ? "bottom-28" : "bottom-[20%] md:bottom-24"}`}>
       {open && (
         <div
           id="online-users-lobby"
