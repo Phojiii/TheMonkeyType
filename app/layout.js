@@ -82,7 +82,7 @@ export default function RootLayout({ children }) {
 
         <Providers>
           <NavBar />
-          <main className="md:ml-20 md:mt-0 mt-10 ml-0 font-mono antialiased">
+          <main className="ml-0 mt-[4.85rem] font-mono antialiased md:ml-20 md:mt-0">
             {children}
           </main>
           <SpeedInsights />

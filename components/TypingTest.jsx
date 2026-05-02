@@ -371,7 +371,7 @@ export default function TypingTest({
     <div ref={wrapRef} className="w-full max-w-5xl mx-auto" onMouseDown={() => inputRef.current?.focus()}>
       {/* stats (hidden during focus) */}
       {!focusMode && (
-        <div className="mb-6 flex items-center justify-center gap-8 text-sm">
+        <div className="mb-6 hidden items-center justify-center gap-8 text-sm md:flex">
           <Stat label={primaryLabel} value={primaryValue} sub={subValue} />
           <Stat label="Accuracy" value={`${accuracy.toFixed(0)}%`} />
           <Stat label="Time" value={`${remaining}s`} />
@@ -420,7 +420,7 @@ export default function TypingTest({
       {/* 3-line viewport */}
       <div
         ref={viewRef}
-        className="relative font-mono text-2xl md:text-3xl leading-[2.2rem] md:leading-[2.6rem] overflow-hidden text-center"
+        className="relative overflow-hidden text-center font-mono text-[1.05rem] leading-[2.55rem] text-white/55 md:text-3xl md:leading-[2.6rem]"
       >
         <div ref={scrollerRef}>
           {buffer.split("").map((ch, i) => {
@@ -477,6 +477,15 @@ export default function TypingTest({
           className="absolute left-0 top-0 w-px h-px opacity-0"
         />
       </div>
+
+      {!ended && (
+        <div className="mt-10 flex items-center justify-center text-center md:hidden">
+          <span className="text-[11px] tracking-wide text-white/30">
+            <kbd className="rounded bg-white/10 px-1">tab</kbd> +{" "}
+            <kbd className="rounded bg-white/10 px-1">enter</kbd> - restart test
+          </span>
+        </div>
+      )}
 
       {ended && (
         <>

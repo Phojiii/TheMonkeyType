@@ -109,16 +109,16 @@ export default function TopBar({
         <Controls />
       </div>
 
-      <div className="mt-3 mb-2 flex justify-center md:hidden">
+      <div className="mb-2 mt-4 flex justify-center md:hidden">
         <button
           onClick={() => setOpen(true)}
-          className="btn-secondary flex"
+          className="inline-flex items-center gap-2 rounded-xl border border-white/6 bg-black/18 px-5 py-2.5 text-base text-white/35 transition hover:bg-white/[0.04] hover:text-white/60"
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls="settings-modal"
         >
-          <IoMdSettings className="py-1 text-xl text-white/70" />
-          Test Settings
+          <IoMdSettings className="text-base text-white/45" />
+          <span className="lowercase tracking-[0.08em]">test settings</span>
         </button>
       </div>
 

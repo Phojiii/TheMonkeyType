@@ -8,6 +8,7 @@ import TopBar from "@/components/TopBar";
 import AdUnit from "@/components/AdUnit";
 import Footer from "@/components/Footer";
 import { makeStreamGenerator } from "@/lib/textbanks";
+import { FaGlobeAmericas, FaRedoAlt } from "react-icons/fa";
 
 const PREF_KEY = "tmt_prefs";
 
@@ -95,7 +96,7 @@ export default function Home() {
       {focus && <div className="mt-20" />}
 
       {!focus && (
-        <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pb-4 pt-8">
+        <header className="mx-auto hidden w-full max-w-6xl items-center justify-between px-6 pb-4 pt-8 md:flex">
           <Link href="/" className="hidden items-center gap-3 md:flex">
             <Image
               src="/TMT_Logo_2.png"
@@ -135,7 +136,7 @@ export default function Home() {
         />
       )}
 
-      <section className="flex flex-1 items-start justify-center px-6 py-10 md:items-center">
+      <section className="flex flex-1 items-start justify-center px-4 py-8 md:px-6 md:py-10 md:items-center">
         <h1 className="sr-only">
           Master your typing speed with a customizable minimalist typing test on The Monkey Type
         </h1>
@@ -144,6 +145,11 @@ export default function Home() {
         <h2 className="sr-only">Improve your typing accuracy with focused practice on The Monkey Type</h2>
 
         <div className="w-full max-w-5xl">
+          <div className="mb-8 flex items-center justify-center gap-2 text-base text-white/38 md:hidden">
+            <FaGlobeAmericas className="text-sm" />
+            <span className="lowercase tracking-[0.08em]">{lang}</span>
+          </div>
+
           {loading ? (
             <div className="skeleton mx-auto h-40 w-full max-w-5xl" />
           ) : (
@@ -162,7 +168,7 @@ export default function Home() {
             />
           )}
 
-          <div className="mb-4 mt-4 flex flex-wrap items-center justify-center gap-3 text-sm">
+          <div className="mb-4 mt-8 hidden flex-wrap items-center justify-center gap-3 text-sm md:flex">
             <button
               onClick={rebuildGenerator}
               className="btn-secondary"
@@ -186,7 +192,18 @@ export default function Home() {
             )}
           </div>
 
-          <div className="mt-10 flex flex-col items-center justify-center text-center">
+          <div className="mt-8 flex items-center justify-center md:hidden">
+            <button
+              onClick={rebuildGenerator}
+              className="rounded-full p-3 text-white/45 transition hover:bg-white/5 hover:text-white/70"
+              aria-label="Restart test"
+              title="Restart test"
+            >
+              <FaRedoAlt className="text-xl" />
+            </button>
+          </div>
+
+          <div className="mt-10 hidden flex-col items-center justify-center text-center md:flex">
             <span className="mt-1 text-[11px] tracking-wide text-white/40">
               <kbd className="rounded bg-white/10 px-1">Tab</kbd> +{" "}
               <kbd className="rounded bg-white/10 px-1">Enter</kbd> - Restart test

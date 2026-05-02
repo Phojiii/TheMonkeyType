@@ -7,10 +7,11 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req) {
   const { userId } = getAuth(req);
-  if (!userId) return new Response(JSON.stringify({ ok: false }), { status: 401 });
+  if (!userId) {
+    return new Response(JSON.stringify({ ok: false, skipped: true }), { status: 200 });
+  }
 
   await connectDB();
-  // Update all docs for that user (classic + competitive + durations)
   await Score.updateMany({ userId }, { $set: { lastSeenAt: new Date() } });
   return new Response(JSON.stringify({ ok: true }), { status: 200 });
 }

@@ -44,6 +44,12 @@ export default function LeaderboardPage() {
     const modeLabel = mode === "competitive" ? "Competitive" : "Classic";
     return `${catLabel} | ${scopeLabel} | ${modeLabel}`;
   }, [category, scope, country, mode]);
+  const mobileTitle = useMemo(() => {
+    const scopeLabel = scope === "country" ? "My Country" : "All-time";
+    const modeLabel = mode === "competitive" ? "Competitive" : "English";
+    const categoryLabel = category === "all" ? "All" : `Time ${category}`;
+    return `${scopeLabel} ${modeLabel} ${categoryLabel} Leaderboard`;
+  }, [scope, mode, category]);
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -176,8 +182,8 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-ink px-6 py-10 text-white">
-      <header className="mx-auto mb-4 flex max-w-6xl flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+    <main className="min-h-screen bg-ink px-4 py-6 text-white md:px-6 md:py-10">
+      <header className="mx-auto mb-4 hidden max-w-6xl flex-col items-start justify-between gap-4 sm:flex-row sm:items-center md:flex">
         <div>
           <h1 className="text-2xl font-bold text-brand">Leaderboard</h1>
           <p className="text-sm text-white/60">{subtitle}</p>
@@ -264,7 +270,103 @@ export default function LeaderboardPage() {
         </div>
       </header>
 
-      <section className="mx-auto max-w-6xl overflow-x-auto rounded-xl border border-white/10 bg-white/5 shadow-lg">
+      <section className="mx-auto mb-6 max-w-md space-y-4 md:hidden">
+        <div className="rounded-[1.6rem] bg-[#2a2b2f] p-3">
+          <div className="space-y-2" role="tablist" aria-label="Scope filters mobile">
+            <button
+              type="button"
+              onClick={() => {
+                setScope("global");
+                setMode("classic");
+              }}
+              className={`w-full justify-start text-base ${scope === "global" ? "btn-tab-active" : "btn-tab"}`}
+            >
+              all-time english
+            </button>
+            <button
+              type="button"
+              onClick={() => setScope("country")}
+              className={`w-full justify-start text-base ${scope === "country" ? "btn-tab-active" : "btn-tab"}`}
+            >
+              my country
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode(mode === "classic" ? "competitive" : "classic")}
+              className={`w-full justify-start text-base ${mode === "competitive" ? "btn-tab-active" : "btn-tab"}`}
+            >
+              {mode === "competitive" ? "competitive" : "daily"}
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-[1.6rem] bg-[#2a2b2f] p-3">
+          <div className="space-y-2" role="tablist" aria-label="Duration filters mobile">
+            {FILTER_OPTIONS.filter((option) => option.key === "15" || option.key === "60").map((option) => {
+              const active = category === option.key;
+              return (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setCategory(option.key)}
+                  className={`w-full justify-start text-base ${active ? "btn-tab-active" : "btn-tab"}`}
+                >
+                  time {option.key}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="px-1 pt-1">
+          <h1 className="text-[2rem] leading-tight text-white">{mobileTitle}</h1>
+        </div>
+
+        <div className="border-t border-white/8 pt-5 text-sm text-white/25">
+          Next update in: 00:35
+        </div>
+
+        {loading ? (
+          <div className="rounded-[1.35rem] bg-[#2a2b2f] px-4 py-8 text-center text-white/45">Loading...</div>
+        ) : scores.length === 0 ? (
+          <div className="rounded-[1.35rem] bg-[#2a2b2f] px-4 py-8 text-center text-white/45">No scores available yet.</div>
+        ) : (
+          <div className="overflow-hidden rounded-[1.35rem] bg-[#2a2b2f]">
+            <div className="grid grid-cols-[2.2rem_1fr_4.4rem_4.4rem_4.6rem] gap-2 px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-white/20">
+              <span>#</span>
+              <span>name</span>
+              <span>wpm</span>
+              <span>accuracy</span>
+              <span>date</span>
+            </div>
+            {scores.slice(0, 8).map((score, index) => {
+              const isMe = !!(user && score.userId === user.id);
+              const online = !!score.lastSeenAt && Date.now() - new Date(score.lastSeenAt).getTime() < 45000;
+              return (
+                <div
+                  key={score.id || `${score.userId}-${index}`}
+                  className={`grid grid-cols-[2.2rem_1fr_4.4rem_4.4rem_4.6rem] gap-2 px-4 py-3 text-sm ${
+                    isMe ? "bg-white/8" : "border-t border-white/5"
+                  }`}
+                >
+                  <div className="font-semibold text-white/75">{index + 1}</div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2 w-2 rounded-full ${online ? "bg-green-400" : "bg-white/20"}`} />
+                      <span className="truncate text-white/85">{score.username || "Anonymous"}</span>
+                    </div>
+                  </div>
+                  <div className="font-semibold text-brand">{Number(score.bestWpm || 0)}</div>
+                  <div className="text-white/55">{Number(score.bestAccuracy || 0)}%</div>
+                  <div className="text-[11px] text-white/35">{score.category ? `${score.category}s` : "-"}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="mx-auto hidden max-w-6xl overflow-x-auto rounded-xl border border-white/10 bg-white/5 shadow-lg md:block">
         {!isLoaded ? (
           <div className="py-8 text-center text-white/50">Loading user...</div>
         ) : loading ? (
@@ -374,7 +476,7 @@ export default function LeaderboardPage() {
       </section>
 
       {payload?.me && (
-        <div className="mx-auto mt-4 max-w-6xl text-sm text-white/70">
+        <div className="mx-auto mt-4 max-w-md text-sm text-white/70 md:max-w-6xl">
           Your rank in {scope === "country" ? payload?.meta?.country || "your country" : "global"} / {category} / {mode}:{" "}
           <span className="font-semibold text-brand">#{payload.me.rank}</span> out of {payload.me.total}
         </div>
