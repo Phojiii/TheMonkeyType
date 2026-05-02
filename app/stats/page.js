@@ -244,10 +244,10 @@ export default function StatsPage() {
             <button
               onClick={() => setMode("classic")}
               className={
-                "px-3 py-1 rounded-md text-sm transition " +
+                "text-sm " +
                 (mode === "classic"
-                  ? "bg-brand text-ink shadow-[0_0_10px_rgba(226,183,20,0.35)]"
-                  : "bg-white/10 text-white/80 hover:bg-white/15")
+                  ? "btn-tab-active"
+                  : "btn-tab")
               }
             >
               Classic
@@ -255,10 +255,10 @@ export default function StatsPage() {
             <button
               onClick={() => setMode("competitive")}
               className={
-                "px-3 py-1 rounded-md text-sm transition " +
+                "text-sm " +
                 (mode === "competitive"
-                  ? "bg-brand text-ink shadow-[0_0_10px_rgba(226,183,20,0.35)]"
-                  : "bg-white/10 text-white/80 hover:bg-white/15")
+                  ? "btn-tab-active"
+                  : "btn-tab")
               }
             >
               Competitive
@@ -289,10 +289,10 @@ export default function StatsPage() {
               key={f}
               onClick={() => setFilter(String(f))}
               className={
-                "px-3 py-1 rounded-md transition " +
+                "" +
                 (String(filter) === String(f)
-                  ? "bg-brand text-ink shadow-[0_0_10px_rgba(226,183,20,0.35)]"
-                  : "bg-white/10 text-white/80 hover:bg-white/15")
+                  ? "btn-tab-active"
+                  : "btn-tab")
               }
             >
               {f === "all" ? "All" : `${f}s`}
@@ -307,10 +307,10 @@ export default function StatsPage() {
               key={r}
               onClick={() => setRange(r)}
               className={
-                "px-3 py-1 rounded-md transition " +
+                "" +
                 (range === r
-                  ? "bg-white/90 text-ink"
-                  : "bg-white/10 text-white/80 hover:bg-white/15")
+                  ? "btn-primary"
+                  : "btn-tab")
               }
             >
               {r}
@@ -320,7 +320,7 @@ export default function StatsPage() {
 
         <button
           onClick={clearStats}
-          className="px-3 py-1.5 rounded-md bg-red-600/70 hover:bg-red-600 transition text-sm"
+          className="btn-danger text-sm"
         >
           Clear {mode === "competitive" ? "Competitive" : "Classic"} History
         </button>
@@ -427,7 +427,7 @@ export default function StatsPage() {
                     <td className="py-2 px-3 text-right">
                       <button
                         onClick={() => removeEntry(i)}
-                        className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 transition"
+                        className="btn-secondary px-3 py-1.5 text-xs"
                       >
                         Delete
                       </button>
@@ -448,7 +448,7 @@ export default function StatsPage() {
           <button
             onClick={clearChallengeHistory}
             disabled={!challengeHistory.length}
-            className="px-3 py-1.5 rounded-md bg-red-600/70 hover:bg-red-600 transition text-sm disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-danger text-sm disabled:cursor-not-allowed disabled:opacity-40"
           >
             Clear Challenge History
           </button>
@@ -502,7 +502,7 @@ export default function StatsPage() {
                         <td className="py-2 px-3 text-right">
                           <button
                             onClick={() => removeChallengeEntry(entry.challengeId)}
-                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 transition"
+                            className="btn-secondary px-3 py-1.5 text-xs"
                           >
                             Delete
                           </button>

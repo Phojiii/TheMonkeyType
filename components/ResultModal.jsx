@@ -207,19 +207,19 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
           <button
             ref={firstButtonRef}
             onClick={onRetry}
-            className="px-4 py-2 bg-brand text-ink rounded-md hover:bg-[#d8a800] transition focus:outline-none focus:ring-2 focus:ring-brand/50"
+            className="btn-primary"
           >
             Retry
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-white/10 text-white rounded-md hover:bg-white/20 transition focus:outline-none focus:ring-2 focus:ring-white/30"
+            className="btn-secondary"
           >
             Close
           </button>
           <Link
             href="/stats"
-            className="px-4 py-2 bg-white/10 text-white rounded-md hover:bg-white/20 transition focus:outline-none focus:ring-2 focus:ring-white/30"
+            className="btn-secondary"
           >
             View Stats
           </Link>

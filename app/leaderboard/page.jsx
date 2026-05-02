@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import Image from "next/image";
-import Link from "next/link";
 import Footer from "@/components/Footer";
 
 const FILTER_OPTIONS = [
@@ -42,7 +42,7 @@ export default function LeaderboardPage() {
     const catLabel = category === "all" ? "All durations" : `${category}s only`;
     const scopeLabel = scope === "country" ? `Your country${country ? ` (${country})` : ""}` : "Global";
     const modeLabel = mode === "competitive" ? "Competitive" : "Classic";
-    return `${catLabel} � ${scopeLabel} � ${modeLabel}`;
+    return `${catLabel} | ${scopeLabel} | ${modeLabel}`;
   }, [category, scope, country, mode]);
 
   useEffect(() => {
@@ -186,11 +186,7 @@ export default function LeaderboardPage() {
         <button
           onClick={handleUpdateRecords}
           disabled={!isSignedIn || updating}
-          className={`rounded-md px-3 py-1 text-sm transition ${
-            !isSignedIn
-              ? "cursor-not-allowed bg-white/5 text-white/40"
-              : "bg-brand text-black hover:brightness-110"
-          }`}
+          className={`text-sm ${!isSignedIn ? "btn-secondary" : "btn-primary"}`}
         >
           {updating ? "Updating..." : "Update Records"}
         </button>
@@ -206,11 +202,7 @@ export default function LeaderboardPage() {
                   role="tab"
                   aria-pressed={active}
                   onClick={() => setMode(option.key)}
-                  className={`rounded-md px-3 py-1 text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
-                    active
-                      ? "bg-brand font-semibold text-black"
-                      : "bg-white/5 text-white hover:bg-white/10"
-                  }`}
+                  className={`text-sm ${active ? "btn-tab-active" : "btn-tab"}`}
                 >
                   {option.label}
                 </button>
@@ -228,11 +220,7 @@ export default function LeaderboardPage() {
                   role="tab"
                   aria-pressed={active}
                   onClick={() => setCategory(option.key)}
-                  className={`rounded-md px-3 py-1 text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
-                    active
-                      ? "bg-brand font-semibold text-black"
-                      : "bg-white/5 text-white hover:bg-white/10"
-                  }`}
+                  className={`text-sm ${active ? "btn-tab-active" : "btn-tab"}`}
                 >
                   {option.label}
                 </button>
@@ -250,11 +238,7 @@ export default function LeaderboardPage() {
                   role="tab"
                   aria-pressed={active}
                   onClick={() => setScope(option.key)}
-                  className={`rounded-md px-3 py-1 text-sm transition focus:outline-none focus:ring-2 focus:ring-brand ${
-                    active
-                      ? "bg-brand font-semibold text-black"
-                      : "bg-white/5 text-white hover:bg-white/10"
-                  }`}
+                  className={`text-sm ${active ? "btn-tab-active" : "btn-tab"}`}
                 >
                   {option.label}
                 </button>
@@ -265,16 +249,16 @@ export default function LeaderboardPage() {
           <input
             placeholder="ISO Country (e.g. PK)"
             value={country}
-            onChange={(e) => setCountry(e.target.value.toUpperCase())}
+            onChange={(event) => setCountry(event.target.value.toUpperCase())}
             disabled={scope !== "country"}
-            className={`ml-2 rounded border px-2 py-1 text-sm ${
+            className={`ml-2 rounded-full border px-3 py-2 text-sm ${
               scope === "country"
                 ? "border-white/10 bg-white/10"
                 : "cursor-not-allowed border-white/5 bg-white/5 opacity-50"
             }`}
           />
 
-          <Link href="/" className="ml-3 text-sm text-white/60 hover:text-white">
+          <Link href="/" className="btn-ghost ml-1 text-sm">
             Back
           </Link>
         </div>
@@ -328,7 +312,7 @@ export default function LeaderboardPage() {
                             width={32}
                             height={32}
                             className="rounded-full"
-                            style={{ width: "32", height: "32" }}
+                            style={{ width: "32px", height: "32px", objectFit: "cover" }}
                             unoptimized
                           />
                         ) : (
@@ -350,8 +334,8 @@ export default function LeaderboardPage() {
                           otherPBs.map((pb) => (
                             <span
                               key={`${score.userId}-${pb.category}`}
-                              title={`${pb.category}s � ${pb.bestWpm} WPM`}
-                              className="rounded-md border border-white/10 bg-white/10 px-2 py-0.5 text-[11px] text-white/80"
+                              title={`${pb.category}s | ${pb.bestWpm} WPM`}
+                              className="rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-[11px] text-white/80"
                             >
                               {pb.category}s <span className="font-semibold text-brand">{pb.bestWpm}</span>
                             </span>
@@ -368,15 +352,13 @@ export default function LeaderboardPage() {
                             !isSignedIn
                               ? "Sign in to challenge"
                               : isMe
-                              ? "You cannot challenge yourself"
-                              : online
-                              ? "Challenge this user"
-                              : "User is offline"
+                                ? "You cannot challenge yourself"
+                                : online
+                                  ? "Challenge this user"
+                                  : "User is offline"
                           }
-                          className={`rounded-md border px-3 py-1 text-xs transition ${
-                            !isSignedIn || !online || isMe
-                              ? "cursor-not-allowed border-white/10 bg-white/5 text-white/30"
-                              : "border-brand bg-brand text-black hover:brightness-110"
+                          className={`text-xs ${
+                            !isSignedIn || !online || isMe ? "btn-secondary" : "btn-primary"
                           }`}
                         >
                           {challenging === score.userId ? "Sending..." : "Challenge"}

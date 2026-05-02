@@ -108,7 +108,7 @@ export default function AdminBlogPage() {
         <div className="text-center">
           <p className="mb-4 text-lg">Please sign in to access the Admin Panel</p>
           <SignInButton mode="modal">
-            <button className="px-4 py-2 bg-brand text-ink rounded-md">Sign In</button>
+            <button className="btn-primary">Sign In</button>
           </SignInButton>
         </div>
       </main>
@@ -221,7 +221,7 @@ export default function AdminBlogPage() {
             <button
               type="button"
               onClick={resetEditor}
-              className="px-4 py-2 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 transition"
+              className="btn-secondary"
             >
               Cancel Editing
             </button>
@@ -234,7 +234,7 @@ export default function AdminBlogPage() {
             <button
               type="button"
               onClick={loadPosts}
-              className="px-3 py-1 rounded-md bg-white/10 hover:bg-white/15 transition text-sm"
+              className="btn-secondary text-sm"
             >
               {loadingPosts ? "Refreshing..." : "Refresh"}
             </button>
@@ -265,14 +265,14 @@ export default function AdminBlogPage() {
                       href={`/blog/${post.slug}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-2 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 transition text-sm"
+                      className="btn-secondary text-sm"
                     >
                       View
                     </a>
                     <button
                       type="button"
                       onClick={() => startEdit(post.slug)}
-                      className="px-3 py-2 rounded-md bg-brand text-ink font-semibold hover:bg-yellow-400 transition text-sm"
+                      className="btn-primary text-sm"
                     >
                       Edit
                     </button>
@@ -354,7 +354,7 @@ export default function AdminBlogPage() {
           <button
             type="submit"
             disabled={saving || uploading}
-            className="px-5 py-2 rounded-md bg-brand text-ink font-semibold hover:bg-yellow-400 transition disabled:opacity-50"
+            className="btn-primary"
           >
             {saving || uploading
               ? isEditing

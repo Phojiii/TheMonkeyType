@@ -105,14 +105,14 @@ export default function ChallengeInbox() {
               <button
                 onClick={() => respond("accept")}
                 disabled={busyAction !== ""}
-                className="flex-1 rounded-lg bg-brand px-4 py-2 font-semibold text-black transition hover:brightness-110 disabled:opacity-60"
+                className="btn-primary flex-1"
               >
                 {busyAction === "accept" ? "Accepting..." : "Accept"}
               </button>
               <button
                 onClick={() => respond("reject")}
                 disabled={busyAction !== ""}
-                className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white transition hover:bg-white/10 disabled:opacity-60"
+                className="btn-secondary flex-1"
               >
                 {busyAction === "reject" ? "Rejecting..." : "Reject"}
               </button>
@@ -128,7 +128,7 @@ export default function ChallengeInbox() {
           <p className="mt-1 text-sm text-white/70">Join your {active.duration}s duel and submit your run.</p>
           <button
             onClick={() => router.push(activePath)}
-            className="mt-4 w-full rounded-lg bg-brand px-4 py-2 font-semibold text-black transition hover:brightness-110"
+            className="btn-primary mt-4 w-full"
           >
             Open challenge
           </button>

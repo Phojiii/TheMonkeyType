@@ -193,7 +193,7 @@ export default function ChallengePage({ params }) {
             <h1 className="mt-2 text-3xl font-bold">{challenge.me.username} vs {challenge.opponent.username}</h1>
             <p className="mt-2 text-sm text-white/60">{challenge.duration}s competitive duel</p>
           </div>
-          <Link href="/leaderboard" className="text-sm text-white/60 hover:text-white">
+          <Link href="/leaderboard" className="btn-ghost text-sm">
             Back to ranking
           </Link>
         </div>
@@ -208,14 +208,14 @@ export default function ChallengePage({ params }) {
                   <button
                     onClick={() => respond("accept")}
                     disabled={responding}
-                    className="rounded-lg bg-brand px-4 py-2 font-semibold text-black transition hover:brightness-110 disabled:opacity-60"
+                    className="btn-primary"
                   >
                     {responding ? "Working..." : "Accept"}
                   </button>
                   <button
                     onClick={() => respond("reject")}
                     disabled={responding}
-                    className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 transition hover:bg-white/10 disabled:opacity-60"
+                    className="btn-secondary"
                   >
                     Reject
                   </button>
