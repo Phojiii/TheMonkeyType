@@ -11,10 +11,6 @@ const ONLINE_WINDOW_MS = 45_000;
 export async function GET(req) {
   try {
     const { userId } = getAuth(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     await connectDB();
 
     const { searchParams } = new URL(req.url);
@@ -30,7 +26,7 @@ export async function GET(req) {
       { $sort: { lastSeenAt: -1, bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
       { $group: { _id: "$userId", doc: { $first: "$$ROOT" } } },
       { $replaceRoot: { newRoot: "$doc" } },
-      { $match: { userId: { $ne: userId } } },
+      ...(userId ? [{ $match: { userId: { $ne: userId } } }] : []),
       { $limit: limit },
       {
         $project: {

@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 
 const DURATION_OPTIONS = [15, 30, 60, 120];
 
 export default function OnlineUsersWidget() {
   const router = useRouter();
   const pathname = usePathname();
+  const { openSignIn } = useClerk();
   const { isLoaded, isSignedIn } = useUser();
 
   const [open, setOpen] = useState(false);
@@ -23,15 +24,10 @@ export default function OnlineUsersWidget() {
   const isChallengePage = pathname?.startsWith("/challenge/");
 
   useEffect(() => {
-    if (!authReady) {
-      setUsers([]);
-      setOpen(false);
-      return;
-    }
-
     let cancelled = false;
 
     const pingPresence = async () => {
+      if (!authReady) return;
       try {
         await fetch("/api/presence", { method: "POST" });
       } catch {}
@@ -42,33 +38,29 @@ export default function OnlineUsersWidget() {
       try {
         const res = await fetch("/api/online-users?limit=18", {
           cache: "no-store",
-          credentials: "include",
         });
-
-        if (res.status === 401) {
-          if (!cancelled) setUsers([]);
-          return;
-        }
-
         const data = await res.json();
-        if (!cancelled) setUsers(Array.isArray(data?.users) ? data.users : []);
-      } catch (error) {
+
+        if (!cancelled) {
+          setUsers(Array.isArray(data?.users) ? data.users : []);
+        }
+      } catch {
         if (!cancelled) setUsers([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
-    pingPresence();
     loadUsers();
+    pingPresence();
 
-    const presenceTimer = setInterval(pingPresence, 25000);
     const usersTimer = setInterval(loadUsers, 8000);
+    const presenceTimer = authReady ? setInterval(pingPresence, 25000) : null;
 
     return () => {
       cancelled = true;
-      clearInterval(presenceTimer);
       clearInterval(usersTimer);
+      if (presenceTimer) clearInterval(presenceTimer);
     };
   }, [authReady]);
 
@@ -84,13 +76,17 @@ export default function OnlineUsersWidget() {
   }, [open]);
 
   const lobbyLabel = useMemo(() => {
-    if (!authReady) return "Live lobby";
     if (loading && users.length === 0) return "Loading lobby";
     return onlineCount === 1 ? "1 player online" : `${onlineCount} players online`;
-  }, [authReady, loading, onlineCount, users.length]);
+  }, [loading, onlineCount, users.length]);
 
   async function handleChallenge(userId) {
     if (!userId || challenging) return;
+
+    if (!isSignedIn) {
+      openSignIn?.();
+      return;
+    }
 
     setChallenging(userId);
     try {
@@ -121,8 +117,6 @@ export default function OnlineUsersWidget() {
     }
   }
 
-  if (!isLoaded || !isSignedIn) return null;
-
   return (
     <div className={`fixed right-4 z-[85] ${isChallengePage ? "bottom-28" : "bottom-28 md:bottom-24"}`}>
       {open && (
@@ -135,7 +129,9 @@ export default function OnlineUsersWidget() {
               <div>
                 <p className="text-[11px] uppercase tracking-[0.22em] text-brand/80">Live lobby</p>
                 <h2 className="mt-1 text-lg font-semibold text-white">Challenge online players</h2>
-                <p className="mt-1 text-sm text-white/60">Pick a duration, then send a 1v1 typing duel.</p>
+                <p className="mt-1 text-sm text-white/60">
+                  Pick a duration, then send a 1v1 typing duel. Signing in is only needed when you challenge.
+                </p>
               </div>
               <button onClick={() => setOpen(false)} className="btn-ghost px-3 py-1.5 text-xs">
                 Close
@@ -201,14 +197,14 @@ export default function OnlineUsersWidget() {
                     </div>
 
                     <div className="mt-3 flex items-center justify-between gap-3">
-                      <span className="text-xs text-white/45">Competitive duel • {duration}s</span>
+                      <span className="text-xs text-white/45">Competitive duel | {duration}s</span>
                       <button
                         type="button"
                         onClick={() => handleChallenge(entry.userId)}
                         disabled={challenging === entry.userId}
                         className="btn-primary px-3 py-1.5 text-xs"
                       >
-                        {challenging === entry.userId ? "Sending..." : "Challenge"}
+                        {challenging === entry.userId ? "Sending..." : isSignedIn ? "Challenge" : "Sign in"}
                       </button>
                     </div>
                   </div>
