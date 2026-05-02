@@ -11,7 +11,7 @@ export default function OnlineUsersWidget() {
   const router = useRouter();
   const pathname = usePathname();
   const { openSignIn } = useClerk();
-  const { isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
 
   const [open, setOpen] = useState(false);
   const [duration, setDuration] = useState(60);
@@ -38,11 +38,17 @@ export default function OnlineUsersWidget() {
       try {
         const res = await fetch("/api/online-users?limit=18", {
           cache: "no-store",
+          credentials: authReady ? "include" : "same-origin",
         });
         const data = await res.json();
 
         if (!cancelled) {
-          setUsers(Array.isArray(data?.users) ? data.users : []);
+          const nextUsers = Array.isArray(data?.users) ? data.users : [];
+          setUsers(
+            authReady && user?.id
+              ? nextUsers.filter((entry) => entry?.userId !== user.id)
+              : nextUsers
+          );
         }
       } catch {
         if (!cancelled) setUsers([]);
@@ -62,7 +68,7 @@ export default function OnlineUsersWidget() {
       clearInterval(usersTimer);
       if (presenceTimer) clearInterval(presenceTimer);
     };
-  }, [authReady]);
+  }, [authReady, user?.id]);
 
   useEffect(() => {
     if (!open) return;
