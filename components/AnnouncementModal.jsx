@@ -3,40 +3,35 @@
 export default function AnnouncementModal({ onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#232325] w-[90%] max-w-md rounded-2xl shadow-xl p-6 text-white relative
-                      animate-in fade-in zoom-in-95 duration-200">
-
+      <div className="relative w-[90%] max-w-md animate-in rounded-2xl bg-[#232325] p-6 text-white shadow-xl fade-in zoom-in-95 duration-200">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-white/60 hover:text-yellow-400"
+          className="absolute right-3 top-3 text-white/60 transition hover:text-yellow-400"
+          aria-label="Close announcement"
         >
-          ✕
+          x
         </button>
 
-        <h2 className="text-xl font-bold text-yellow-400 mb-3">
-          📢 New Announcement
-        </h2>
+        <h2 className="mb-3 text-xl font-bold text-yellow-400">What&apos;s New</h2>
 
-        <p className="text-sm text-white/80 leading-relaxed">
-          👉 Welcome to The Monkey Type (TMT)
-          <br /><br />
-          <span className="inline-block animate-pulse">⚔️</span>{" "}
-          Competitive Mode just leveled up — 1v1 Duels are now LIVE!
-          <br /><br />
-          Challenge other players, go head-to-head in real-time speed runs, and prove who's the fastest 🏆
-          <br /><br />
-          Climb the leaderboard, sharpen your skills, and dominate your opponents 🚀
-          <br /><br />
-          💥 Do you have what it takes to be #1?
-        </p>
+        <div className="space-y-4 text-sm leading-relaxed text-white/80">
+          <p>
+            The Monkey Type has a fresh new look. We&apos;ve cleaned up the layout, improved the mobile experience,
+            and made the main typing flow feel calmer, clearer, and easier to use.
+          </p>
 
+          <p>
+            We&apos;ve also added live challenge features. You can now see online players, send 1v1 typing duels,
+            accept or reject requests, and race head-to-head in competitive mode.
+          </p>
 
+          <p>
+            Explore the updated UI, try the live lobby, and let us know what you&apos;d like to see next.
+          </p>
+        </div>
 
         <div className="mt-5 text-right">
-          <button
-            onClick={onClose}
-            className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition"
-          >
+          <button onClick={onClose} className="btn-primary">
             Got it
           </button>
         </div>

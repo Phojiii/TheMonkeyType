@@ -6,12 +6,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaBell, FaBlog, FaChartBar, FaHome, FaInfoCircle, FaTrophy, FaUserCircle } from "react-icons/fa";
-import { IoSettingsSharp } from "react-icons/io5";
 import { MdAdminPanelSettings } from "react-icons/md";
 import { ADMINS } from "@/lib/admins";
 import AnnouncementModal from "./AnnouncementModal";
 
-const ANNOUNCEMENT_VERSION = "1.0.2";
+const ANNOUNCEMENT_VERSION = "1.0.3"; // Increment this to show the announcement again
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -54,7 +53,6 @@ export default function NavBar() {
     { href: "/blog", active: pathname === "/blog", icon: <FaChartBar />, label: "Guides" },
     { href: "/leaderboard", active: pathname === "/leaderboard", icon: <FaTrophy />, label: "Ranking" },
     { href: "/about", active: pathname === "/about", icon: <FaInfoCircle />, label: "About" },
-    { href: "/#settings", active: false, icon: <IoSettingsSharp />, label: "Settings" },
   ];
 
   return (
