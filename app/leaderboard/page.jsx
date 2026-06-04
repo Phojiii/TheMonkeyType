@@ -367,9 +367,7 @@ export default function LeaderboardPage() {
       </section>
 
       <section className="mx-auto hidden max-w-6xl overflow-x-auto rounded-xl border border-white/10 bg-white/5 shadow-lg md:block">
-        {!isLoaded ? (
-          <div className="py-8 text-center text-white/50">Loading user...</div>
-        ) : loading ? (
+        {loading ? (
           <div className="py-8 text-center text-white/50">Loading...</div>
         ) : scores.length === 0 ? (
           <div className="py-10 text-center text-white/50">No scores available yet.</div>
