@@ -4,6 +4,7 @@ import { getAuth } from "@clerk/nextjs/server";
 import { ADMINS } from "@/lib/admins";
 import { connectDB } from "@/lib/mongodb";
 import Blog from "@/models/Blog";
+import { postNewBlogAnnouncement } from "@/lib/discord";
 
 export const runtime = "nodejs";
 
@@ -61,6 +62,16 @@ export async function POST(req) {
 
     revalidateTag("blog-posts");
     revalidateTag(`blog-post:${slug}`);
+
+    try {
+      await postNewBlogAnnouncement({
+        slug,
+        title: String(title),
+        excerpt: String(excerpt || ""),
+      });
+    } catch (discordError) {
+      console.error("Discord blog announcement failed:", discordError);
+    }
 
     return NextResponse.json({ success: true, slug });
   } catch (err) {

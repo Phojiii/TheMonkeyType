@@ -10,7 +10,7 @@ import { MdAdminPanelSettings } from "react-icons/md";
 import { ADMINS } from "@/lib/admins";
 import AnnouncementModal from "./AnnouncementModal";
 
-const ANNOUNCEMENT_VERSION = "1.0.3"; // Increment this to show the announcement again
+const ANNOUNCEMENT_VERSION = "1.0.4"; // Increment this to show the announcement again
 
 export default function NavBar() {
   const pathname = usePathname();
