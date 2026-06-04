@@ -8,9 +8,10 @@ import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaBell, FaBlog, FaChartBar, FaHome, FaInfoCircle, FaTrophy, FaUserCircle } from "react-icons/fa";
 import { MdAdminPanelSettings } from "react-icons/md";
 import { ADMINS } from "@/lib/admins";
+import { SITE_ANNOUNCEMENT } from "@/lib/siteAnnouncement";
 import AnnouncementModal from "./AnnouncementModal";
 
-const ANNOUNCEMENT_VERSION = "1.0.4"; // Increment this to show the announcement again
+const ANNOUNCEMENT_VERSION = SITE_ANNOUNCEMENT.version;
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -23,6 +24,11 @@ export default function NavBar() {
   useEffect(() => {
     const lastSeen = localStorage.getItem("announcement_seen");
     if (lastSeen !== ANNOUNCEMENT_VERSION) {
+      fetch("/api/announcement/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }).catch(() => {});
+
       setHasNewAnnouncement(true);
       setNotifOpen(true);
       localStorage.setItem("announcement_seen", ANNOUNCEMENT_VERSION);
