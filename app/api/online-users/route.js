@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import Score from "@/models/Score";
 
@@ -10,7 +9,6 @@ const ONLINE_WINDOW_MS = 45_000;
 
 export async function GET(req) {
   try {
-    const { userId } = getAuth(req);
     await connectDB();
 
     const { searchParams } = new URL(req.url);
@@ -26,7 +24,6 @@ export async function GET(req) {
       { $sort: { lastSeenAt: -1, bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
       { $group: { _id: "$userId", doc: { $first: "$$ROOT" } } },
       { $replaceRoot: { newRoot: "$doc" } },
-      ...(userId ? [{ $match: { userId: { $ne: userId } } }] : []),
       { $limit: limit },
       {
         $project: {
@@ -44,19 +41,26 @@ export async function GET(req) {
       },
     ]);
 
-    return NextResponse.json({
-      users: users.map((entry) => ({
-        userId: entry.userId,
-        username: entry.username || "Anonymous",
-        imageUrl: entry.imageUrl || "",
-        bestWpm: Number(entry.bestWpm || 0),
-        bestAccuracy: Number(entry.bestAccuracy || 0),
-        category: Number(entry.category || 0),
-        country: (entry.country || "").toUpperCase(),
-        mode: entry.mode || "classic",
-        lastSeenAt: entry.lastSeenAt || null,
-      })),
-    });
+    return NextResponse.json(
+      {
+        users: users.map((entry) => ({
+          userId: entry.userId,
+          username: entry.username || "Anonymous",
+          imageUrl: entry.imageUrl || "",
+          bestWpm: Number(entry.bestWpm || 0),
+          bestAccuracy: Number(entry.bestAccuracy || 0),
+          category: Number(entry.category || 0),
+          country: (entry.country || "").toUpperCase(),
+          mode: entry.mode || "classic",
+          lastSeenAt: entry.lastSeenAt || null,
+        })),
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=20",
+        },
+      }
+    );
   } catch (error) {
     console.error("Online users GET error:", error);
     return NextResponse.json({ error: "Failed to load online users" }, { status: 500 });

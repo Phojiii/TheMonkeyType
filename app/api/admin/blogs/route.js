@@ -1,4 +1,5 @@
-﻿import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { ADMINS } from "@/lib/admins";
 import { connectDB } from "@/lib/mongodb";
@@ -49,7 +50,10 @@ export async function GET(req) {
       });
     }
 
-    const posts = await Blog.find({}, { slug: 1, title: 1, excerpt: 1, author: 1, date: 1, cover: 1 })
+    const posts = await Blog.find(
+      {},
+      { slug: 1, title: 1, excerpt: 1, author: 1, date: 1, cover: 1 }
+    )
       .sort({ date: -1, createdAt: -1 })
       .lean();
 
@@ -102,7 +106,10 @@ export async function PUT(req) {
     if (slug !== originalSlug) {
       const conflict = await Blog.findOne({ slug }).lean();
       if (conflict) {
-        return NextResponse.json({ error: "Another blog already uses this title" }, { status: 409 });
+        return NextResponse.json(
+          { error: "Another blog already uses this title" },
+          { status: 409 }
+        );
       }
     }
 
@@ -113,6 +120,10 @@ export async function PUT(req) {
     current.cover = cover.startsWith("http") ? cover : "";
     current.content = content;
     await current.save();
+
+    revalidateTag("blog-posts");
+    revalidateTag(`blog-post:${originalSlug}`);
+    revalidateTag(`blog-post:${slug}`);
 
     return NextResponse.json({ success: true, slug });
   } catch (error) {

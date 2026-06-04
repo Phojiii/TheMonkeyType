@@ -199,28 +199,30 @@ export async function GET(req) {
       })),
     }));
 
-    return NextResponse.json(
-      {
-        scores: payload,
-        meta: {
-          scope,
-          category: isAll ? "all" : category,
-          country: scope === "country" ? country || null : null,
-          mode,
-          count: payload.length,
-        },
-        me,
-      },
-      {
-        headers: {
+    const headers = userId
+      ? {
           "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
+            "private, no-store, no-cache, must-revalidate, proxy-revalidate",
           Pragma: "no-cache",
           Expires: "0",
           "Surrogate-Control": "no-store",
-        },
-      }
-    );
+        }
+      : {
+          "Cache-Control": "public, s-maxage=20, stale-while-revalidate=60",
+          Vary: "x-vercel-ip-country, cf-ipcountry",
+        };
+
+    return NextResponse.json({
+      scores: payload,
+      meta: {
+        scope,
+        category: isAll ? "all" : category,
+        country: scope === "country" ? country || null : null,
+        mode,
+        count: payload.length,
+      },
+      me,
+    }, { headers });
   } catch (e) {
     console.error("Leaderboard GET error:", e);
     return NextResponse.json({ error: "Failed to load leaderboard" }, { status: 500 });

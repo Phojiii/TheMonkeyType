@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
+const IDLE_REFRESH_MS = 20_000;
+const ACTIVE_REFRESH_MS = 8_000;
+
 export default function ChallengeInbox() {
   const router = useRouter();
   const pathname = usePathname();
@@ -12,6 +15,18 @@ export default function ChallengeInbox() {
   const [pending, setPending] = useState(null);
   const [active, setActive] = useState(null);
   const [busyAction, setBusyAction] = useState("");
+  const [pageVisible, setPageVisible] = useState(true);
+  const hasLiveState = Boolean(pending || active);
+
+  useEffect(() => {
+    const syncVisibility = () => {
+      setPageVisible(document.visibilityState !== "hidden");
+    };
+
+    syncVisibility();
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => document.removeEventListener("visibilitychange", syncVisibility);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -25,6 +40,8 @@ export default function ChallengeInbox() {
     let cancelled = false;
 
     const load = async () => {
+      if (!pageVisible) return;
+
       try {
         const res = await fetch("/api/challenge/inbox", { cache: "no-store" });
         if (res.status === 401) {
@@ -49,12 +66,15 @@ export default function ChallengeInbox() {
     };
 
     load();
-    const timer = setInterval(load, 5000);
+    const timer = setInterval(
+      load,
+      hasLiveState ? ACTIVE_REFRESH_MS : IDLE_REFRESH_MS
+    );
     return () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [isLoaded, authReady]);
+  }, [isLoaded, authReady, hasLiveState, pageVisible]);
 
   const activePath = active ? `/challenge/${active.id}` : "";
   const pendingExpiresIn = useMemo(() => {

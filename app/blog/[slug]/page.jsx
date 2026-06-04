@@ -4,7 +4,7 @@ import sanitizeHtml from "sanitize-html";
 import { marked } from "marked";
 import Footer from "@/components/Footer";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();

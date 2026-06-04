@@ -7,6 +7,7 @@ export default async function sitemap() {
   const routes = [
     { url: `${baseUrl}/`, changeFrequency: "yearly", priority: 1 },
     { url: `${baseUrl}/about`, changeFrequency: "yearly", priority: 0.9 },
+    { url: `${baseUrl}/guide`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${baseUrl}/contact`, changeFrequency: "yearly", priority: 0.8 },
     { url: `${baseUrl}/leaderboard`, changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/stats`, changeFrequency: "monthly", priority: 0.8 },

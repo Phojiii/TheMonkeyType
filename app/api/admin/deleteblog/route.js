@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { getAuth } from "@clerk/nextjs/server";
 import { ADMINS } from "@/lib/admins";
 import { connectDB } from "@/lib/mongodb";
@@ -22,6 +23,9 @@ export async function DELETE(req) {
     if (!deleted) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
+
+    revalidateTag("blog-posts");
+    revalidateTag(`blog-post:${slug}`);
 
     return NextResponse.json({ success: true });
   } catch (err) {

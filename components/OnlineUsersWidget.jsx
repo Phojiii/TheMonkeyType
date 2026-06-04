@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useClerk, useUser } from "@clerk/nextjs";
 
 const DURATION_OPTIONS = [15, 30, 60, 120];
+const OPEN_REFRESH_MS = 15_000;
+const CLOSED_REFRESH_MS = 60_000;
+const PRESENCE_REFRESH_MS = 60_000;
 
 export default function OnlineUsersWidget() {
   const router = useRouter();
@@ -18,31 +21,47 @@ export default function OnlineUsersWidget() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [challenging, setChallenging] = useState("");
+  const [pageVisible, setPageVisible] = useState(true);
 
   const authReady = isLoaded && isSignedIn;
   const onlineCount = users.length;
   const isChallengePage = pathname?.startsWith("/challenge/");
+  const lastLoadedAtRef = useRef(0);
+
+  useEffect(() => {
+    const syncVisibility = () => {
+      setPageVisible(document.visibilityState !== "hidden");
+    };
+
+    syncVisibility();
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => document.removeEventListener("visibilitychange", syncVisibility);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     const pingPresence = async () => {
-      if (!authReady) return;
+      if (!authReady || !pageVisible) return;
       try {
         await fetch("/api/presence", { method: "POST" });
       } catch {}
     };
 
-    const loadUsers = async () => {
-      if (!cancelled) setLoading(true);
+    const loadUsers = async ({ force = false } = {}) => {
+      if (!pageVisible) return;
+
+      const now = Date.now();
+      const minAge = open ? OPEN_REFRESH_MS - 2_000 : CLOSED_REFRESH_MS - 5_000;
+      if (!force && now - lastLoadedAtRef.current < minAge) return;
+
+      if (!cancelled && users.length === 0) setLoading(true);
       try {
-        const res = await fetch("/api/online-users?limit=18", {
-          cache: "no-store",
-          credentials: authReady ? "include" : "same-origin",
-        });
+        const res = await fetch("/api/online-users?limit=18", { cache: "no-store" });
         const data = await res.json();
 
         if (!cancelled) {
+          lastLoadedAtRef.current = Date.now();
           const nextUsers = Array.isArray(data?.users) ? data.users : [];
           setUsers(
             authReady && user?.id
@@ -57,18 +76,58 @@ export default function OnlineUsersWidget() {
       }
     };
 
-    loadUsers();
-    pingPresence();
+    loadUsers({ force: true });
+    if (authReady) {
+      pingPresence();
+    }
 
-    const usersTimer = setInterval(loadUsers, 8000);
-    const presenceTimer = authReady ? setInterval(pingPresence, 25000) : null;
+    const usersTimer = setInterval(
+      () => loadUsers(),
+      open ? OPEN_REFRESH_MS : CLOSED_REFRESH_MS
+    );
+    const presenceTimer = authReady
+      ? setInterval(pingPresence, PRESENCE_REFRESH_MS)
+      : null;
 
     return () => {
       cancelled = true;
       clearInterval(usersTimer);
       if (presenceTimer) clearInterval(presenceTimer);
     };
-  }, [authReady, user?.id]);
+  }, [authReady, open, pageVisible, user?.id, users.length]);
+
+  useEffect(() => {
+    if (!open || !pageVisible) return;
+
+    const staleForMs = Date.now() - lastLoadedAtRef.current;
+    if (staleForMs < 10_000) return;
+
+    let cancelled = false;
+    const refresh = async () => {
+      setLoading((current) => (users.length === 0 ? true : current));
+      try {
+        const res = await fetch("/api/online-users?limit=18", { cache: "no-store" });
+        const data = await res.json();
+        if (!cancelled) {
+          lastLoadedAtRef.current = Date.now();
+          const nextUsers = Array.isArray(data?.users) ? data.users : [];
+          setUsers(
+            authReady && user?.id
+              ? nextUsers.filter((entry) => entry?.userId !== user.id)
+              : nextUsers
+          );
+        }
+      } catch {
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    refresh();
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, open, pageVisible, user?.id, users.length]);
 
   useEffect(() => {
     if (!open) return;

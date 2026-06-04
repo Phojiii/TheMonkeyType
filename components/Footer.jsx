@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const footerLinks = [
   { href: "/about", label: "About" },
+  { href: "/guide", label: "Guide" },
   { href: "/contact", label: "Contact" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Service" },
@@ -42,7 +43,8 @@ export default function Footer() {
           <span className="px-2 py-1">#323437 / #E2B714 | Roboto Mono</span>
         </div>
         <div className="mx-auto grid max-w-md grid-cols-2 gap-x-4 gap-y-2 px-6 py-4 text-xs text-white/30 md:hidden">
-          <Link href="/contact" className="hover:text-white/60">contact</Link>
+          <Link href="/guide" className="hover:text-white/60">guide</Link>
+          <Link href="/contact" className="text-right hover:text-white/60">contact</Link>
           <span className="text-right">serika dark</span>
           <Link href="https://github.com" className="hover:text-white/60">github</Link>
           <span className="text-right">v26.15.0</span>
