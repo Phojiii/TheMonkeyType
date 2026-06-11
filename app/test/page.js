@@ -6,7 +6,9 @@ import { gsap } from "gsap";
 
 export default function TestPage(){
   const [lang, setLang] = useState("english");
+  const [testType, setTestType] = useState("time");
   const [duration, setDuration] = useState(60);
+  const [wordCount, setWordCount] = useState(50);
   const [paragraph, setParagraph] = useState("");
 
   async function loadParagraph(selectedLang){
@@ -24,9 +26,31 @@ export default function TestPage(){
 
   return (
     <main className="min-h-screen bg-ink text-white px-6 py-6">
-      <TopBar lang={lang} setLang={setLang} duration={duration} setDuration={setDuration} />
+      <TopBar
+        lang={lang}
+        setLang={setLang}
+        testType={testType}
+        setTestType={setTestType}
+        duration={duration}
+        setDuration={setDuration}
+        wordCount={wordCount}
+        setWordCount={setWordCount}
+        punctuation={false}
+        setPunctuation={() => {}}
+        numbers={false}
+        setNumbers={() => {}}
+      />
       <div className="mt-10">
-        {paragraph ? <TypingTest text={paragraph} durationSec={duration} /> : <div className="skeleton h-40 w-full max-w-5xl mx-auto" />}
+        {paragraph ? (
+          <TypingTest
+            initialText={paragraph}
+            durationSec={duration}
+            testType={testType}
+            targetWordCount={wordCount}
+          />
+        ) : (
+          <div className="skeleton h-40 w-full max-w-5xl mx-auto" />
+        )}
       </div>
     </main>
   );

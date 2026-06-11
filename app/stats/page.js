@@ -14,6 +14,11 @@ import {
 import { useUser } from "@clerk/nextjs";
 import Footer from "@/components/Footer";
 
+//Ads Component
+import InPagePush from "@/components/InPagePush";
+import PushNotification from "@/components/PushNotification";
+import VignetteBanner from "@/components/VignetteBanner";
+
 const LEGACY_KEY = "tmt_stats";
 const KEY_CLASSIC = "tmt_stats_classic";
 const KEY_COMP = "tmt_stats_competitive";
@@ -235,6 +240,9 @@ export default function StatsPage() {
 
   return (
     <main className="min-h-screen bg-ink text-white px-6 py-10">
+      <InPagePush />
+      <PushNotification />
+      <VignetteBanner />
       <header className="flex items-center justify-between mb-8 max-w-6xl mx-auto stats-stagger">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold text-brand">Your Typing Stats</h1>

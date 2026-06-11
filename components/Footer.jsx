@@ -40,7 +40,6 @@ export default function Footer() {
             );
           })}
           <span className="px-2 py-1">Copyright TheMonkeyType</span>
-          <span className="px-2 py-1">#323437 / #E2B714 | Roboto Mono</span>
         </div>
         <div className="mx-auto grid max-w-md grid-cols-2 gap-x-4 gap-y-2 px-6 py-4 text-xs text-white/30 md:hidden">
           <Link href="/guide" className="hover:text-white/60">guide</Link>

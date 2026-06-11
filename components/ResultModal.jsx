@@ -28,6 +28,8 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
   }, [stats?.mode]);
 
   const storageKey = mode === "competitive" ? KEY_COMP : KEY_CLASSIC;
+  const testType = stats?.testType === "words" ? "words" : "time";
+  const shouldPersistResult = testType === "time";
 
   // ✅ Helper: best-for-duration from the correct bucket
   function getLocalBestForDuration(duration) {
@@ -86,7 +88,7 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
 
   // ✅ Save to localStorage (mode-specific key)
   useEffect(() => {
-    if (!open || !stats || savedOnceRef.current) return;
+    if (!open || !stats || savedOnceRef.current || !shouldPersistResult) return;
 
     const entry = {
       mode, // ✅ store mode for debugging
@@ -115,11 +117,11 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
     } catch {
       // ignore
     }
-  }, [open, stats, storageKey, mode]);
+  }, [open, stats, storageKey, mode, shouldPersistResult]);
 
   // ✅ DB sync once when modal opens (use best-for-duration from the same mode bucket)
   useEffect(() => {
-    if (!open || !isSignedIn || !stats || pushedToDBRef.current) return;
+    if (!open || !isSignedIn || !stats || pushedToDBRef.current || !shouldPersistResult) return;
 
     const sessionDur = Number(stats.duration);
     if (!Number.isFinite(sessionDur)) return;
@@ -156,7 +158,7 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
         }
       })();
     }
-  }, [open, isSignedIn, stats, mode, storageKey]);
+  }, [open, isSignedIn, stats, mode, storageKey, shouldPersistResult]);
 
   // ✅ Keyboard shortcuts
   useEffect(() => {
@@ -175,6 +177,11 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
     if (e.target === e.currentTarget) onClose?.();
   };
 
+  const metaLabel =
+    testType === "words"
+      ? `${Number(stats?.targetWordCount ?? 0)} words`
+      : `${Number(stats?.duration ?? 60)}s`;
+
   return (
     <div
       className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
@@ -192,16 +199,34 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
         <h2 className="text-2xl font-bold text-brand mb-1">Test Completed!</h2>
 
         <p className="text-white/50 text-xs mb-5">
-          {new Date().toLocaleString()} • {Number(stats?.duration ?? 60)}s •{" "}
+          {new Date().toLocaleString()} • {metaLabel} •{" "}
           <span className="text-white/60">{mode === "competitive" ? "Competitive" : "Classic"}</span>
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left text-white/90 mb-6">
           <Stat label="WPM" value={Number(stats.wpm).toFixed(0)} />
           <Stat label="Accuracy" value={`${Number(stats.accuracy).toFixed(1)}%`} />
-          <Stat label="Words" value={Number(stats.words).toFixed(0)} />
-          <Stat label="Characters" value={Number(stats.hits)} />
+          <Stat
+            label={testType === "words" ? "Time" : "Words"}
+            value={
+              testType === "words"
+                ? `${Number(stats?.elapsedSec || 0).toFixed(1)}s`
+                : Number(stats.words).toFixed(0)
+            }
+          />
+          <Stat label="Characters" value={Number(stats.characters ?? stats.hits ?? 0)} />
         </div>
+
+        {!mode || mode === "classic" ? (
+          <div className="mb-6 grid grid-cols-1 gap-4 text-left text-white/90 md:grid-cols-2">
+            <Stat label="Backspaces" value={Number(stats.backspaces || 0)} />
+            {testType === "words" ? (
+              <Stat label="Words Target" value={Number(stats.targetWordCount || 0)} />
+            ) : (
+              <Stat label="Test Type" value="Time" />
+            )}
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button

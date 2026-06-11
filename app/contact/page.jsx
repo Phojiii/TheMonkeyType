@@ -2,6 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 
+//Ads Component
+import InPagePush from "@/components/InPagePush";
+import PushNotification from "@/components/PushNotification";
+import VignetteBanner from "@/components/VignetteBanner";
+
 export const metadata = {
   title: "Contact | TheMonkeyType",
   description: "Contact TheMonkeyType for support, partnerships, bug reports, or advertising inquiries.",
@@ -10,12 +15,15 @@ export const metadata = {
 export default function ContactPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
+      <InPagePush />
+      <PushNotification />
+      <VignetteBanner />
       <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/TMT_Logo_2.png"
+            src="/TMT_Logo_2_new.png"
             alt="TMT Logo"
-            width={40}
+            width={150}
             height={40}
             priority
             style={{ width: "auto", height: "auto" }}

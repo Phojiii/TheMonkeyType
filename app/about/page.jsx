@@ -6,6 +6,11 @@ import { TfiStatsUp } from "react-icons/tfi";
 import { BsClipboardData } from "react-icons/bs";
 import { LiaBugSolid } from "react-icons/lia";
 
+//Ads Component
+import InPagePush from "@/components/InPagePush";
+import PushNotification from "@/components/PushNotification";
+import VignetteBanner from "@/components/VignetteBanner";
+
 export const metadata = {
   title: "About | TheMonkeyType",
   description:
@@ -19,7 +24,7 @@ const highlights = [
   },
   {
     title: "Simple, measurable progress",
-    text: "Timed tests, saved stats, leaderboards, and challenge mode help you see growth over time instead of guessing whether you are improving.",
+    text: "Timed tests, word-count tests, saved stats, leaderboards, and challenge mode help you see growth over time instead of guessing whether you are improving.",
   },
   {
     title: "Fast and lightweight",
@@ -46,19 +51,26 @@ const statNotes = [
   },
   {
     label: "Words",
-    text: "Words reflects how much correct text you completed, giving a helpful view of both rhythm and control.",
+    text: "Words can now be used as a test type too, so you can measure how quickly you finish fixed sets like 10, 25, 50, or 100 words.",
+  },
+  {
+    label: "Backspaces",
+    text: "Backspace usage now appears in your results modal for normal runs, giving you another signal about how clean or correction-heavy a session felt.",
   },
 ];
 
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
+      <InPagePush />
+      <PushNotification />
+      <VignetteBanner />
       <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/TMT_Logo_2.png"
+            src="/TMT_Logo_2_new.png"
             alt="TMT Logo"
-            width={40}
+            width={150}
             height={40}
             priority
             style={{ width: "auto", height: "auto" }}
@@ -90,11 +102,13 @@ export default function AboutPage() {
                   A friendly place to practice typing with more focus and less noise.
                 </h1>
                 <p className="max-w-2xl text-base leading-8 text-white/75 md:text-lg">
-                  TheMonkeyType is an online typing trainer built to help you grow one
-                  session at a time. Whether you are learning touch typing, warming up
-                  before work, or chasing a higher score, the goal is the same: make
-                  practice feel clear, motivating, and easy to return to.
-                </p>
+                TheMonkeyType is an online typing trainer built to help you grow one
+                session at a time. Whether you are learning touch typing, warming up
+                before work, or chasing a higher score, the goal is the same: make
+                practice feel clear, motivating, and easy to return to. You can now
+                practice with both timed tests and fixed word-count tests depending on
+                the kind of session you want.
+              </p>
                 <div className="flex flex-wrap gap-3 text-sm">
                   <Link
                     href="/"
@@ -117,11 +131,11 @@ export default function AboutPage() {
                     key={item.title}
                     className="rounded-2xl border border-white/10 bg-black/20 p-5"
                   >
-                    <h2 className="text-lg font-semibold text-brand">{item.title}</h2>
-                    <p className="mt-2 text-sm leading-7 text-white/70">{item.text}</p>
-                  </div>
-                ))}
-              </div>
+                  <h2 className="text-lg font-semibold text-brand">{item.title}</h2>
+                  <p className="mt-2 text-sm leading-7 text-white/70">{item.text}</p>
+                </div>
+              ))}
+            </div>
             </div>
           </section>
 
@@ -157,7 +171,9 @@ export default function AboutPage() {
               <p className="mt-5 text-white/75 leading-7">
                 After each run, your results are there to help you understand what
                 happened: how fast you typed, how accurate you were, and how stable your
-                pace felt. The idea is not only to chase bigger numbers, but to build
+                pace felt. Word mode also shows how long it took to finish the selected
+                word count, and normal runs now include backspace usage in the result
+                modal. The idea is not only to chase bigger numbers, but to build
                 cleaner habits over time.
               </p>
             </div>
@@ -221,6 +237,21 @@ export default function AboutPage() {
                 typing feel less frustrating, then it is doing its job.
               </p>
             </div>
+          </section>
+
+          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
+            <h2 className="text-2xl font-semibold">How ads support the website</h2>
+            <p className="mt-4 text-white/75 leading-7">
+              TheMonkeyType now uses ads in selected areas of the site to help cover
+              hosting, development, and ongoing improvements. We want that support model
+              to stay transparent, which is why the site asks for ad consent before ad
+              scripts are loaded.
+            </p>
+            <p className="mt-4 text-white/75 leading-7">
+              You can continue without accepting ads, and your core practice experience
+              still works. If you do accept, you help support the project while keeping
+              the main typing tools free to use.
+            </p>
           </section>
         </div>
       </section>

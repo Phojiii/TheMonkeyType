@@ -18,6 +18,8 @@ export default function TypingTest({
   initialText = "",
   supplyMore,
   durationSec = 60,
+  testType = "time",
+  targetWordCount = 50,
   preloadThreshold = 80,
   focusMode = false,
   onFocusStart,
@@ -30,9 +32,11 @@ export default function TypingTest({
   // core state
   const [startedAt, setStartedAt] = useState(null);
   const [ended, setEnded] = useState(false);
+  const [finishedElapsedMs, setFinishedElapsedMs] = useState(0);
   const [idx, setIdx] = useState(0);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [backspaces, setBackspaces] = useState(0);
 
   // refs & DOM
   const inputRef = useRef(null);
@@ -105,8 +109,9 @@ export default function TypingTest({
     setBuffer(base);
     setMarks(new Array(base.length).fill(0));
     setIdx(0); setHits(0); setErrors(0);
+    setBackspaces(0);
     setTyped([]);
-    setEnded(false); setStartedAt(null);
+    setEnded(false); setStartedAt(null); setFinishedElapsedMs(0);
     setRemaining(durationSec);
     setScrolledLines(0);
     gsap.set(scrollerRef.current, { y: 0 });
@@ -115,7 +120,7 @@ export default function TypingTest({
     completedRef.current = false;
 
     setTimeout(() => inputRef.current?.focus(), 0);
-  }, [initialText, durationSec]);
+  }, [initialText, durationSec, testType, targetWordCount]);
 
   // focus + entrance
   useEffect(() => {
@@ -158,7 +163,7 @@ export default function TypingTest({
 
   // timer (rAF)
   useEffect(() => {
-    if (!startedAt || ended) return;
+    if (testType !== "time" || !startedAt || ended) return;
 
     const tick = () => {
       const effectiveElapsedMs = getEffectiveElapsedMs();
@@ -167,6 +172,7 @@ export default function TypingTest({
       setRemaining(secondsLeft);
 
       if (secondsLeft <= 0) {
+        setFinishedElapsedMs(getEffectiveElapsedMs());
         setEnded(true);
         onFocusEnd && onFocusEnd();
         return;
@@ -179,7 +185,7 @@ export default function TypingTest({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [startedAt, ended, durationSec, onFocusEnd]);
+  }, [startedAt, ended, durationSec, onFocusEnd, testType]);
 
   async function maybePreloadMore(nextIndex) {
     const left = buffer.length - nextIndex;
@@ -216,8 +222,10 @@ export default function TypingTest({
     setTyped([]);
     setErrors(0);
     setHits(0);
+    setBackspaces(0);
     setEnded(false);
     setStartedAt(null);
+    setFinishedElapsedMs(0);
     setRemaining(durationSec);
     setScrolledLines(0);
     setShowPenaltyToast(false);
@@ -243,6 +251,7 @@ export default function TypingTest({
       const secondsLeft = Math.max(0, Math.ceil(durationSec - (getEffectiveElapsedMs() / 1000)));
       setRemaining(secondsLeft);
       if (secondsLeft <= 0) {
+        setFinishedElapsedMs(getEffectiveElapsedMs());
         setEnded(true);
         onFocusEnd && onFocusEnd();
       }
@@ -283,6 +292,7 @@ export default function TypingTest({
 
       // normal behavior (non-competitive)
       if (idx > 0) {
+        setBackspaces((count) => count + 1);
         setIdx(i => {
           const j = i - 1;
           setMarks(prev => {
@@ -337,26 +347,52 @@ export default function TypingTest({
 
     const nextIndex = Math.min(idx + 1, buffer.length);
     setIdx(nextIndex);
-    maybePreloadMore(nextIndex);
+    if (testType === "time") {
+      maybePreloadMore(nextIndex);
+    }
+
+    if (testType === "words" && nextIndex >= buffer.length) {
+      const finalElapsed = getEffectiveElapsedMs();
+      setFinishedElapsedMs(finalElapsed);
+      setEnded(true);
+      onFocusEnd && onFocusEnd();
+    }
 
     e.preventDefault();
   }
 
   // ---- metrics (include penalty in elapsed) ----
-  const elapsedSec = startedAt ? Math.max(0, getEffectiveElapsedMs() / 1000) : 0;
+  const elapsedMs = ended
+    ? finishedElapsedMs
+    : startedAt
+      ? getEffectiveElapsedMs()
+      : 0;
+  const elapsedSec = Math.max(0, elapsedMs / 1000);
   const grossWords = hits / 5;
   const wpm = startedAt ? (grossWords / Math.max(0.001, elapsedSec / 60)) : 0;
-
-  const primaryLabel = durationSec === 60 ? "WPM" : "Words";
-  const primaryValue = durationSec === 60 ? wpm.toFixed(0) : Math.floor(grossWords);
-  const subValue = durationSec === 60 ? null : `WPM ${wpm.toFixed(0)}`;
+  const completedWords = Math.min(
+    targetWordCount,
+    buffer.slice(0, idx).trim() ? buffer.slice(0, idx).trim().split(/\s+/g).length : 0
+  );
+  const primaryLabel = "WPM";
+  const primaryValue = wpm.toFixed(0);
+  const subValue =
+    testType === "words"
+      ? `${completedWords}/${targetWordCount} words`
+      : null;
   const accuracy = hits + errors ? (hits / (hits + errors)) * 100 : 100;
+  const charactersTyped = hits + errors;
 
   const testStats = {
     wpm,
     accuracy,
     hits,
+    characters: charactersTyped,
     words: grossWords,
+    elapsedSec,
+    backspaces,
+    testType,
+    targetWordCount,
     duration: durationSec,
     mode: competitiveMode ? "competitive" : "classic",
   };
@@ -374,14 +410,17 @@ export default function TypingTest({
         <div className="mb-6 hidden items-center justify-center gap-8 text-sm md:flex">
           <Stat label={primaryLabel} value={primaryValue} sub={subValue} />
           <Stat label="Accuracy" value={`${accuracy.toFixed(0)}%`} />
-          <Stat label="Time" value={`${remaining}s`} />
+          <Stat
+            label={testType === "time" ? "Time" : "Elapsed"}
+            value={testType === "time" ? `${remaining}s` : `${elapsedSec.toFixed(1)}s`}
+          />
         </div>
       )}
 
       {/* floating timer HUD in focus mode */}
       {focusMode && (
         <div className="fixed -top-20 left-1/2 -translate-x-1/2 text-base md:text-lg font-semibold text-brand drop-neon z-50">
-          {remaining}s
+          {testType === "time" ? `${remaining}s` : `${completedWords}/${targetWordCount} words`}
         </div>
       )}
 
@@ -414,6 +453,7 @@ export default function TypingTest({
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-6 text-sm text-white/60 z-40">
           <div>WPM: {wpm.toFixed(0)}</div>
           <div>ACC: {accuracy.toFixed(0)}%</div>
+          {testType === "words" && <div>WORDS: {completedWords}/{targetWordCount}</div>}
         </div>
       )}
 

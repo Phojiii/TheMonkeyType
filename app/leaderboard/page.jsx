@@ -7,6 +7,11 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Footer from "@/components/Footer";
 
+//Ads Component
+import InPagePush from "@/components/InPagePush";
+import PushNotification from "@/components/PushNotification";
+import VignetteBanner from "@/components/VignetteBanner";
+
 const FILTER_OPTIONS = [
   { key: "all", label: "All" },
   { key: "15", label: "15s" },
@@ -183,6 +188,9 @@ export default function LeaderboardPage() {
 
   return (
     <main className="min-h-screen bg-ink px-4 py-6 text-white md:px-6 md:py-10">
+      <InPagePush />
+      <PushNotification />
+      <VignetteBanner />
       <header className="mx-auto mb-4 hidden max-w-6xl flex-col items-start justify-between gap-4 sm:flex-row sm:items-center md:flex">
         <div>
           <h1 className="text-2xl font-bold text-brand">Leaderboard</h1>

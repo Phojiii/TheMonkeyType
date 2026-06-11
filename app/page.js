@@ -10,11 +10,16 @@ import Footer from "@/components/Footer";
 import { makeStreamGenerator } from "@/lib/textbanks";
 import { FaGlobeAmericas, FaRedoAlt } from "react-icons/fa";
 
+//Ads Component
+import InPagePush from "@/components/InPagePush";
+
 const PREF_KEY = "tmt_prefs";
 
 export default function Home() {
   const [lang, setLang] = useState("english");
+  const [testType, setTestType] = useState("time");
   const [duration, setDuration] = useState(60);
+  const [wordCount, setWordCount] = useState(50);
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
   const [competitiveMode, setCompetitiveMode] = useState(false);
@@ -22,7 +27,6 @@ export default function Home() {
   const [initialText, setInitialText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sessionId, setSessionId] = useState(0);
-  const [testCompleted, setTestCompleted] = useState(false);
 
   const genRef = useRef(null);
 
@@ -33,7 +37,9 @@ export default function Home() {
 
       const prefs = JSON.parse(raw);
       if (prefs.lang) setLang(prefs.lang);
+      if (prefs.testType === "time" || prefs.testType === "words") setTestType(prefs.testType);
       if (Number.isFinite(prefs.duration)) setDuration(prefs.duration);
+      if (Number.isFinite(prefs.wordCount)) setWordCount(prefs.wordCount);
       if (typeof prefs.punctuation === "boolean") setPunctuation(prefs.punctuation);
       if (typeof prefs.numbers === "boolean") setNumbers(prefs.numbers);
       if (typeof prefs.competitiveMode === "boolean") setCompetitiveMode(prefs.competitiveMode);
@@ -44,16 +50,20 @@ export default function Home() {
     try {
       localStorage.setItem(
         PREF_KEY,
-        JSON.stringify({ lang, duration, punctuation, numbers, competitiveMode })
+        JSON.stringify({ lang, testType, duration, wordCount, punctuation, numbers, competitiveMode })
       );
     } catch {}
-  }, [lang, duration, punctuation, numbers, competitiveMode]);
+  }, [lang, testType, duration, wordCount, punctuation, numbers, competitiveMode]);
 
   const rebuildGenerator = useCallback(() => {
     setLoading(true);
     try {
       genRef.current = makeStreamGenerator({ lang, punctuation, numbers });
-      setInitialText(genRef.current.nextChunk(80));
+      setInitialText(
+        testType === "words"
+          ? genRef.current.nextChunk(wordCount).trim()
+          : genRef.current.nextChunk(80)
+      );
     } catch (error) {
       console.error("Generator error:", error);
       setInitialText("Keep calm and type on - the generator could not load fresh text.");
@@ -61,15 +71,21 @@ export default function Home() {
 
     setSessionId((current) => current + 1);
     setFocus(false);
-    setTestCompleted(false);
     setLoading(false);
-  }, [lang, punctuation, numbers]);
+  }, [lang, punctuation, numbers, testType, wordCount]);
 
   useEffect(() => {
     rebuildGenerator();
   }, [rebuildGenerator]);
 
+  useEffect(() => {
+    if (testType === "words" && competitiveMode) {
+      setCompetitiveMode(false);
+    }
+  }, [testType, competitiveMode]);
+
   const supplyMore = useCallback(async () => {
+    if (testType !== "time") return "";
     if (!genRef.current) return "";
     try {
       return genRef.current.nextChunk(60);
@@ -77,7 +93,7 @@ export default function Home() {
       console.error("SupplyMore error:", error);
       return "";
     }
-  }, []);
+  }, [testType]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -97,11 +113,12 @@ export default function Home() {
 
       {!focus && (
         <header className="mx-auto hidden w-full max-w-6xl items-center justify-between px-6 pb-4 pt-8 md:flex">
+          <InPagePush />
           <Link href="/" className="hidden items-center gap-3 md:flex">
             <Image
-              src="/TMT_Logo_2.png"
+              src="/TMT_Logo_2_new.png"
               alt="TMT Logo"
-              width={40}
+              width={150}
               height={40}
               priority
               style={{ width: "auto", height: "auto" }}
@@ -127,8 +144,12 @@ export default function Home() {
         <TopBar
           lang={lang}
           setLang={setLang}
+          testType={testType}
+          setTestType={setTestType}
           duration={duration}
           setDuration={setDuration}
+          wordCount={wordCount}
+          setWordCount={setWordCount}
           punctuation={punctuation}
           setPunctuation={setPunctuation}
           numbers={numbers}
@@ -158,12 +179,12 @@ export default function Home() {
               initialText={initialText}
               supplyMore={supplyMore}
               durationSec={duration}
+              testType={testType}
+              targetWordCount={wordCount}
               focusMode={focus}
               onFocusStart={() => setFocus(true)}
               onFocusEnd={() => setFocus(false)}
               onRestart={rebuildGenerator}
-              onTestComplete={() => setTestCompleted(true)}
-              showResults={testCompleted}
               competitiveMode={competitiveMode}
             />
           )}
@@ -179,12 +200,24 @@ export default function Home() {
             </button>
 
             <button
-              onClick={() => setCompetitiveMode((value) => !value)}
-              className={competitiveMode ? "btn-primary" : "btn-secondary"}
+              onClick={() => {
+                if (testType === "words") return;
+                setCompetitiveMode((value) => !value);
+              }}
+              disabled={testType === "words"}
+              className={
+                testType === "words"
+                  ? "btn-secondary opacity-60"
+                  : competitiveMode
+                    ? "btn-primary"
+                    : "btn-secondary"
+              }
               aria-label="Toggle competitive mode"
               title="Competitive mode"
             >
-              Competitive: {competitiveMode ? "On" : "Off"}
+              {testType === "words"
+                ? "Competitive unavailable in words mode"
+                : `Competitive: ${competitiveMode ? "On" : "Off"}`}
             </button>
 
             {competitiveMode && (

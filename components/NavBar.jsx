@@ -46,9 +46,9 @@ export default function NavBar() {
       active: pathname === "/",
       icon: (
         <Image
-          src="/TMT_Logo.png"
+          src="/TMT_Logo_new.png"
           alt="TMT"
-          width={34}
+          width={24}
           height={24}
           priority
           style={{ width: "34px", height: "24px", objectFit: "contain" }}
@@ -65,7 +65,7 @@ export default function NavBar() {
     <>
       <nav className="fixed left-0 top-0 z-50 hidden h-screen w-20 flex-col items-center justify-between bg-[#23232583] py-6 shadow-lg backdrop-blur-sm md:flex">
         <Link href="/">
-          <Image src="/TMT_Logo.png" alt="TMT Logo" width={60} height={40} priority style={{ width: "auto", height: "auto" }} />
+          <Image src="/TMT_Logo_new.png" alt="TMT Logo" width={40} height={40} priority style={{ width: "auto", height: "auto" }} />
         </Link>
 
         <div className="flex flex-1 flex-col justify-center gap-8">

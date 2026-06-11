@@ -7,8 +7,12 @@ import { IoMdSettings } from "react-icons/io";
 export default function TopBar({
   lang,
   setLang,
+  testType,
+  setTestType,
   duration,
   setDuration,
+  wordCount,
+  setWordCount,
   punctuation,
   setPunctuation,
   numbers,
@@ -17,6 +21,7 @@ export default function TopBar({
   const [open, setOpen] = useState(false);
   const modalRef = useRef(null);
   const times = [15, 30, 60, 120];
+  const words = [10, 25, 50, 100];
 
   useEffect(() => {
     gsap.fromTo(".topbar-stagger", { y: -8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.03 });
@@ -69,17 +74,46 @@ export default function TopBar({
 
       {!compact && <div className="mx-1 h-5 w-px bg-white/10" />}
 
+      <div className={compact ? "grid grid-cols-2 gap-2" : "flex items-center gap-2"}>
+        <button
+          onClick={(event) => {
+            setTestType("time");
+            pulse(event.currentTarget);
+          }}
+          className={getToggleClass(testType === "time")}
+        >
+          Time
+        </button>
+        <button
+          onClick={(event) => {
+            setTestType("words");
+            pulse(event.currentTarget);
+          }}
+          className={getToggleClass(testType === "words")}
+        >
+          Words
+        </button>
+      </div>
+
+      {!compact && <div className="mx-1 h-5 w-px bg-white/10" />}
+
       <div className={compact ? "grid grid-cols-4 gap-2" : "flex items-center gap-2"}>
-        {times.map((time) => (
+        {(testType === "time" ? times : words).map((value) => (
           <button
-            key={time}
+            key={`${testType}-${value}`}
             onClick={(event) => {
-              setDuration(time);
+              if (testType === "time") {
+                setDuration(value);
+              } else {
+                setWordCount(value);
+              }
               pulse(event.currentTarget);
             }}
-            className={getToggleClass(duration === time)}
+            className={getToggleClass(
+              testType === "time" ? duration === value : wordCount === value
+            )}
           >
-            {time}s
+            {testType === "time" ? `${value}s` : `${value}`}
           </button>
         ))}
       </div>
