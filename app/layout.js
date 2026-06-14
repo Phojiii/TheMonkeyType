@@ -30,7 +30,7 @@ export const metadata = {
     siteName: "The Monkey Type",
     images: [
       {
-        url: "/og-image.png",
+        url: "/TMT_Logo_2_new.png",
         width: 1200,
         height: 630,
       },
