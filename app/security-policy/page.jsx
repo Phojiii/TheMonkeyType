@@ -1,11 +1,6 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-
-//Ads Component
-import InPagePush from "@/components/InPagePush";
-import PushNotification from "@/components/PushNotification";
-import VignetteBanner from "@/components/VignetteBanner";
 
 export const metadata = {
   title: "Security Policy | TheMonkeyType",
@@ -15,9 +10,6 @@ export const metadata = {
 export default function SecurityPolicyPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <InPagePush />
-      <PushNotification />
-      <VignetteBanner />
       <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -39,7 +31,7 @@ export default function SecurityPolicyPage() {
 
       <section className="flex-1 max-w-4xl mx-auto leading-relaxed space-y-5 px-6 py-10">
         <h1 className="text-3xl font-bold text-brand mb-2">Security Policy</h1>
-        <p className="text-sm text-white/50">Last updated: April 10, 2026</p>
+        <p className="text-sm text-white/50">Last updated: June 18, 2026</p>
 
         <p>
           We take security seriously and appreciate responsible disclosure of potential

@@ -1,11 +1,6 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-
-//Ads Component
-import InPagePush from "@/components/InPagePush";
-import PushNotification from "@/components/PushNotification";
-import VignetteBanner from "@/components/VignetteBanner";
 
 export const metadata = {
   title: "Terms of Service | TheMonkeyType",
@@ -15,9 +10,6 @@ export const metadata = {
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <InPagePush />
-      <PushNotification />
-      <VignetteBanner />
       <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -39,7 +31,7 @@ export default function TermsPage() {
 
       <section className="flex-1 max-w-4xl mx-auto leading-relaxed space-y-5 px-6 py-10">
         <h1 className="text-3xl font-bold text-brand mb-2">Terms of Service</h1>
-        <p className="text-sm text-white/50">Last updated: April 10, 2026</p>
+        <p className="text-sm text-white/50">Last updated: June 18, 2026</p>
 
         <p>
           By using TheMonkeyType ("Service"), you agree to these Terms of Service.
@@ -50,7 +42,7 @@ export default function TermsPage() {
         <p>
           You may use the Service only in compliance with applicable laws. You may not abuse,
           disrupt, reverse engineer, overload, scrape, exploit, or interfere with the website,
-          its infrastructure, its ads, its leaderboards, or other users.
+          its infrastructure, its leaderboards, or other users.
         </p>
 
         <h2 className="text-xl font-semibold text-brand mt-6">Accounts and leaderboards</h2>
@@ -78,7 +70,7 @@ export default function TermsPage() {
         <h2 className="text-xl font-semibold text-brand mt-6">Third-party services</h2>
         <p>
           Parts of the Service may depend on third-party providers such as authentication,
-          analytics, hosting, and advertising platforms. We are not responsible for outages,
+          analytics, and hosting platforms. We are not responsible for outages,
           policy changes, or behavior of third-party services beyond our control.
         </p>
 

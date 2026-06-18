@@ -5,7 +5,6 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import ChallengeInbox from "@/components/ChallengeInbox";
 import OnlineUsersWidget from "@/components/OnlineUsersWidget";
-import AdConsentBanner from "@/components/AdConsentBanner";
 
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -55,7 +54,6 @@ export default function Providers({ children }) {
       <GoogleAnalytics />
       <ChallengeInbox />
       <OnlineUsersWidget />
-      <AdConsentBanner />
       {children}
     </ClerkProvider>
   );

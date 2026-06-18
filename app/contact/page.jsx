@@ -2,22 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 
-//Ads Component
-import InPagePush from "@/components/InPagePush";
-import PushNotification from "@/components/PushNotification";
-import VignetteBanner from "@/components/VignetteBanner";
-
 export const metadata = {
   title: "Contact | TheMonkeyType",
-  description: "Contact TheMonkeyType for support, partnerships, bug reports, or advertising inquiries.",
+  description: "Contact TheMonkeyType for support, partnerships, bug reports, or general inquiries.",
 };
 
 export default function ContactPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <InPagePush />
-      <PushNotification />
-      <VignetteBanner />
       <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -41,7 +33,7 @@ export default function ContactPage() {
         <h1 className="text-3xl font-bold text-brand mb-2">Contact</h1>
         <p className="text-white/80">
           If you need help with your account, want to report a bug, discuss a partnership,
-          or reach out about advertising, you can contact TheMonkeyType directly.
+          or reach out about the project, you can contact TheMonkeyType directly.
         </p>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
@@ -56,7 +48,7 @@ export default function ContactPage() {
               <li>General support and account issues</li>
               <li>Leaderboard or challenge disputes</li>
               <li>Bug reports and feature suggestions</li>
-              <li>Business and advertising inquiries</li>
+              <li>Business and collaboration inquiries</li>
             </ul>
           </div>
 

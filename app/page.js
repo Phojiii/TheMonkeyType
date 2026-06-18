@@ -5,13 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import TypingTest from "@/components/TypingTest";
 import TopBar from "@/components/TopBar";
-import AdUnit from "@/components/AdUnit";
 import Footer from "@/components/Footer";
 import { makeStreamGenerator } from "@/lib/textbanks";
 import { FaGlobeAmericas, FaRedoAlt } from "react-icons/fa";
-
-//Ads Component
-import InPagePush from "@/components/InPagePush";
 
 const PREF_KEY = "tmt_prefs";
 
@@ -113,7 +109,6 @@ export default function Home() {
 
       {!focus && (
         <header className="mx-auto hidden w-full max-w-6xl items-center justify-between px-6 pb-4 pt-8 md:flex">
-          <InPagePush />
           <Link href="/" className="hidden items-center gap-3 md:flex">
             <Image
               src="/TMT_Logo_2_new.png"
@@ -244,22 +239,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <aside className="absolute right-0 top-1/4">
-        {!loading && (
-          <AdUnit
-            slot="9194878710"
-            fixed
-            style={{ display: "block", width: 300, height: 250 }}
-            format="rectangle"
-            responsive={false}
-          />
-        )}
-      </aside>
-
-      <div style={{ maxWidth: "100%", margin: "24px auto 0" }}>
-        {!loading && <AdUnit slot="6053710056" style={{ display: "block", width: "100%" }} />}
-      </div>
 
       {!focus && <Footer />}
     </main>

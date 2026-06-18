@@ -1,11 +1,6 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-
-//Ads Component
-import InPagePush from "@/components/InPagePush";
-import PushNotification from "@/components/PushNotification";
-import VignetteBanner from "@/components/VignetteBanner";
 
 export const metadata = {
   title: "Privacy Policy | TheMonkeyType",
@@ -15,9 +10,6 @@ export const metadata = {
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <InPagePush />
-      <PushNotification />
-      <VignetteBanner />
       <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -39,7 +31,7 @@ export default function PrivacyPage() {
 
       <section className="flex-1 max-w-4xl mx-auto leading-relaxed space-y-5 px-6 py-10">
         <h1 className="text-3xl font-bold text-brand mb-2">Privacy Policy</h1>
-        <p className="text-sm text-white/50">Last updated: April 10, 2026</p>
+        <p className="text-sm text-white/50">Last updated: June 18, 2026</p>
 
         <p>
           This Privacy Policy explains how TheMonkeyType ("we", "our", "us") collects,
@@ -59,7 +51,7 @@ export default function PrivacyPage() {
         <p>
           We collect information when you create an account, sign in, complete typing tests,
           participate in challenges, save settings, submit scores, contact us, or interact
-          with pages, ads, and analytics tools on the website.
+          with pages and analytics tools on the website.
         </p>
 
         <h2 className="text-xl font-semibold text-brand mt-6">How we use data</h2>
@@ -70,13 +62,11 @@ export default function PrivacyPage() {
           communicate with you when needed.
         </p>
 
-        <h2 className="text-xl font-semibold text-brand mt-6">Cookies, analytics, and ads</h2>
+        <h2 className="text-xl font-semibold text-brand mt-6">Cookies and analytics</h2>
         <p>
           We use cookies and similar technologies for authentication, saved settings,
-          analytics, and advertising. Third-party services such as Google AdSense and
-          analytics providers may use cookies or similar tools to measure usage,
-          personalize ads where permitted, and improve performance. In some regions,
-          ad-related consent choices may be required before personalized advertising is shown.
+          and analytics. Third-party analytics providers may use cookies or similar tools
+          to measure usage and help us improve performance.
         </p>
 
         <h2 className="text-xl font-semibold text-brand mt-6">How we store and protect data</h2>
@@ -90,7 +80,7 @@ export default function PrivacyPage() {
         <p>
           We do not sell your personal information. We may share limited information with
           service providers that help operate the site, such as hosting, authentication,
-          database, analytics, crash reporting, and advertising partners. We may also disclose
+          database, analytics, and crash reporting partners. We may also disclose
           information if required by law or to protect the service and its users.
         </p>
 

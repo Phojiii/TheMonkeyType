@@ -6,11 +6,6 @@ import { TfiStatsUp } from "react-icons/tfi";
 import { BsClipboardData } from "react-icons/bs";
 import { LiaBugSolid } from "react-icons/lia";
 
-//Ads Component
-import InPagePush from "@/components/InPagePush";
-import PushNotification from "@/components/PushNotification";
-import VignetteBanner from "@/components/VignetteBanner";
-
 export const metadata = {
   title: "About | TheMonkeyType",
   description:
@@ -62,9 +57,6 @@ const statNotes = [
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <InPagePush />
-      <PushNotification />
-      <VignetteBanner />
       <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -237,21 +229,6 @@ export default function AboutPage() {
                 typing feel less frustrating, then it is doing its job.
               </p>
             </div>
-          </section>
-
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
-            <h2 className="text-2xl font-semibold">How ads support the website</h2>
-            <p className="mt-4 text-white/75 leading-7">
-              TheMonkeyType now uses ads in selected areas of the site to help cover
-              hosting, development, and ongoing improvements. We want that support model
-              to stay transparent, which is why the site asks for ad consent before ad
-              scripts are loaded.
-            </p>
-            <p className="mt-4 text-white/75 leading-7">
-              You can continue without accepting ads, and your core practice experience
-              still works. If you do accept, you help support the project while keeping
-              the main typing tools free to use.
-            </p>
           </section>
         </div>
       </section>

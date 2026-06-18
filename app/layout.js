@@ -60,14 +60,6 @@ export default function RootLayout({ children }) {
           }}
         />
 
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4624388385890799"
-          crossOrigin="anonymous"
-        ></script>
-
-        <meta name="google-adsense-account" content="ca-pub-4624388385890799" />
-        <meta name="monetag" content="0679a59b0ad62add50fe7080c35b59f9" />
       </head>
 
       <body>

@@ -2,11 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 
-//Ads Component
-import InPagePush from "@/components/InPagePush";
-import PushNotification from "@/components/PushNotification";
-import VignetteBanner from "@/components/VignetteBanner";
-
 import {
   FaBolt,
   FaChartLine,
@@ -21,7 +16,7 @@ import {
 export const metadata = {
   title: "Guide | TheMonkeyType",
   description:
-    "Learn how TheMonkeyType works, including typing tests, rankings, stats, competitive mode, and 1v1 challenges.",
+    "Learn how TheMonkeyType works, including timed and word-based tests, rankings, stats, competitive mode, and 1v1 challenges.",
 };
 
 const overviewCards = [
@@ -74,13 +69,6 @@ const statsIncludes = [
   "Challenge history with wins, losses, draws, and win rate",
 ];
 
-const adsAndConsentNotes = [
-  "Ad scripts only load after you accept ad consent.",
-  "You can continue using the website without accepting ads.",
-  "Ads help support hosting, maintenance, and future improvements.",
-  "Core typing, guides, rankings, stats, and challenges remain usable even if you decline ad consent.",
-];
-
 function Section({ id, eyebrow, title, children }) {
   return (
     <section id={id} className="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
@@ -94,9 +82,6 @@ function Section({ id, eyebrow, title, children }) {
 export default function GuidePage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <InPagePush />
-      <PushNotification />
-      <VignetteBanner />
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pb-4 pt-8">
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -136,8 +121,8 @@ export default function GuidePage() {
                 </h1>
                 <p className="mt-5 max-w-3xl text-base leading-8 text-white/75 md:text-lg">
                   This page is your full guide to the website. It explains how tests work, what the numbers mean,
-                  how rankings are calculated, how 1v1 challenges work, how the new word-based tests behave, and
-                  what you can expect from pages like Stats, Leaderboard, Blog, and the live lobby.
+                  how rankings are calculated, how 1v1 challenges work, how word-based tests behave, and what you
+                  can expect from pages like Stats, Leaderboard, Blog, and the live lobby.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3 text-sm">
                   <Link href="/" className="btn-primary">
@@ -161,8 +146,7 @@ export default function GuidePage() {
                   <a href="#challenges" className="hover:text-white">4. Live challenges</a>
                   <a href="#stats-page" className="hover:text-white">5. Stats page</a>
                   <a href="#accounts" className="hover:text-white">6. Accounts and saved data</a>
-                  <a href="#ads-and-consent" className="hover:text-white">7. Ads and consent</a>
-                  <a href="#tips" className="hover:text-white">8. Tips and common questions</a>
+                  <a href="#tips" className="hover:text-white">7. Tips and common questions</a>
                 </div>
               </div>
             </div>
@@ -295,10 +279,6 @@ export default function GuidePage() {
                   Challenge history gives you a personal record of wins, losses, draws, and the opponents you played.
                 </p>
                 <p className="mt-3 text-sm leading-7 text-white/70">
-                  Most of this page is powered by local browser storage, which means it follows your current device
-                  and browser unless you sync or export it elsewhere later.
-                </p>
-                <p className="mt-3 text-sm leading-7 text-white/70">
                   Word-mode results and details like backspace usage are useful for personal review, but only the
                   standard timed records are used for leaderboard syncing.
                 </p>
@@ -315,9 +295,8 @@ export default function GuidePage() {
               <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
                 <h3 className="text-lg font-semibold text-brand">Saved locally</h3>
                 <p className="mt-3 text-sm leading-7 text-white/70">
-                  Preferences, many past test runs, filtered stats views, and challenge history are stored in your
-                  browser so your experience feels fast and personal. That also includes newer result details such as
-                  word-mode runs and local challenge history.
+                  Preferences, many past test runs, filtered stats views, challenge history, and word-mode results
+                  are stored in your browser so your experience feels fast and personal.
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
@@ -328,23 +307,6 @@ export default function GuidePage() {
                 </p>
               </div>
             </div>
-          </Section>
-
-          <Section id="ads-and-consent" eyebrow="Website Support" title="Ads and consent">
-            <p>
-              TheMonkeyType now uses ads in selected parts of the website to help support hosting, maintenance,
-              and future feature work. Because of that, the site includes a bottom consent banner before ad scripts
-              are loaded.
-            </p>
-            <ul className="list-disc space-y-2 pl-5 text-white/75">
-              {adsAndConsentNotes.map((note) => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
-            <p>
-              The goal is to stay transparent about how the site is supported while keeping practice accessible for
-              people who prefer not to load ads.
-            </p>
           </Section>
 
           <Section id="tips" eyebrow="Helpful Notes" title="Tips and common questions">
