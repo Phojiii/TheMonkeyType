@@ -73,6 +73,9 @@ export default function NavBar() {
           <NavLink href="/stats" icon={<FaChartBar />} label="Stats" active={pathname === "/stats"} />
           <NavLink href="/leaderboard" icon={<FaTrophy />} label="Ranking" active={pathname === "/leaderboard"} />
           <NavLink href="/blog" icon={<FaBlog />} label="Blogs" active={pathname === "/blog"} />
+          {isSignedIn && (
+            <NavLink href="/profile" icon={<FaUserCircle />} label="Profile" active={pathname === "/profile" || pathname?.startsWith("/profile/")} />
+          )}
           {isAdmin && (
             <NavLink
               href="/admin/blogs"
@@ -116,6 +119,14 @@ export default function NavBar() {
               {mobileLinks.map((link) => (
                 <MobileLink key={link.href + link.label} href={link.href} active={link.active} icon={link.icon} label={link.label} />
               ))}
+              {isSignedIn && (
+                <MobileLink
+                  href="/profile"
+                  active={pathname === "/profile" || pathname?.startsWith("/profile/")}
+                  icon={<FaUserCircle />}
+                  label="Profile"
+                />
+              )}
               {isAdmin && (
                 <MobileLink
                   href="/admin/blogs"

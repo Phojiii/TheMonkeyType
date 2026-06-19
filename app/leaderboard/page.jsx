@@ -25,6 +25,15 @@ const MODE_OPTIONS = [
   { key: "competitive", label: "Competitive" },
 ];
 
+function toProfilePath(username) {
+  const base = String(username || "typist")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `/profile/${base || "typist"}`;
+}
+
 export default function LeaderboardPage() {
   const router = useRouter();
   const { user, isSignedIn, isLoaded } = useUser();
@@ -353,7 +362,9 @@ export default function LeaderboardPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={`h-2 w-2 rounded-full ${online ? "bg-green-400" : "bg-white/20"}`} />
-                      <span className="truncate text-white/85">{score.username || "Anonymous"}</span>
+                      <Link href={toProfilePath(score.username)} className="truncate text-white/85 hover:text-white">
+                        {score.username || "Anonymous"}
+                      </Link>
                     </div>
                   </div>
                   <div className="font-semibold text-brand">{Number(score.bestWpm || 0)}</div>
@@ -418,7 +429,9 @@ export default function LeaderboardPage() {
                         ) : (
                           <div className="h-8 w-8 rounded-full bg-white/10" />
                         )}
-                        <span className="max-w-[180px] truncate">{score.username || "Anonymous"}</span>
+                        <Link href={toProfilePath(score.username)} className="max-w-[180px] truncate hover:text-white">
+                          {score.username || "Anonymous"}
+                        </Link>
                         {isMe && <span className="ml-1 text-[10px] text-brand">(You)</span>}
                       </div>
                     </td>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useClerk, useUser } from "@clerk/nextjs";
 
@@ -9,6 +10,15 @@ const DURATION_OPTIONS = [15, 30, 60, 120];
 const OPEN_REFRESH_MS = 15_000;
 const CLOSED_REFRESH_MS = 60_000;
 const PRESENCE_REFRESH_MS = 60_000;
+
+function toProfilePath(username) {
+  const base = String(username || "typist")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `/profile/${base || "typist"}`;
+}
 
 export default function OnlineUsersWidget() {
   const router = useRouter();
@@ -251,7 +261,9 @@ export default function OnlineUsersWidget() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                          <p className="truncate font-medium text-white">{entry.username}</p>
+                          <Link href={toProfilePath(entry.username)} className="truncate font-medium text-white hover:text-brand">
+                            {entry.username}
+                          </Link>
                         </div>
                         <p className="mt-1 text-xs text-white/55">
                           Best {entry.bestWpm} WPM

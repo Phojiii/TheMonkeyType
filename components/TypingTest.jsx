@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
+import { useUser } from "@clerk/nextjs";
 import ResultModal from "./ResultModal";
 
 /**
@@ -28,7 +29,9 @@ export default function TypingTest({
   onComplete,
   showResultModal = true,
   competitiveMode = false, // ✅ NEW
+  trackProfileSession = true,
 }) {
+  const { isSignedIn } = useUser();
   // core state
   const [startedAt, setStartedAt] = useState(null);
   const [ended, setEnded] = useState(false);
@@ -95,6 +98,7 @@ export default function TypingTest({
   // ✅ penalty toast
   const [penaltyToastKey, setPenaltyToastKey] = useState(0);
   const completedRef = useRef(false);
+  const sessionTrackedRef = useRef(false);
 
   const triggerPenaltyToast = () => {
     setShowPenaltyToast(true);
@@ -118,6 +122,7 @@ export default function TypingTest({
 
     penaltyMsRef.current = 0; // ✅ reset penalty
     completedRef.current = false;
+    sessionTrackedRef.current = false;
 
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [initialText, durationSec, testType, targetWordCount]);
@@ -233,6 +238,7 @@ export default function TypingTest({
     gsap.set(scrollerRef.current, { y: 0 });
 
     penaltyMsRef.current = 0; // ✅ reset penalty
+    sessionTrackedRef.current = false;
 
     gsap.fromTo(wrapRef.current, { scale: 0.98 }, { scale: 1, duration: 0.15, ease: "power2.out" });
     inputRef.current?.focus();
@@ -316,6 +322,10 @@ export default function TypingTest({
     // First valid key => start + enter focus
     if (!startedAt) {
       setStartedAt(Date.now());
+      if (trackProfileSession && isSignedIn && !sessionTrackedRef.current) {
+        sessionTrackedRef.current = true;
+        fetch("/api/profile/test-start", { method: "POST" }).catch(() => {});
+      }
       onFocusStart && onFocusStart();
     }
 

@@ -306,6 +306,7 @@ export default function ChallengePage({ params }) {
               initialText={challenge.text}
               durationSec={challenge.duration}
               competitiveMode
+              trackProfileSession={false}
               showResultModal={false}
               onComplete={submitResult}
             />
