@@ -1,4 +1,4 @@
-/* Roboto Mono */
+﻿/* Roboto Mono */
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
 
 @tailwind base;
@@ -21,6 +21,11 @@ body{ background:var(--bg); color:var(--fg); font-family:'Roboto Mono', monospac
 .drop-neon{ text-shadow:0 0 6px rgba(226,183,20,0.45), 0 0 14px rgba(226,183,20,0.25); }
 .skeleton{ background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02), rgba(255,255,255,0.06)); background-size:200% 100%; animation:shimmer 1.6s infinite linear; border-radius:1rem; border:1px solid rgba(255,255,255,0.06); }
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.donate-glow{ position:relative; display:inline-flex; overflow:hidden; border-radius:9999px; padding:1px; background:rgba(255,255,255,0.04); }
+.donate-glow::before{ content:""; position:absolute; inset:-60%; background:conic-gradient(from 0deg, transparent, transparent, transparent, #E2B714); animation:donate-rotate 2s linear infinite; }
+.donate-glow::after{ content:""; position:absolute; inset:1px; border-radius:9999px; background:#232427; }
+.donate-glow > *{ position:relative; z-index:1; }
+@keyframes donate-rotate{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
 .prose pre {
   background: #1e1e1e;
   border-radius: 8px;
@@ -33,3 +38,4 @@ body{ background:var(--bg); color:var(--fg); font-family:'Roboto Mono', monospac
   padding: 0.2rem 0.4rem;
   color: #E2B714;
 }
+

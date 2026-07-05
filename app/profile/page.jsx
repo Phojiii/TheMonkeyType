@@ -176,6 +176,7 @@ export default function MyProfilePage() {
                 value={form.title}
                 onChange={(value) => setForm((current) => ({ ...current, title: value }))}
                 placeholder="Mythical"
+                readonly
               />
               <Field
                 label="Keyboard layout"

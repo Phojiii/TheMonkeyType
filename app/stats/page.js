@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { useUser } from "@clerk/nextjs";
 import Footer from "@/components/Footer";
+import { FaDonate } from "react-icons/fa";
 
 const LEGACY_KEY = "tmt_stats";
 const KEY_CLASSIC = "tmt_stats_classic";
@@ -30,7 +31,7 @@ export default function StatsPage() {
 
   const { user, isSignedIn } = useUser();
 
-  // ✅ migrate legacy -> classic once (so old users see stats)
+  // âœ… migrate legacy -> classic once (so old users see stats)
   useEffect(() => {
     try {
       const legacy = localStorage.getItem(LEGACY_KEY);
@@ -44,7 +45,7 @@ export default function StatsPage() {
     } catch {}
   }, []);
 
-  // ✅ load stats from selected key
+  // âœ… load stats from selected key
   useEffect(() => {
     let stored = [];
     try {
@@ -174,7 +175,7 @@ export default function StatsPage() {
     setChallengeHistory(next);
   }
 
-  // ✅ sync best score to server (includes mode)
+  // âœ… sync best score to server (includes mode)
   useEffect(() => {
     if (!isSignedIn || !totals) return;
     if (!filter || filter === "all") return;
@@ -271,10 +272,16 @@ export default function StatsPage() {
         </div>
 
         <nav className="flex gap-4 text-sm">
-          <Link href="/" className="text-white/70 hover:text-white">
-            ← Back to Test
+          <Link href="/" className="mx-2 text-white/70 hover:text-white">
+            â† Back to Test
           </Link>
-          <Link href="/stats" className="text-white/70 hover:text-white">
+          <Link href="https://ko-fi.com/themonkeytype" target="_blank" rel="noreferrer" className="mx-2 text-white/70 hover:text-white">
+            Donate <FaDonate className="inline-block" />
+          </Link>
+          <Link href="https://discord.gg/5G2WvTYbPR" className="mx-2 text-white/70 hover:text-white">
+            Discord
+          </Link>
+          <Link href="/stats" className="mx-2 text-white/70 hover:text-white">
             Refresh
           </Link>
         </nav>
@@ -346,7 +353,7 @@ export default function StatsPage() {
       {/* Chart */}
       <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 stats-stagger">
         <h2 className="text-lg font-semibold mb-4">
-          Performance Over Time ({range}) • {mode === "competitive" ? "Competitive" : "Classic"}
+          Performance Over Time ({range}) â€¢ {mode === "competitive" ? "Competitive" : "Classic"}
         </h2>
 
         <div className="w-full h-72">
@@ -398,7 +405,7 @@ export default function StatsPage() {
       {dataByDuration.length > 0 && (
         <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 overflow-x-auto stats-stagger">
           <h2 className="text-lg font-semibold mb-4">
-            Results ({filter === "all" ? "All" : `${filter}s`}) •{" "}
+            Results ({filter === "all" ? "All" : `${filter}s`}) â€¢{" "}
             {mode === "competitive" ? "Competitive" : "Classic"}
           </h2>
 
@@ -420,7 +427,7 @@ export default function StatsPage() {
                 .map((d, i) => (
                   <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition">
                     <td className="py-2 px-3">{new Date(d.ts).toLocaleString()}</td>
-                    <td className="py-2 px-3">{d.duration != null ? `${d.duration}s` : "—"}</td>
+                    <td className="py-2 px-3">{d.duration != null ? `${d.duration}s` : "â€”"}</td>
                     <td className="py-2 px-3 text-brand">{d.wpm}</td>
                     <td className="py-2 px-3 text-sky-400">{d.accuracy}%</td>
                     <td className="py-2 px-3">{d.words}</td>
@@ -541,3 +548,4 @@ function Badge({ title, value, accent = "brand" }) {
     </div>
   );
 }
+

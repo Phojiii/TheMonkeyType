@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
@@ -8,6 +8,8 @@ import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 import { makeStreamGenerator } from "@/lib/textbanks";
 import { FaGlobeAmericas, FaRedoAlt } from "react-icons/fa";
+import { FaDonate } from "react-icons/fa";
+import { FaHeart } from "react-icons/fa";
 
 const PREF_KEY = "tmt_prefs";
 
@@ -23,6 +25,7 @@ export default function Home() {
   const [initialText, setInitialText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sessionId, setSessionId] = useState(0);
+  const [donationOpen, setDonationOpen] = useState(false);
 
   const genRef = useRef(null);
 
@@ -122,17 +125,62 @@ export default function Home() {
           </Link>
 
           <nav className="m-auto block text-center text-sm text-white/70 md:m-0">
+          <button onClick={() => setDonationOpen(true)} className="mx-2 hover:text-white">
+              Donate <FaDonate className="inline-block" />
+            </button>
             <Link href="https://discord.gg/5G2WvTYbPR" className="mx-2 hover:text-white">
               Discord
-            </Link>
-            <Link href="/stats" className="mx-2 hover:text-white">
-              Stats
             </Link>
             <a href="https://github.com" className="mx-2 hover:text-white" target="_blank" rel="noreferrer">
               GitHub
             </a>
           </nav>
         </header>
+        
+      )}
+            {donationOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[1.75rem] border border-white/10 bg-[#1f2023]/95 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-brand/80">Support</p>
+                <h3 className="mt-2 text-2xl font-bold text-white">Support TheMonkeyType</h3>
+              </div>
+              <button
+                onClick={() => setDonationOpen(false)}
+                className="btn-ghost px-3 py-1.5 text-xs"
+              >
+                Close
+              </button>
+            </div>
+
+            <p className="mb-5 text-sm leading-7 text-white/65">
+              Thank you for thinking about supporting this project. Your support helps keep
+              TheMonkeyType improving, maintained, and available for everyone.
+              <FaHeart className="ml-1 inline-block text-red-400" />
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="donate-glow">
+                <Link
+                  href="https://ko-fi.com/themonkeytype"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-primary min-w-[11rem]"
+                >
+                  Donate <FaDonate className="inline-block" />
+                </Link>
+              </span>
+
+              <button
+                onClick={() => setDonationOpen(false)}
+                className="btn-secondary"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {!focus && (
@@ -244,3 +292,4 @@ export default function Home() {
     </main>
   );
 }
+
