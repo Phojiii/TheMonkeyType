@@ -308,13 +308,16 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
         </div>
 
         {!mode || mode === "classic" ? (
-          <div className="mb-6 grid grid-cols-1 gap-4 text-left text-white/90 md:grid-cols-2">
+          <div className={`mb-6 grid grid-cols-1 gap-4 text-left text-white/90 ${stats?.beginnerMode ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
             <Stat label="Backspaces" value={Number(stats.backspaces || 0)} />
             {testType === "words" ? (
               <Stat label="Words Target" value={Number(stats.targetWordCount || 0)} />
             ) : (
               <Stat label="Test Type" value="Time" />
             )}
+            {stats?.beginnerMode ? (
+              <Stat label="Mistakes" value={Number(stats.mistakes || 0)} />
+            ) : null}
           </div>
         ) : null}
 

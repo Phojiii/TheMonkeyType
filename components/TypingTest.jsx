@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
 import { useUser } from "@clerk/nextjs";
+import BeginnerKeyboard from "./BeginnerKeyboard";
 import ResultModal from "./ResultModal";
 
 /**
@@ -30,6 +31,11 @@ export default function TypingTest({
   showResultModal = true,
   competitiveMode = false, // ✅ NEW
   trackProfileSession = true,
+  beginnerMode = false,
+  beginnerLesson = null,
+  beginnerProgressLabel = "",
+  beginnerFeedback = null,
+  beginnerPassRequirement = "",
 }) {
   const { isSignedIn } = useUser();
   // core state
@@ -53,6 +59,9 @@ export default function TypingTest({
   const [buffer, setBuffer] = useState(initialText || "");
   const [marks, setMarks] = useState(new Array((initialText || "").length).fill(0));
   const [typed, setTyped] = useState([]);
+  const [lastPressedKey, setLastPressedKey] = useState("");
+  const [lastPressedCorrect, setLastPressedCorrect] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
 
   // time left
   const [remaining, setRemaining] = useState(durationSec);
@@ -114,6 +123,7 @@ export default function TypingTest({
     setMarks(new Array(base.length).fill(0));
     setIdx(0); setHits(0); setErrors(0);
     setBackspaces(0);
+    setMistakes(0);
     setTyped([]);
     setEnded(false); setStartedAt(null); setFinishedElapsedMs(0);
     setRemaining(durationSec);
@@ -123,6 +133,8 @@ export default function TypingTest({
     penaltyMsRef.current = 0; // ✅ reset penalty
     completedRef.current = false;
     sessionTrackedRef.current = false;
+    setLastPressedKey("");
+    setLastPressedCorrect(false);
 
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [initialText, durationSec, testType, targetWordCount]);
@@ -144,6 +156,15 @@ export default function TypingTest({
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
   }, [ended]);
+
+  useEffect(() => {
+    if (!lastPressedKey) return;
+    const timer = setTimeout(() => {
+      setLastPressedKey("");
+      setLastPressedCorrect(false);
+    }, 220);
+    return () => clearTimeout(timer);
+  }, [lastPressedCorrect, lastPressedKey]);
 
   // measure line-height => 3-line viewport
   useEffect(() => {
@@ -228,6 +249,7 @@ export default function TypingTest({
     setErrors(0);
     setHits(0);
     setBackspaces(0);
+    setMistakes(0);
     setEnded(false);
     setStartedAt(null);
     setFinishedElapsedMs(0);
@@ -239,6 +261,8 @@ export default function TypingTest({
 
     penaltyMsRef.current = 0; // ✅ reset penalty
     sessionTrackedRef.current = false;
+    setLastPressedKey("");
+    setLastPressedCorrect(false);
 
     gsap.fromTo(wrapRef.current, { scale: 0.98 }, { scale: 1, duration: 0.15, ease: "power2.out" });
     inputRef.current?.focus();
@@ -318,6 +342,7 @@ export default function TypingTest({
     // printable + space
     const k = e.key.length === 1 ? e.key : (e.key === " " ? " " : "");
     if (!k) return;
+    setLastPressedKey(k);
 
     // First valid key => start + enter focus
     if (!startedAt) {
@@ -331,6 +356,7 @@ export default function TypingTest({
 
     const ch = buffer[idx] || "";
     const ok = k === ch;
+    setLastPressedCorrect(ok);
 
     setTyped(prev => {
       const next = [...prev];
@@ -352,6 +378,7 @@ export default function TypingTest({
       );
     } else {
       setErrors(er => er + 1);
+      setMistakes((count) => count + 1);
       gsap.fromTo(wrapRef.current, { x: -3 }, { x: 0, duration: 0.15, ease: "power2.out" });
     }
 
@@ -405,6 +432,10 @@ export default function TypingTest({
     targetWordCount,
     duration: durationSec,
     mode: competitiveMode ? "competitive" : "classic",
+    mistakes,
+    beginnerMode,
+    lessonId: beginnerLesson?.id || "",
+    lessonTitle: beginnerLesson?.title || "",
   };
 
   useEffect(() => {
@@ -528,6 +559,18 @@ export default function TypingTest({
         />
       </div>
 
+      {beginnerMode ? (
+        <BeginnerKeyboard
+          expectedKey={buffer[idx] || ""}
+          pressedKey={lastPressedKey}
+          pressedCorrect={lastPressedCorrect}
+          lesson={beginnerLesson}
+          progressLabel={beginnerProgressLabel}
+          feedback={beginnerFeedback}
+          passRequirement={beginnerPassRequirement}
+        />
+      ) : null}
+
       {!ended && (
         <div className="mt-10 flex items-center justify-center text-center md:hidden">
           <span className="text-[11px] tracking-wide text-white/30">
@@ -544,14 +587,18 @@ export default function TypingTest({
             animate={{ opacity: 1, y: 0 }}
             className="mt-8 flex items-center justify-center gap-3"
           >
-            <button onClick={resetTest} className="btn-primary">Retry</button>
+            <button onClick={() => (onRestart ? onRestart() : resetTest())} className="btn-primary">Retry</button>
           </motion.div>
 
           <ResultModal
             open={showResults}
             stats={testStats}
             onClose={() => { setShowResults(false); inputRef.current?.focus(); }}
-            onRetry={() => { setShowResults(false); resetTest(); }}
+            onRetry={() => {
+              setShowResults(false);
+              if (onRestart) onRestart();
+              else resetTest();
+            }}
             durationSec={durationSec}
           />
         </>

@@ -7,6 +7,7 @@ import TypingTest from "@/components/TypingTest";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 import { makeStreamGenerator } from "@/lib/textbanks";
+import { BEGINNER_LESSONS, BEGINNER_PASS_WPM, didPassBeginnerLesson, getLessonWordCount } from "@/lib/beginnerLessons";
 import { FaGlobeAmericas, FaRedoAlt } from "react-icons/fa";
 import { FaDonate } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa";
@@ -21,6 +22,10 @@ export default function Home() {
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
   const [competitiveMode, setCompetitiveMode] = useState(false);
+  const [beginnerMode, setBeginnerMode] = useState(false);
+  const [beginnerLessonIndex, setBeginnerLessonIndex] = useState(0);
+  const [queuedLessonIndex, setQueuedLessonIndex] = useState(null);
+  const [beginnerFeedback, setBeginnerFeedback] = useState(null);
   const [focus, setFocus] = useState(false);
   const [initialText, setInitialText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -42,6 +47,12 @@ export default function Home() {
       if (typeof prefs.punctuation === "boolean") setPunctuation(prefs.punctuation);
       if (typeof prefs.numbers === "boolean") setNumbers(prefs.numbers);
       if (typeof prefs.competitiveMode === "boolean") setCompetitiveMode(prefs.competitiveMode);
+      if (typeof prefs.beginnerMode === "boolean") setBeginnerMode(prefs.beginnerMode);
+      if (Number.isFinite(prefs.beginnerLessonIndex)) {
+        setBeginnerLessonIndex(
+          Math.min(Math.max(0, prefs.beginnerLessonIndex), BEGINNER_LESSONS.length - 1)
+        );
+      }
     } catch {}
   }, []);
 
@@ -49,20 +60,49 @@ export default function Home() {
     try {
       localStorage.setItem(
         PREF_KEY,
-        JSON.stringify({ lang, testType, duration, wordCount, punctuation, numbers, competitiveMode })
+        JSON.stringify({
+          lang,
+          testType,
+          duration,
+          wordCount,
+          punctuation,
+          numbers,
+          competitiveMode,
+          beginnerMode,
+          beginnerLessonIndex,
+        })
       );
     } catch {}
-  }, [lang, testType, duration, wordCount, punctuation, numbers, competitiveMode]);
+  }, [lang, testType, duration, wordCount, punctuation, numbers, competitiveMode, beginnerMode, beginnerLessonIndex]);
+
+  useEffect(() => {
+    if (!beginnerMode) return;
+    setLang("english");
+    setPunctuation(false);
+    setNumbers(false);
+    setCompetitiveMode(false);
+    setTestType("words");
+  }, [beginnerMode]);
 
   const rebuildGenerator = useCallback(() => {
     setLoading(true);
     try {
-      genRef.current = makeStreamGenerator({ lang, punctuation, numbers });
-      setInitialText(
-        testType === "words"
-          ? genRef.current.nextChunk(wordCount).trim()
-          : genRef.current.nextChunk(80)
-      );
+      if (beginnerMode) {
+        const nextLessonIndex = queuedLessonIndex ?? beginnerLessonIndex;
+        const lesson = BEGINNER_LESSONS[nextLessonIndex] || BEGINNER_LESSONS[0];
+        if (queuedLessonIndex != null) {
+          setBeginnerLessonIndex(nextLessonIndex);
+          setQueuedLessonIndex(null);
+        }
+        setInitialText(lesson.text.trim());
+      } else {
+        genRef.current = makeStreamGenerator({ lang, punctuation, numbers });
+        setInitialText(
+          testType === "words"
+            ? genRef.current.nextChunk(wordCount).trim()
+            : genRef.current.nextChunk(80)
+        );
+      }
     } catch (error) {
       console.error("Generator error:", error);
       setInitialText("Keep calm and type on - the generator could not load fresh text.");
@@ -70,8 +110,9 @@ export default function Home() {
 
     setSessionId((current) => current + 1);
     setFocus(false);
+    setBeginnerFeedback(null);
     setLoading(false);
-  }, [lang, punctuation, numbers, testType, wordCount]);
+  }, [beginnerLessonIndex, beginnerMode, lang, numbers, punctuation, queuedLessonIndex, testType, wordCount]);
 
   useEffect(() => {
     rebuildGenerator();
@@ -82,6 +123,20 @@ export default function Home() {
       setCompetitiveMode(false);
     }
   }, [testType, competitiveMode]);
+
+  useEffect(() => {
+    if (beginnerMode) return;
+    setQueuedLessonIndex(null);
+    setBeginnerFeedback(null);
+  }, [beginnerMode]);
+
+  const activeBeginnerLesson = beginnerMode
+    ? BEGINNER_LESSONS[Math.min(beginnerLessonIndex, BEGINNER_LESSONS.length - 1)]
+    : null;
+
+  const beginnerProgressLabel = beginnerMode
+    ? `${beginnerLessonIndex + 1}/${BEGINNER_LESSONS.length}`
+    : "";
 
   const supplyMore = useCallback(async () => {
     if (testType !== "time") return "";
@@ -105,6 +160,36 @@ export default function Home() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [rebuildGenerator]);
+
+  const handleBeginnerComplete = useCallback((stats) => {
+    if (!beginnerMode) return;
+
+    const passed = didPassBeginnerLesson(stats);
+    const atLastLesson = beginnerLessonIndex >= BEGINNER_LESSONS.length - 1;
+
+    if (passed) {
+      const nextIndex = Math.min(beginnerLessonIndex + 1, BEGINNER_LESSONS.length - 1);
+      if (!atLastLesson) {
+        setQueuedLessonIndex(nextIndex);
+      }
+
+      setBeginnerFeedback({
+        passed: true,
+        title: atLastLesson ? "Beginner Mode Complete" : "Lesson Passed",
+        body: atLastLesson
+          ? "You cleared every beginner lesson with clean speed and accuracy. You can keep practicing the final lesson or switch back to the regular modes anytime."
+          : `Excellent work. You hit 100% accuracy, made no mistakes, and stayed above ${BEGINNER_PASS_WPM} WPM. Press retry to start the next lesson.`,
+      });
+      return;
+    }
+
+    setQueuedLessonIndex(null);
+    setBeginnerFeedback({
+      passed: false,
+      title: "Lesson Not Cleared",
+      body: `You need 100% accuracy, zero mistakes, and at least ${BEGINNER_PASS_WPM} WPM to unlock the next lesson. Retry this lesson and keep your hands relaxed.`,
+    });
+  }, [beginnerLessonIndex, beginnerMode]);
 
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
@@ -189,6 +274,8 @@ export default function Home() {
           setLang={setLang}
           testType={testType}
           setTestType={setTestType}
+          beginnerMode={beginnerMode}
+          setBeginnerMode={setBeginnerMode}
           duration={duration}
           setDuration={setDuration}
           wordCount={wordCount}
@@ -221,14 +308,20 @@ export default function Home() {
               key={sessionId}
               initialText={initialText}
               supplyMore={supplyMore}
-              durationSec={duration}
-              testType={testType}
-              targetWordCount={wordCount}
+              durationSec={beginnerMode ? 120 : duration}
+              testType={beginnerMode ? "words" : testType}
+              targetWordCount={beginnerMode ? getLessonWordCount(activeBeginnerLesson) : wordCount}
               focusMode={focus}
               onFocusStart={() => setFocus(true)}
               onFocusEnd={() => setFocus(false)}
               onRestart={rebuildGenerator}
               competitiveMode={competitiveMode}
+              beginnerMode={beginnerMode}
+              beginnerLesson={activeBeginnerLesson}
+              beginnerProgressLabel={beginnerProgressLabel}
+              beginnerFeedback={beginnerFeedback}
+              beginnerPassRequirement={`100% ACC • 0 mistakes • ${BEGINNER_PASS_WPM}+ WPM`}
+              onComplete={beginnerMode ? handleBeginnerComplete : undefined}
             />
           )}
 
@@ -244,12 +337,13 @@ export default function Home() {
 
             <button
               onClick={() => {
+                if (beginnerMode) return;
                 if (testType === "words") return;
                 setCompetitiveMode((value) => !value);
               }}
-              disabled={testType === "words"}
+              disabled={testType === "words" || beginnerMode}
               className={
-                testType === "words"
+                testType === "words" || beginnerMode
                   ? "btn-secondary opacity-60"
                   : competitiveMode
                     ? "btn-primary"
@@ -258,7 +352,9 @@ export default function Home() {
               aria-label="Toggle competitive mode"
               title="Competitive mode"
             >
-              {testType === "words"
+              {beginnerMode
+                ? "Competitive unavailable in beginner mode"
+                : testType === "words"
                 ? "Competitive unavailable in words mode"
                 : `Competitive: ${competitiveMode ? "On" : "Off"}`}
             </button>
@@ -292,4 +388,3 @@ export default function Home() {
     </main>
   );
 }
-

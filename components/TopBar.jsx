@@ -9,6 +9,8 @@ export default function TopBar({
   setLang,
   testType,
   setTestType,
+  beginnerMode,
+  setBeginnerMode,
   duration,
   setDuration,
   wordCount,
@@ -54,19 +56,21 @@ export default function TopBar({
       <div className={compact ? "flex gap-2" : "flex flex-wrap items-center gap-2"}>
         <button
           onClick={(event) => {
+            if (beginnerMode) return;
             setPunctuation((value) => !value);
             pulse(event.currentTarget);
           }}
-          className={getToggleClass(punctuation)}
+          className={getToggleClass(punctuation) + (beginnerMode ? " cursor-not-allowed opacity-45" : "")}
         >
           @ Punctuation
         </button>
         <button
           onClick={(event) => {
+            if (beginnerMode) return;
             setNumbers((value) => !value);
             pulse(event.currentTarget);
           }}
-          className={getToggleClass(numbers)}
+          className={getToggleClass(numbers) + (beginnerMode ? " cursor-not-allowed opacity-45" : "")}
         >
           # Numbers
         </button>
@@ -74,48 +78,63 @@ export default function TopBar({
 
       {!compact && <div className="mx-1 h-5 w-px bg-white/10" />}
 
-      <div className={compact ? "grid grid-cols-2 gap-2" : "flex items-center gap-2"}>
+      <div className={compact ? "grid grid-cols-3 gap-2" : "flex items-center gap-2"}>
         <button
           onClick={(event) => {
+            setBeginnerMode(false);
             setTestType("time");
             pulse(event.currentTarget);
           }}
-          className={getToggleClass(testType === "time")}
+          className={getToggleClass(!beginnerMode && testType === "time")}
         >
           Time
         </button>
         <button
           onClick={(event) => {
+            setBeginnerMode(false);
             setTestType("words");
             pulse(event.currentTarget);
           }}
-          className={getToggleClass(testType === "words")}
+          className={getToggleClass(!beginnerMode && testType === "words")}
         >
           Words
+        </button>
+        <button
+          onClick={(event) => {
+            setBeginnerMode(true);
+            pulse(event.currentTarget);
+          }}
+          className={getToggleClass(beginnerMode)}
+        >
+          Beginner
         </button>
       </div>
 
       {!compact && <div className="mx-1 h-5 w-px bg-white/10" />}
 
       <div className={compact ? "grid grid-cols-4 gap-2" : "flex items-center gap-2"}>
-        {(testType === "time" ? times : words).map((value) => (
-          <button
-            key={`${testType}-${value}`}
-            onClick={(event) => {
-              if (testType === "time") {
-                setDuration(value);
-              } else {
-                setWordCount(value);
-              }
-              pulse(event.currentTarget);
-            }}
-            className={getToggleClass(
-              testType === "time" ? duration === value : wordCount === value
-            )}
-          >
-            {testType === "time" ? `${value}s` : `${value}`}
-          </button>
-        ))}
+        {beginnerMode ? (
+          <div className="topbar-stagger rounded-full border border-brand/25 bg-brand/10 px-4 py-2 text-center text-xs font-medium uppercase tracking-[0.18em] text-brand/90">
+            Auto lessons
+          </div>
+        ) : (
+          (testType === "time" ? times : words).map((value) => (
+            <button
+              key={`${testType}-${value}`}
+              onClick={(event) => {
+                if (testType === "time") {
+                  setDuration(value);
+                } else {
+                  setWordCount(value);
+                }
+                pulse(event.currentTarget);
+              }}
+              className={getToggleClass(testType === "time" ? duration === value : wordCount === value)}
+            >
+              {testType === "time" ? `${value}s` : `${value}`}
+            </button>
+          ))
+        )}
       </div>
 
       {!compact && <div className="mx-1 h-5 w-px bg-white/10" />}
@@ -126,9 +145,15 @@ export default function TopBar({
       <select
         id="lang"
         value={lang}
-        onChange={(event) => setLang(event.target.value)}
-        className="topbar-stagger rounded-full border border-white/10 bg-black/40 px-4 py-2 text-white/90 focus:outline-none focus:ring-2 focus:ring-brand"
+        onChange={(event) => {
+          if (beginnerMode) return;
+          setLang(event.target.value);
+        }}
+        className={`topbar-stagger rounded-full border border-white/10 bg-black/40 px-4 py-2 text-white/90 focus:outline-none focus:ring-2 focus:ring-brand ${
+          beginnerMode ? "cursor-not-allowed opacity-45" : ""
+        }`}
         aria-label="Language"
+        disabled={beginnerMode}
       >
         <option value="english">English</option>
         <option value="urdu">Urdu</option>
