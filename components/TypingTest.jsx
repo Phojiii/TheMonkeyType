@@ -33,9 +33,12 @@ export default function TypingTest({
   trackProfileSession = true,
   beginnerMode = false,
   beginnerLesson = null,
+  beginnerLessonIndex = 0,
   beginnerProgressLabel = "",
   beginnerFeedback = null,
   beginnerPassRequirement = "",
+  onNextLesson,
+  hasNextLesson = false,
 }) {
   const { isSignedIn } = useUser();
   // core state
@@ -131,8 +134,6 @@ export default function TypingTest({
     gsap.set(scrollerRef.current, { y: 0 });
 
     penaltyMsRef.current = 0; // ✅ reset penalty
-    completedRef.current = false;
-    sessionTrackedRef.current = false;
     setLastPressedKey("");
     setLastPressedCorrect(false);
 
@@ -260,6 +261,7 @@ export default function TypingTest({
     gsap.set(scrollerRef.current, { y: 0 });
 
     penaltyMsRef.current = 0; // ✅ reset penalty
+    completedRef.current = false;
     sessionTrackedRef.current = false;
     setLastPressedKey("");
     setLastPressedCorrect(false);
@@ -435,6 +437,7 @@ export default function TypingTest({
     mistakes,
     beginnerMode,
     lessonId: beginnerLesson?.id || "",
+    lessonIndex: beginnerLessonIndex,
     lessonTitle: beginnerLesson?.title || "",
   };
 
@@ -599,6 +602,11 @@ export default function TypingTest({
               if (onRestart) onRestart();
               else resetTest();
             }}
+            onNextLesson={() => {
+              setShowResults(false);
+              onNextLesson?.();
+            }}
+            hasNextLesson={hasNextLesson}
             durationSec={durationSec}
           />
         </>

@@ -19,6 +19,10 @@ export default function TopBar({
   setPunctuation,
   numbers,
   setNumbers,
+  beginnerLessonIndex,
+  setBeginnerLessonIndex,
+  beginnerLessonOptions = [],
+  currentBeginnerLessonOption = null,
 }) {
   const [open, setOpen] = useState(false);
   const modalRef = useRef(null);
@@ -50,6 +54,13 @@ export default function TopBar({
         ? "border-brand/80 bg-brand/12 font-semibold text-brand"
         : "border-white/10 bg-transparent text-white/70 hover:bg-white/5 hover:text-white",
     ].join(" ");
+
+  const selectedLesson = currentBeginnerLessonOption;
+  const selectedLessonLabel = selectedLesson
+    ? selectedLesson.completed
+      ? `${selectedLesson.label} - ${selectedLesson.bestWpm}wpm - ${selectedLesson.bestAccuracy}% Acc`
+      : `${selectedLesson.label} - New`
+    : "Select lesson";
 
   const Controls = ({ compact = false }) => (
     <div className={(compact ? "flex flex-col gap-3" : "flex items-center gap-3") + " text-sm"}>
@@ -114,9 +125,29 @@ export default function TopBar({
 
       <div className={compact ? "grid grid-cols-4 gap-2" : "flex items-center gap-2"}>
         {beginnerMode ? (
-          <div className="topbar-stagger rounded-full border border-brand/25 bg-brand/10 px-4 py-2 text-center text-xs font-medium uppercase tracking-[0.18em] text-brand/90">
-            Auto lessons
-          </div>
+          <select
+            value={beginnerLessonIndex}
+            onChange={(event) => {
+              setBeginnerLessonIndex(Number(event.target.value));
+            }}
+            className={`topbar-stagger rounded-full border border-brand/25 bg-brand/10 px-4 py-2 text-xs font-medium tracking-[0.02em] text-brand/90 focus:outline-none focus:ring-2 focus:ring-brand ${
+              compact ? "col-span-4 w-full" : "min-w-[18rem]"
+            }`}
+            aria-label="Beginner lesson selector"
+          >
+            {selectedLesson ? (
+              <option value={selectedLesson.index}>
+                {selectedLessonLabel}
+              </option>
+            ) : null}
+            {beginnerLessonOptions
+              .filter((lesson) => lesson.index !== selectedLesson?.index)
+              .map((lesson) => (
+                <option key={lesson.id} value={lesson.index}>
+                  {`${lesson.label} - ${lesson.bestWpm}wpm - ${lesson.bestAccuracy}% Acc`}
+                </option>
+              ))}
+          </select>
         ) : (
           (testType === "time" ? times : words).map((value) => (
             <button

@@ -7,12 +7,13 @@ import TypingTest from "@/components/TypingTest";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 import { makeStreamGenerator } from "@/lib/textbanks";
-import { BEGINNER_LESSONS, BEGINNER_PASS_WPM, didPassBeginnerLesson, getLessonWordCount } from "@/lib/beginnerLessons";
+import { BEGINNER_LESSONS, getLessonWordCount } from "@/lib/beginnerLessons";
 import { FaGlobeAmericas, FaRedoAlt } from "react-icons/fa";
 import { FaDonate } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa";
 
 const PREF_KEY = "tmt_prefs";
+const BEGINNER_PROGRESS_KEY = "tmt_beginner_progress_v4";
 
 export default function Home() {
   const [lang, setLang] = useState("english");
@@ -24,8 +25,7 @@ export default function Home() {
   const [competitiveMode, setCompetitiveMode] = useState(false);
   const [beginnerMode, setBeginnerMode] = useState(false);
   const [beginnerLessonIndex, setBeginnerLessonIndex] = useState(0);
-  const [queuedLessonIndex, setQueuedLessonIndex] = useState(null);
-  const [beginnerFeedback, setBeginnerFeedback] = useState(null);
+  const [beginnerProgress, setBeginnerProgress] = useState({});
   const [focus, setFocus] = useState(false);
   const [initialText, setInitialText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -58,6 +58,28 @@ export default function Home() {
 
   useEffect(() => {
     try {
+      const raw = localStorage.getItem(BEGINNER_PROGRESS_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        const cleaned = Object.fromEntries(
+          Object.entries(parsed).filter(([lessonId, value]) => {
+            const lessonIndex = Number(value?.lessonIndex);
+            if (!Number.isFinite(lessonIndex)) return false;
+
+            const lessonAtIndex = BEGINNER_LESSONS[lessonIndex];
+            if (!lessonAtIndex || lessonAtIndex.id !== lessonId) return false;
+
+            return true;
+          })
+        );
+        setBeginnerProgress(cleaned);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
       localStorage.setItem(
         PREF_KEY,
         JSON.stringify({
@@ -76,6 +98,12 @@ export default function Home() {
   }, [lang, testType, duration, wordCount, punctuation, numbers, competitiveMode, beginnerMode, beginnerLessonIndex]);
 
   useEffect(() => {
+    try {
+      localStorage.setItem(BEGINNER_PROGRESS_KEY, JSON.stringify(beginnerProgress));
+    } catch {}
+  }, [beginnerProgress]);
+
+  useEffect(() => {
     if (!beginnerMode) return;
     setLang("english");
     setPunctuation(false);
@@ -88,12 +116,7 @@ export default function Home() {
     setLoading(true);
     try {
       if (beginnerMode) {
-        const nextLessonIndex = queuedLessonIndex ?? beginnerLessonIndex;
-        const lesson = BEGINNER_LESSONS[nextLessonIndex] || BEGINNER_LESSONS[0];
-        if (queuedLessonIndex != null) {
-          setBeginnerLessonIndex(nextLessonIndex);
-          setQueuedLessonIndex(null);
-        }
+        const lesson = BEGINNER_LESSONS[beginnerLessonIndex] || BEGINNER_LESSONS[0];
         setInitialText(lesson.text.trim());
       } else {
         genRef.current = makeStreamGenerator({ lang, punctuation, numbers });
@@ -110,9 +133,8 @@ export default function Home() {
 
     setSessionId((current) => current + 1);
     setFocus(false);
-    setBeginnerFeedback(null);
     setLoading(false);
-  }, [beginnerLessonIndex, beginnerMode, lang, numbers, punctuation, queuedLessonIndex, testType, wordCount]);
+  }, [beginnerLessonIndex, beginnerMode, lang, numbers, punctuation, testType, wordCount]);
 
   useEffect(() => {
     rebuildGenerator();
@@ -124,12 +146,6 @@ export default function Home() {
     }
   }, [testType, competitiveMode]);
 
-  useEffect(() => {
-    if (beginnerMode) return;
-    setQueuedLessonIndex(null);
-    setBeginnerFeedback(null);
-  }, [beginnerMode]);
-
   const activeBeginnerLesson = beginnerMode
     ? BEGINNER_LESSONS[Math.min(beginnerLessonIndex, BEGINNER_LESSONS.length - 1)]
     : null;
@@ -137,6 +153,56 @@ export default function Home() {
   const beginnerProgressLabel = beginnerMode
     ? `${beginnerLessonIndex + 1}/${BEGINNER_LESSONS.length}`
     : "";
+
+  const highestCompletedLessonIndex = Object.values(beginnerProgress).reduce((max, item) => {
+    if (!item?.completed) return max;
+    const index = Number(item.lessonIndex);
+    return Number.isFinite(index) ? Math.max(max, index) : max;
+  }, -1);
+
+  const highestUnlockedLessonIndex = Math.min(
+    BEGINNER_LESSONS.length - 1,
+    Math.max(0, highestCompletedLessonIndex + 1)
+  );
+
+  useEffect(() => {
+    if (beginnerLessonIndex > highestUnlockedLessonIndex) {
+      setBeginnerLessonIndex(highestUnlockedLessonIndex);
+    }
+  }, [beginnerLessonIndex, highestUnlockedLessonIndex]);
+
+  const completedBeginnerLessonOptions = BEGINNER_LESSONS
+    .map((lesson, index) => {
+      const progress = beginnerProgress[lesson.id] || null;
+      return {
+        index,
+        id: lesson.id,
+        label: `Lesson ${index + 1}`,
+        completed: Boolean(progress?.completed),
+        bestWpm: Number(progress?.bestWpm || 0),
+        bestAccuracy: Number(progress?.bestAccuracy || 0),
+      };
+    })
+    .filter((lesson) => lesson.completed);
+
+  const currentBeginnerLessonOption = activeBeginnerLesson
+    ? {
+        index: beginnerLessonIndex,
+        id: activeBeginnerLesson.id,
+        label: `Lesson ${beginnerLessonIndex + 1}`,
+        completed:
+          Boolean(beginnerProgress[activeBeginnerLesson.id]?.completed) &&
+          Number(beginnerProgress[activeBeginnerLesson.id]?.lessonIndex) === beginnerLessonIndex,
+        bestWpm:
+          Number(beginnerProgress[activeBeginnerLesson.id]?.lessonIndex) === beginnerLessonIndex
+            ? Number(beginnerProgress[activeBeginnerLesson.id]?.bestWpm || 0)
+            : 0,
+        bestAccuracy:
+          Number(beginnerProgress[activeBeginnerLesson.id]?.lessonIndex) === beginnerLessonIndex
+            ? Number(beginnerProgress[activeBeginnerLesson.id]?.bestAccuracy || 0)
+            : 0,
+      }
+    : null;
 
   const supplyMore = useCallback(async () => {
     if (testType !== "time") return "";
@@ -161,35 +227,37 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [rebuildGenerator]);
 
+  const handleNextBeginnerLesson = useCallback(() => {
+    if (!beginnerMode) return;
+    setBeginnerLessonIndex((current) => Math.min(current + 1, BEGINNER_LESSONS.length - 1));
+  }, [beginnerMode]);
+
   const handleBeginnerComplete = useCallback((stats) => {
     if (!beginnerMode) return;
 
-    const passed = didPassBeginnerLesson(stats);
-    const atLastLesson = beginnerLessonIndex >= BEGINNER_LESSONS.length - 1;
+    const completedLessonId = stats?.lessonId || "";
+    const completedLessonIndex = Number(stats?.lessonIndex);
+    if (!completedLessonId || !Number.isFinite(completedLessonIndex)) return;
 
-    if (passed) {
-      const nextIndex = Math.min(beginnerLessonIndex + 1, BEGINNER_LESSONS.length - 1);
-      if (!atLastLesson) {
-        setQueuedLessonIndex(nextIndex);
-      }
-
-      setBeginnerFeedback({
-        passed: true,
-        title: atLastLesson ? "Beginner Mode Complete" : "Lesson Passed",
-        body: atLastLesson
-          ? "You cleared every beginner lesson with clean speed and accuracy. You can keep practicing the final lesson or switch back to the regular modes anytime."
-          : `Excellent work. You hit 100% accuracy, made no mistakes, and stayed above ${BEGINNER_PASS_WPM} WPM. Press retry to start the next lesson.`,
-      });
-      return;
-    }
-
-    setQueuedLessonIndex(null);
-    setBeginnerFeedback({
-      passed: false,
-      title: "Lesson Not Cleared",
-      body: `You need 100% accuracy, zero mistakes, and at least ${BEGINNER_PASS_WPM} WPM to unlock the next lesson. Retry this lesson and keep your hands relaxed.`,
+    setBeginnerProgress((current) => {
+      const previous = current[completedLessonId] || {};
+      return {
+        ...current,
+        [completedLessonId]: {
+          lessonIndex: completedLessonIndex,
+          completed: true,
+          bestWpm: Math.max(Number(previous.bestWpm || 0), Math.round(Number(stats?.wpm || 0))),
+          bestAccuracy: Math.max(
+            Number(previous.bestAccuracy || 0),
+            Math.round(Number(stats?.accuracy || 0))
+          ),
+          lastCompletedAt: new Date().toISOString(),
+        },
+      };
     });
-  }, [beginnerLessonIndex, beginnerMode]);
+  }, [activeBeginnerLesson, beginnerLessonIndex, beginnerMode]);
+
+  const hasNextBeginnerLesson = beginnerMode && beginnerLessonIndex < BEGINNER_LESSONS.length - 1;
 
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
@@ -284,6 +352,10 @@ export default function Home() {
           setPunctuation={setPunctuation}
           numbers={numbers}
           setNumbers={setNumbers}
+          beginnerLessonIndex={beginnerLessonIndex}
+          setBeginnerLessonIndex={setBeginnerLessonIndex}
+          beginnerLessonOptions={completedBeginnerLessonOptions}
+          currentBeginnerLessonOption={currentBeginnerLessonOption}
         />
       )}
 
@@ -310,17 +382,20 @@ export default function Home() {
               supplyMore={supplyMore}
               durationSec={beginnerMode ? 120 : duration}
               testType={beginnerMode ? "words" : testType}
-              targetWordCount={beginnerMode ? getLessonWordCount(activeBeginnerLesson) : wordCount}
-              focusMode={focus}
-              onFocusStart={() => setFocus(true)}
-              onFocusEnd={() => setFocus(false)}
-              onRestart={rebuildGenerator}
-              competitiveMode={competitiveMode}
-              beginnerMode={beginnerMode}
-              beginnerLesson={activeBeginnerLesson}
-              beginnerProgressLabel={beginnerProgressLabel}
-              beginnerFeedback={beginnerFeedback}
-              beginnerPassRequirement={`100% ACC • 0 mistakes • ${BEGINNER_PASS_WPM}+ WPM`}
+        targetWordCount={beginnerMode ? getLessonWordCount(activeBeginnerLesson) : wordCount}
+        focusMode={focus}
+        onFocusStart={() => setFocus(true)}
+        onFocusEnd={() => setFocus(false)}
+        onRestart={rebuildGenerator}
+        competitiveMode={competitiveMode}
+        beginnerMode={beginnerMode}
+        beginnerLesson={activeBeginnerLesson}
+        beginnerLessonIndex={beginnerLessonIndex}
+        beginnerProgressLabel={beginnerProgressLabel}
+        beginnerFeedback={null}
+        beginnerPassRequirement=""
+        onNextLesson={beginnerMode ? handleNextBeginnerLesson : undefined}
+              hasNextLesson={hasNextBeginnerLesson}
               onComplete={beginnerMode ? handleBeginnerComplete : undefined}
             />
           )}

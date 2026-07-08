@@ -26,10 +26,10 @@ export async function GET(req) {
     const rawScope = (searchParams.get("scope") || "global").toLowerCase();
     const scope = rawScope === "country" ? "country" : "global";
 
-    const reqLimit = parseInt(searchParams.get("limit") || "100", 10);
+    const reqLimit = parseInt(searchParams.get("limit") || "1000", 10);
     const limit = Number.isFinite(reqLimit)
-      ? Math.min(Math.max(reqLimit, 1), 200)
-      : 100;
+      ? Math.min(Math.max(reqLimit, 1), 2000)
+      : 1000;
 
     const isAll = categoryParam === "all";
     const category = isAll ? null : Number(categoryParam);

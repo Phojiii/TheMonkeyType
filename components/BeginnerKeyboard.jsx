@@ -190,8 +190,8 @@ function Keycap({ keyData, isExpected, isPressed, pressedCorrect }) {
       ? "border-green-500/55 bg-green-50 text-green-900 shadow-[0_0_0_1px_rgba(34,197,94,0.14),0_10px_20px_rgba(34,197,94,0.18)]"
       : "border-red-500/55 bg-red-50 text-red-900 shadow-[0_0_0_1px_rgba(239,68,68,0.12),0_10px_20px_rgba(239,68,68,0.18)]"
     : isExpected
-      ? "border-sky-500/70 bg-sky-100 text-sky-900 shadow-[0_0_0_1px_rgba(14,165,233,0.18),0_14px_28px_rgba(14,165,233,0.2)]"
-      : "border-[#cfd3d5] bg-white text-[#2e3d4d] shadow-[0_2px_0_rgba(176,179,181,0.95),0_10px_18px_rgba(0,0,0,0.05)]";
+      ? "border-[#a17f00] bg-[#222] text-[#F9C916] shadow-[0_0_0_1px_rgba(14,165,233,0.18),0_14px_28px_rgba(14,165,233,0.2)]"
+      : "border-[#a17f00] bg-[#F9C916] text-[#2e3d4d] shadow-[0_2px_0_rgba(161,127,0,0.95),0_10px_18px_rgba(0,0,0,0.05)]";
 
   const isWideLabel = keyData.label.length > 2 || keyData.icon;
 
@@ -218,7 +218,7 @@ function Keycap({ keyData, isExpected, isPressed, pressedCorrect }) {
       )}
 
       {keyData.home ? (
-        <span className="absolute bottom-1.5 left-1/2 h-1 w-7 -translate-x-1/2 rounded-full bg-[#d6dadd]" />
+        <span className="absolute bottom-1.5 left-1/2 h-1 w-7 -translate-x-1/2 rounded-full bg-[#6d5500]" />
       ) : null}
     </div>
   );
@@ -268,10 +268,10 @@ export default function BeginnerKeyboard({
         </div>
       ) : null}
 
-      <div className="relative overflow-hidden rounded-[1.85rem] border border-[#c9cbca] bg-[#dbdbd9] px-4 pb-32 pt-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_14px_28px_rgba(0,0,0,0.08)] md:px-5 md:pt-5">
+      <div className="relative overflow-hidden rounded-[1.85rem] border border-[#c9cbca] bg-[#323437] px-4 pb-32 pt-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_14px_28px_rgba(0,0,0,0.08)] md:px-5 md:pt-5">
         <div className="mb-4 flex items-center justify-end gap-2 text-[11px] font-medium tracking-[0.04em] text-[#626b74]">
-          <span className="text-sm">⚙</span>
-          <span className="underline decoration-[#8d9397] decoration-1 underline-offset-2">
+          <span className="text-sm text-[#F9C916]">⚙</span>
+          <span className="underline decoration-[#F9C916] decoration-1 underline-offset-2 text-[#F9C916] transition-colors hover:text-[#F9C916]/80">
             Customize Keyboard
           </span>
         </div>

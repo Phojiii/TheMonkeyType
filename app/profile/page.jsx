@@ -16,6 +16,14 @@ const EMPTY_SOCIALS = {
   discord: "",
 };
 
+const BEGINNER_PROGRESS_STORAGE_KEYS = [
+  "tmt_beginner_progress",
+  "tmt_beginner_progress_v1",
+  "tmt_beginner_progress_v2",
+  "tmt_beginner_progress_v3",
+  "tmt_beginner_progress_v4",
+];
+
 export default function MyProfilePage() {
   const { user, isLoaded, isSignedIn } = useUser();
   const [bundle, setBundle] = useState(null);
@@ -28,6 +36,7 @@ export default function MyProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [clearingLessonScores, setClearingLessonScores] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -112,6 +121,24 @@ export default function MyProfilePage() {
       setMessage(error.message || "Failed to save profile.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  function handleClearLessonScores() {
+    const confirmed = window.confirm(
+      "Clear all saved beginner lesson scores from this browser? This will reset your local lesson progress and cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    setClearingLessonScores(true);
+    try {
+      BEGINNER_PROGRESS_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+      setMessage("Beginner lesson scores cleared from this browser.");
+    } catch (error) {
+      setMessage("Could not clear beginner lesson scores.");
+    } finally {
+      setClearingLessonScores(false);
     }
   }
 
@@ -209,9 +236,19 @@ export default function MyProfilePage() {
 
               <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-3 pt-2">
                 <p className="text-sm text-white/55">{message || "Your profile updates here without changing your Clerk account settings."}</p>
-                <button type="submit" disabled={saving} className="btn-primary">
-                  {saving ? "Saving..." : "Save profile"}
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClearLessonScores}
+                    disabled={clearingLessonScores}
+                    className="btn-secondary"
+                  >
+                    {clearingLessonScores ? "Clearing..." : "Clear lesson scores"}
+                  </button>
+                  <button type="submit" disabled={saving} className="btn-primary">
+                    {saving ? "Saving..." : "Save profile"}
+                  </button>
+                </div>
               </div>
             </form>
           }

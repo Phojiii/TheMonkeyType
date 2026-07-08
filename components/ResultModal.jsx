@@ -10,7 +10,7 @@ const KEY_CLASSIC = "tmt_stats_classic";
 const KEY_COMP = "tmt_stats_competitive";
 const LEGACY_KEY = "tmt_stats";
 
-export default function ResultModal({ open, stats, onClose, onRetry }) {
+export default function ResultModal({ open, stats, onClose, onRetry, onNextLesson, hasNextLesson = false }) {
   const modalRef = useRef(null);
   const firstButtonRef = useRef(null);
   const savedOnceRef = useRef(false);
@@ -197,13 +197,14 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
       }
       if (event.key === "Enter") {
         event.preventDefault();
-        onRetry?.();
+        if (stats?.beginnerMode && hasNextLesson) onNextLesson?.();
+        else onRetry?.();
       }
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose, onRetry]);
+  }, [open, onClose, onRetry, onNextLesson, hasNextLesson, stats?.beginnerMode]);
 
   if (!open) return null;
 
@@ -322,9 +323,25 @@ export default function ResultModal({ open, stats, onClose, onRetry }) {
         ) : null}
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <button ref={firstButtonRef} onClick={onRetry} className="btn-primary">
-            Retry
-          </button>
+          {stats?.beginnerMode ? (
+            <>
+              <button ref={firstButtonRef} onClick={onRetry} className="btn-secondary">
+                Retry Lesson
+              </button>
+              {hasNextLesson ? (
+                <button
+                  onClick={onNextLesson}
+                  className="btn-primary"
+                >
+                  Next Lesson
+                </button>
+              ) : null}
+            </>
+          ) : (
+            <button ref={firstButtonRef} onClick={onRetry} className="btn-primary">
+              Retry
+            </button>
+          )}
           <button onClick={onClose} className="btn-secondary">
             Close
           </button>
