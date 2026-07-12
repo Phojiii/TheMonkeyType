@@ -1,6 +1,8 @@
 'use client';
 
+import link from "next/link";
 import { SITE_ANNOUNCEMENT } from "@/lib/siteAnnouncement";
+import Link from "next/link";
 
 export default function AnnouncementModal({ onClose }) {
   return (
@@ -23,6 +25,8 @@ export default function AnnouncementModal({ onClose }) {
         </div>
 
         <div className="mt-5 text-right">
+          <Link href="/release-notes" passHref className="mr-2 btn-primary" onClick={onClose}>Release Note
+          </Link>
           <button onClick={onClose} className="btn-primary">
             Got it
           </button>

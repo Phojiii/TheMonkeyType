@@ -382,19 +382,19 @@ export default function Home() {
               supplyMore={supplyMore}
               durationSec={beginnerMode ? 120 : duration}
               testType={beginnerMode ? "words" : testType}
-        targetWordCount={beginnerMode ? getLessonWordCount(activeBeginnerLesson) : wordCount}
-        focusMode={focus}
-        onFocusStart={() => setFocus(true)}
-        onFocusEnd={() => setFocus(false)}
-        onRestart={rebuildGenerator}
-        competitiveMode={competitiveMode}
-        beginnerMode={beginnerMode}
-        beginnerLesson={activeBeginnerLesson}
-        beginnerLessonIndex={beginnerLessonIndex}
-        beginnerProgressLabel={beginnerProgressLabel}
-        beginnerFeedback={null}
-        beginnerPassRequirement=""
-        onNextLesson={beginnerMode ? handleNextBeginnerLesson : undefined}
+              targetWordCount={beginnerMode ? getLessonWordCount(activeBeginnerLesson) : wordCount}
+              focusMode={focus}
+              onFocusStart={() => setFocus(true)}
+              onFocusEnd={() => setFocus(false)}
+              onRestart={rebuildGenerator}
+              competitiveMode={competitiveMode}
+              beginnerMode={beginnerMode}
+              beginnerLesson={activeBeginnerLesson}
+              beginnerLessonIndex={beginnerLessonIndex}
+              beginnerProgressLabel={beginnerProgressLabel}
+              beginnerFeedback={null}
+              beginnerPassRequirement=""
+              onNextLesson={beginnerMode ? handleNextBeginnerLesson : undefined}
               hasNextLesson={hasNextBeginnerLesson}
               onComplete={beginnerMode ? handleBeginnerComplete : undefined}
             />

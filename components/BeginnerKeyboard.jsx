@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useMemo } from "react";
@@ -18,10 +18,10 @@ const KEYBOARD_ROWS = [
     { label: "0", shift: ")", finger: "right-pinky" },
     { label: "-", shift: "_", finger: "right-pinky" },
     { label: "=", shift: "+", finger: "right-pinky" },
-    { label: "delete", width: 1.55, finger: "right-pinky", align: "end", icon: "⌫" },
+    { label: "delete", width: 1.55, finger: "right-pinky", align: "end", icon: "âŒ«" },
   ],
   [
-    { label: "tab", width: 1.35, finger: "left-pinky", align: "start", icon: "↹" },
+    { label: "tab", width: 1.35, finger: "left-pinky", align: "start", icon: "â†¹" },
     { label: "q", finger: "left-pinky" },
     { label: "w", finger: "left-ring" },
     { label: "e", finger: "left-middle" },
@@ -37,7 +37,7 @@ const KEYBOARD_ROWS = [
     { label: "\\", shift: "|", finger: "right-pinky" },
   ],
   [
-    { label: "caps lock", width: 1.6, finger: "left-pinky", align: "start", icon: "⇪" },
+    { label: "caps lock", width: 1.6, finger: "left-pinky", align: "start", icon: "â‡ª" },
     { label: "a", finger: "left-pinky", home: true },
     { label: "s", finger: "left-ring", home: true },
     { label: "d", finger: "left-middle", home: true },
@@ -49,10 +49,10 @@ const KEYBOARD_ROWS = [
     { label: "l", finger: "right-ring", home: true },
     { label: ";", shift: ":", finger: "right-pinky", home: true },
     { label: "'", shift: "\"", finger: "right-pinky" },
-    { label: "enter", width: 1.8, finger: "right-pinky", align: "end", icon: "↵" },
+    { label: "enter", width: 1.8, finger: "right-pinky", align: "end", icon: "â†µ" },
   ],
   [
-    { label: "shift", width: 1.95, finger: "left-pinky", align: "start", icon: "⇧" },
+    { label: "shift", width: 1.95, finger: "left-pinky", align: "start", icon: "â‡§" },
     { label: "z", finger: "left-pinky" },
     { label: "x", finger: "left-ring" },
     { label: "c", finger: "left-middle" },
@@ -63,7 +63,7 @@ const KEYBOARD_ROWS = [
     { label: ",", shift: "<", finger: "right-middle" },
     { label: ".", shift: ">", finger: "right-ring" },
     { label: "/", shift: "?", finger: "right-pinky" },
-    { label: "shift", width: 2.05, finger: "right-pinky", align: "end", icon: "⇧" },
+    { label: "shift", width: 2.05, finger: "right-pinky", align: "end", icon: "â‡§" },
   ],
   [
     { label: "ctrl", width: 1.12, finger: "left-pinky", align: "start" },
@@ -232,6 +232,8 @@ export default function BeginnerKeyboard({
   progressLabel = "",
   feedback = null,
   passRequirement = "100% ACC - 0 mistakes - 60+ WPM",
+  focusMode = false,
+  onToggleFocusMode,
 }) {
   const activeExpected = normalizeKey(expectedKey);
   const activePressed = normalizeKey(pressedKey);
@@ -270,6 +272,12 @@ export default function BeginnerKeyboard({
 
       <div className="relative overflow-hidden rounded-[1.85rem] border border-[#c9cbca] bg-[#323437] px-4 pb-32 pt-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_14px_28px_rgba(0,0,0,0.08)] md:px-5 md:pt-5">
         <div className="mb-4 flex items-center justify-end gap-2 text-[11px] font-medium tracking-[0.04em] text-[#626b74]">
+          <button
+            onClick={() => onToggleFocusMode?.()}
+            className="rounded-xl bg-[#F9C916] px-4 py-2 font-semibold text-black shadow-lg transition hover:scale-105"
+          >
+            {focusMode ? "Exit Focus" : "Focus Mode"}
+          </button>
           <span className="text-sm text-[#F9C916]">⚙</span>
           <span className="underline decoration-[#F9C916] decoration-1 underline-offset-2 text-[#F9C916] transition-colors hover:text-[#F9C916]/80">
             Customize Keyboard

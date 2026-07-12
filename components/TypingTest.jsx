@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
@@ -7,11 +7,11 @@ import BeginnerKeyboard from "./BeginnerKeyboard";
 import ResultModal from "./ResultModal";
 
 /**
- * Streaming + 3-line viewport + focus mode + Tab→Enter restart
+ * Streaming + 3-line viewport + focus mode + Tabâ†’Enter restart
  * - If durationSec === 60: primary = WPM
  * - If durationSec !== 60: primary = Words (session), sub = WPM
  *
- * ✅ Competitive Mode:
+ * âœ… Competitive Mode:
  * - Backspace doesn't delete
  * - Each Backspace press deducts 0.5s from clock
  * - Shows tiny "-0.5s" toast
@@ -29,7 +29,7 @@ export default function TypingTest({
   onRestart,
   onComplete,
   showResultModal = true,
-  competitiveMode = false, // ✅ NEW
+  competitiveMode = false, // âœ… NEW
   trackProfileSession = true,
   beginnerMode = false,
   beginnerLesson = null,
@@ -69,7 +69,7 @@ export default function TypingTest({
   // time left
   const [remaining, setRemaining] = useState(durationSec);
 
-  // ✅ penalty tracking (0.5s per backspace)
+  // âœ… penalty tracking (0.5s per backspace)
   const penaltyMsRef = useRef(0);
   const [showPenaltyToast , setShowPenaltyToast] = useState(false);
   const toastTimerRef = useRef(null);
@@ -102,15 +102,17 @@ export default function TypingTest({
     setShowResults(false);
   }, [ended, showResultModal]);
 
-  // --- Tab → Enter arming ---
+  // --- Tab â†’ Enter arming ---
   const tabArmedRef = useRef(false);
   const tabTimerRef = useRef(null);
   const [showTabHint, setShowTabHint] = useState(false);
 
-  // ✅ penalty toast
+  // âœ… penalty toast
   const [penaltyToastKey, setPenaltyToastKey] = useState(0);
   const completedRef = useRef(false);
   const sessionTrackedRef = useRef(false);
+  const bodyScrollLockRef = useRef({ scrollY: 0, locked: false });
+  const [beginnerKeyboardFocus, setBeginnerKeyboardFocus] = useState(false);
 
   const triggerPenaltyToast = () => {
     setShowPenaltyToast(true);
@@ -133,7 +135,7 @@ export default function TypingTest({
     setScrolledLines(0);
     gsap.set(scrollerRef.current, { y: 0 });
 
-    penaltyMsRef.current = 0; // ✅ reset penalty
+    penaltyMsRef.current = 0; // âœ… reset penalty
     setLastPressedKey("");
     setLastPressedCorrect(false);
 
@@ -146,10 +148,73 @@ export default function TypingTest({
     gsap.fromTo(wrapRef.current, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" });
   }, []);
 
-  // refocus when focusMode toggles
+  const effectiveFocusMode = focusMode || beginnerKeyboardFocus;
+
+  const toggleBeginnerKeyboardFocus = () => {
+    const next = !beginnerKeyboardFocus;
+    setBeginnerKeyboardFocus(next);
+
+    if (next) {
+      onFocusStart && onFocusStart();
+    } else {
+      onFocusEnd && onFocusEnd();
+    }
+  };
+
+  // refocus when focus mode toggles
   useEffect(() => {
     if (!ended) inputRef.current?.focus();
-  }, [focusMode, ended]);
+  }, [effectiveFocusMode, ended]);
+
+  useEffect(() => {
+    if (!beginnerMode || !beginnerKeyboardFocus || ended) return;
+
+    const focusTarget = viewRef.current || wrapRef.current;
+    if (focusTarget) {
+      const rect = focusTarget.getBoundingClientRect();
+      const targetY = Math.max(0, window.scrollY + rect.top - 140);
+      window.scrollTo({ top: targetY, behavior: "auto" });
+    }
+
+    const { body, documentElement } = document;
+    const lockTimer = window.setTimeout(() => {
+      if (!bodyScrollLockRef.current.locked) {
+        const scrollY = window.scrollY;
+        bodyScrollLockRef.current = { scrollY, locked: true };
+        body.style.position = "fixed";
+        body.style.top = `-${scrollY}px`;
+        body.style.left = "0";
+        body.style.right = "0";
+        body.style.width = "100%";
+        body.style.overflow = "hidden";
+        documentElement.style.overflow = "hidden";
+      }
+    }, 20);
+
+    return () => {
+      window.clearTimeout(lockTimer);
+      if (!bodyScrollLockRef.current.locked) return;
+      const lockedScrollY = bodyScrollLockRef.current.scrollY;
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
+      body.style.overflow = "";
+      documentElement.style.overflow = "";
+      window.scrollTo({ top: lockedScrollY, behavior: "auto" });
+      bodyScrollLockRef.current = { scrollY: 0, locked: false };
+    };
+  }, [beginnerKeyboardFocus, beginnerMode, ended]);
+
+  useEffect(() => {
+    if (!ended) return;
+    setBeginnerKeyboardFocus(false);
+  }, [ended]);
+  useEffect(() => {
+    if (!ended) return;
+    setBeginnerKeyboardFocus(false);
+  }, [ended]);
 
   // keep focus on any key press
   useEffect(() => {
@@ -182,7 +247,7 @@ export default function TypingTest({
     return () => window.removeEventListener("resize", recalc);
   }, [scrolledLines]);
 
-  // ✅ effective elapsed includes penalty
+  // âœ… effective elapsed includes penalty
   const getEffectiveElapsedMs = () => {
     if (!startedAt) return 0;
     return (Date.now() - startedAt) + penaltyMsRef.current;
@@ -260,7 +325,7 @@ export default function TypingTest({
     clearTimeout(toastTimerRef.current);
     gsap.set(scrollerRef.current, { y: 0 });
 
-    penaltyMsRef.current = 0; // ✅ reset penalty
+    penaltyMsRef.current = 0; // âœ… reset penalty
     completedRef.current = false;
     sessionTrackedRef.current = false;
     setLastPressedKey("");
@@ -293,7 +358,7 @@ export default function TypingTest({
   function onKeyDown(e) {
     if (ended) return;
 
-    // Tab → Enter restart (call onRestart for reroll)
+    // Tab â†’ Enter restart (call onRestart for reroll)
     if (e.key === "Tab") {
       e.preventDefault();
       tabArmedRef.current = true;
@@ -313,7 +378,7 @@ export default function TypingTest({
       return;
     }
 
-    // ✅ Competitive Mode: block Backspace + penalty
+    // âœ… Competitive Mode: block Backspace + penalty
     if (e.key === "Backspace") {
       e.preventDefault();
 
@@ -353,8 +418,15 @@ export default function TypingTest({
         sessionTrackedRef.current = true;
         fetch("/api/profile/test-start", { method: "POST" }).catch(() => {});
       }
-      onFocusStart && onFocusStart();
-    }
+      if (beginnerMode) {
+        if (!beginnerKeyboardFocus) {
+          setBeginnerKeyboardFocus(true);
+          onFocusStart && onFocusStart();
+        }
+      } else {
+        onFocusStart && onFocusStart();
+      }
+      }
 
     const ch = buffer[idx] || "";
     const ok = k === ch;
@@ -462,13 +534,13 @@ export default function TypingTest({
       )}
 
       {/* floating timer HUD in focus mode */}
-      {focusMode && (
+      {effectiveFocusMode && (
         <div className="fixed -top-20 left-1/2 -translate-x-1/2 text-base md:text-lg font-semibold text-brand drop-neon z-50">
           {testType === "time" ? `${remaining}s` : `${completedWords}/${targetWordCount} words`}
         </div>
       )}
 
-      {/* ✅ tiny penalty toast */}
+      {/* âœ… tiny penalty toast */}
       <AnimatePresence>
         {competitiveMode && showPenaltyToast && !ended && (
           <motion.div
@@ -486,14 +558,14 @@ export default function TypingTest({
         )}
       </AnimatePresence>
 
-      {/* Tab→Enter hint */}
+      {/* Tabâ†’Enter hint */}
       {showTabHint && !ended && (
         <div className="fixed -bottom-14 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded bg-black/60 border border-white/10 text-white/80 z-50">
-          Tab → Enter to restart
+          Tab â†’ Enter to restart
         </div>
       )}
 
-      {focusMode && !ended && (
+      {effectiveFocusMode && !ended && (
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-6 text-sm text-white/60 z-40">
           <div>WPM: {wpm.toFixed(0)}</div>
           <div>ACC: {accuracy.toFixed(0)}%</div>
@@ -571,9 +643,10 @@ export default function TypingTest({
           progressLabel={beginnerProgressLabel}
           feedback={beginnerFeedback}
           passRequirement={beginnerPassRequirement}
+          focusMode={beginnerKeyboardFocus}
+          onToggleFocusMode={toggleBeginnerKeyboardFocus}
         />
       ) : null}
-
       {!ended && (
         <div className="mt-10 flex items-center justify-center text-center md:hidden">
           <span className="text-[11px] tracking-wide text-white/30">
@@ -624,3 +697,4 @@ function Stat({ label, value, sub }) {
     </div>
   );
 }
+
