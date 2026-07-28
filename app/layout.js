@@ -59,7 +59,13 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
-
+        <script
+          type="text/javascript"
+          async
+          data-noptimize="1"
+          data-cfasync="false"
+          src="//scripts.scriptwrapper.com/tags/c6241c47-1bf2-4c26-b1d6-5470da267e98.js"
+        />
       </head>
 
       <body>
