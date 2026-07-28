@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
@@ -576,6 +576,7 @@ export default function TypingTest({
       {/* 3-line viewport */}
       <div
         ref={viewRef}
+        dir="auto"
         className="relative overflow-hidden text-center font-mono text-[1.05rem] leading-[2.55rem] text-white/55 md:text-3xl md:leading-[2.6rem]"
       >
         <div ref={scrollerRef}>

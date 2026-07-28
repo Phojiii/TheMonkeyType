@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { IoMdSettings } from "react-icons/io";
+import { LANGUAGES } from "@/lib/textbanks";
 
 export default function TopBar({
   lang,
@@ -186,9 +187,11 @@ export default function TopBar({
         aria-label="Language"
         disabled={beginnerMode}
       >
-        <option value="english">English</option>
-        <option value="urdu">Urdu</option>
-        <option value="spanish">Spanish</option>
+        {LANGUAGES.map((language) => (
+          <option key={language.value} value={language.value}>
+            {language.label}
+          </option>
+        ))}
       </select>
     </div>
   );
