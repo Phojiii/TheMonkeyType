@@ -1,28 +1,27 @@
 {
   "compilerOptions": {
-    "baseUrl": "."
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "skipLibCheck": true,
+    "allowJs": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx"
   },
-  "paths": {
-    "@/*": [
-      "./src/*"
-    ]
-  },
-  "skipLibCheck": true,
-  "allowJs": true,
-  "lib": ["ES2020", "DOM", "DOM.Iterable"],
-  "jsx": "react-jsx"
-},
-"include": [
-  "src/**/*",
-  "*.js",
-  "*.json",
-  "app/**/*",
-  "lib/**/*",
-  "models/**/*",
-  "pages/**/*"
-],
-"exclude": [
-  "node_modules",
-  "dist",
-  ".next"
-]
+  "include": [
+    "*.js",
+    "*.json",
+    "app/**/*",
+    "components/**/*",
+    "content/**/*",
+    "lib/**/*",
+    "models/**/*",
+    "pages/**/*",
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next"
+  ]
+}
