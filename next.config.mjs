@@ -4,6 +4,12 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/ads.txt",
+        destination:
+          "https://adstxt.journeymv.com/sites/c6241c47-1bf2-4c26-b1d6-5470da267e98/ads.txt",
+        statusCode: 301,
+      },
+      {
         source:
           "/blog/best-typing-exercises-and-drills-to-improve-speed-and-accuracy",
         destination:
