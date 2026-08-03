@@ -63,7 +63,7 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="fixed left-0 top-0 z-50 hidden h-screen w-20 flex-col items-center justify-between bg-[#23232583] py-6 shadow-lg backdrop-blur-sm md:flex">
+      <nav className="fixed left-0 top-0 z-50 hidden h-screen w-20 flex-col items-center bg-[#23232583] py-6 shadow-lg backdrop-blur-sm md:flex">
         <Link href="/">
           <Image src="/TMT_Logo_new.png" alt="TMT Logo" width={40} height={40} priority style={{ width: "auto", height: "auto" }} />
         </Link>
@@ -85,30 +85,39 @@ export default function NavBar() {
             />
           )}
         </div>
-
-        <div className="flex flex-col items-center gap-6">
-          <button onClick={() => setNotifOpen(true)} className="relative" aria-label="Notifications">
-            <FaBell
-              className={`text-xl transition ${
-                hasNewAnnouncement ? "animate-pulse text-yellow-400" : "text-white/80 hover:text-yellow-400"
-              }`}
-            />
-            {hasNewAnnouncement && (
-              <span className="absolute -right-2 -top-2 rounded-full bg-yellow-400 px-1 text-xs font-bold text-black">
-                !
-              </span>
-            )}
-          </button>
-
-          {!isSignedIn ? (
-            <SignInButton mode="modal">
-              <FaUserCircle className="text-2xl text-white/80 transition hover:text-yellow-400" />
-            </SignInButton>
-          ) : (
-            <UserButton appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
-          )}
-        </div>
       </nav>
+
+      <div className="fixed right-6 top-3/4 z-50 hidden -translate-y-1/2 flex-col items-center gap-6 rounded-[1.75rem] border border-white/10 bg-[#232325d9] px-3 py-4 shadow-[0_18px_45px_rgba(0,0,0,0.28)] backdrop-blur-md md:flex">
+        <button
+          onClick={() => setNotifOpen(true)}
+          className="relative rounded-2xl p-2 text-white/80 transition hover:bg-white/8 hover:text-yellow-400"
+          aria-label="Notifications"
+        >
+          <FaBell
+            className={`text-xl transition ${
+              hasNewAnnouncement ? "animate-pulse text-yellow-400" : "text-white/80 hover:text-yellow-400"
+            }`}
+          />
+          {hasNewAnnouncement && (
+            <span className="absolute -right-2 -top-2 rounded-full bg-yellow-400 px-1 text-xs font-bold text-black">
+              !
+            </span>
+          )}
+        </button>
+
+        {!isSignedIn ? (
+          <SignInButton mode="modal">
+            <button
+              className="rounded-2xl p-2 text-white/80 transition hover:bg-white/8 hover:text-yellow-400"
+              aria-label="Sign in"
+            >
+              <FaUserCircle className="text-2xl" />
+            </button>
+          </SignInButton>
+        ) : (
+          <UserButton appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
+        )}
+      </div>
 
       {notifOpen && <AnnouncementModal onClose={closeAnnouncement} />}
 
