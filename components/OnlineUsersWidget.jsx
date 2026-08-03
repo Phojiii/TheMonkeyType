@@ -155,6 +155,20 @@ export default function OnlineUsersWidget() {
     return onlineCount === 1 ? "1 player online" : `${onlineCount} players online`;
   }, [loading, onlineCount, users.length]);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("tmt:lobby-count", { detail: { count: onlineCount } }));
+  }, [onlineCount]);
+
+  useEffect(() => {
+    const handleToggle = (event) => {
+      const nextOpen = event?.detail?.open;
+      setOpen((current) => (typeof nextOpen === "boolean" ? nextOpen : !current));
+    };
+
+    window.addEventListener("tmt:lobby-toggle", handleToggle);
+    return () => window.removeEventListener("tmt:lobby-toggle", handleToggle);
+  }, []);
+
   async function handleChallenge(userId) {
     if (!userId || challenging) return;
 
@@ -292,16 +306,18 @@ export default function OnlineUsersWidget() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="btn-primary min-w-[12rem] justify-between shadow-[0_14px_30px_rgba(226,183,20,0.22)]"
-        aria-expanded={open}
-        aria-controls="online-users-lobby"
-      >
-        <span>Live lobby</span>
-        <span className="rounded-full bg-black/12 px-2 py-0.5 text-xs text-black/75">{lobbyLabel}</span>
-      </button>
+      <div className="hidden md:block">
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="btn-primary min-w-[12rem] justify-between shadow-[0_14px_30px_rgba(226,183,20,0.22)]"
+          aria-expanded={open}
+          aria-controls="online-users-lobby"
+        >
+          <span>Live lobby</span>
+          <span className="rounded-full bg-black/12 px-2 py-0.5 text-xs text-black/75">{lobbyLabel}</span>
+        </button>
+      </div>
     </div>
   );
 }

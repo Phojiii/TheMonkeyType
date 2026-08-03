@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -15,11 +16,27 @@ const footerLinks = [
 
 export default function Footer() {
   const pathname = usePathname();
+  const [onlineCount, setOnlineCount] = useState(0);
+  const lobbyLabel = onlineCount === 1 ? "1 player online" : `${onlineCount} players online`;
+
+  useEffect(() => {
+    const handleCount = (event) => {
+      const count = Number(event?.detail?.count || 0);
+      setOnlineCount(Number.isFinite(count) ? count : 0);
+    };
+
+    window.addEventListener("tmt:lobby-count", handleCount);
+    return () => window.removeEventListener("tmt:lobby-count", handleCount);
+  }, []);
+
+  const openLobby = () => {
+    window.dispatchEvent(new CustomEvent("tmt:lobby-toggle", { detail: { open: true } }));
+  };
 
   return (
     <>
       <div aria-hidden="true" className="h-0" />
-      <footer className="fixed right-3 top-2 z-40 w-[calc(100%-1.5rem)] max-w-[16rem] rounded-3xl border border-white/10 bg-[#232325e6] p-3 shadow-[0_18px_45px_rgba(0,0,0,0.34)] backdrop-blur-md md:right-6 md:top-6 md:w-[20rem] lg:w-[22rem]">
+      <footer className="fixed bottom-[5.5rem] right-3 z-40 w-[calc(100%-1.5rem)] max-w-[16rem] rounded-3xl border border-white/10 bg-[#232325e6] p-3 shadow-[0_18px_45px_rgba(0,0,0,0.34)] backdrop-blur-md md:bottom-auto md:right-6 md:top-6 md:w-[20rem] lg:w-[22rem]">
         <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
           <p className="text-[11px] uppercase tracking-[0.24em] text-brand/80">Quick Links</p>
           <span className="text-[11px] text-white/35">TheMonkeyType</span>
@@ -46,6 +63,16 @@ export default function Footer() {
             );
           })}
         </div>
+
+        <button
+          type="button"
+          onClick={openLobby}
+          className="btn-primary mt-3 flex w-full items-center justify-between shadow-[0_14px_30px_rgba(226,183,20,0.22)] md:hidden"
+          aria-controls="online-users-lobby"
+        >
+          <span>Live lobby</span>
+          <span className="rounded-full bg-black/12 px-2 py-0.5 text-xs text-black/75">{lobbyLabel}</span>
+        </button>
 
         <div className="mt-3 border-t border-white/8 pt-2 text-[11px] text-white/35">
           Copyright TheMonkeyType
