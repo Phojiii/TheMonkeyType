@@ -41,43 +41,18 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const GTM_ID = "GTM-WCXVWLCJ";
-
   return (
     <html lang="en">
       <head>
+        <meta name="google-adsense-account" content="ca-pub-5990942569096205" />
         <Script
-          id="gtm"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','${GTM_ID}');
-            `,
-          }}
-        />
-        <script
-          type="text/javascript"
           async
-          data-noptimize="1"
-          data-cfasync="false"
-          src="//scripts.scriptwrapper.com/tags/c6241c47-1bf2-4c26-b1d6-5470da267e98.js"
+          strategy="afterInteractive"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5990942569096205"
+          crossOrigin="anonymous"
         />
       </head>
-
       <body>
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-WCXVWLCJ"
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
-
         <Providers>
           <NavBar />
           <main className="ml-0 mt-[4.85rem] font-mono antialiased md:ml-20 md:mt-0">

@@ -31,7 +31,7 @@ export default function PrivacyPage() {
 
       <section className="flex-1 max-w-4xl mx-auto leading-relaxed space-y-5 px-6 py-10">
         <h1 className="text-3xl font-bold text-brand mb-2">Privacy Policy</h1>
-        <p className="text-sm text-white/50">Last updated: June 18, 2026</p>
+        <p className="text-sm text-white/50">Last updated: August 5, 2026</p>
 
         <p>
           This Privacy Policy explains how TheMonkeyType ("we", "our", "us") collects,
@@ -62,11 +62,51 @@ export default function PrivacyPage() {
           communicate with you when needed.
         </p>
 
-        <h2 className="text-xl font-semibold text-brand mt-6">Cookies and analytics</h2>
+        <h2 className="text-xl font-semibold text-brand mt-6">Advertising, cookies, and third-party vendors</h2>
+        <p>
+          We may display advertising on TheMonkeyType using third-party advertising partners,
+          including Google AdSense. Third-party vendors, including Google, may use cookies,
+          web beacons, IP addresses, local storage, or similar technologies to serve ads
+          based on a user&apos;s prior visits to this website or other websites.
+        </p>
+        <p>
+          Google&apos;s use of advertising cookies enables it and its partners to serve ads to
+          users based on visits to this site and/or other sites on the Internet. Users may
+          opt out of personalized advertising by visiting Google&apos;s Ads Settings at{" "}
+          <a
+            href="https://www.google.com/settings/ads"
+            target="_blank"
+            rel="noreferrer"
+            className="text-brand hover:text-white"
+          >
+            google.com/settings/ads
+          </a>
+          . You can also learn more about how Google uses information from sites and apps at{" "}
+          <a
+            href="https://policies.google.com/technologies/partner-sites"
+            target="_blank"
+            rel="noreferrer"
+            className="text-brand hover:text-white"
+          >
+            policies.google.com/technologies/partner-sites
+          </a>
+          .
+        </p>
+
+        <h2 className="text-xl font-semibold text-brand mt-6">Consent and regional privacy choices</h2>
+        <p>
+          Where required by law, including for users in the EEA, the UK, and Switzerland,
+          we may show a consent message or use a consent management platform before serving
+          certain personalised ads or using certain advertising technologies. Users in these
+          regions may be asked to review or update their privacy choices before ad-supported
+          features are fully enabled.
+        </p>
+
+        <h2 className="text-xl font-semibold text-brand mt-6">Analytics and essential cookies</h2>
         <p>
           We use cookies and similar technologies for authentication, saved settings,
-          and analytics. Third-party analytics providers may use cookies or similar tools
-          to measure usage and help us improve performance.
+          security, service reliability, and analytics. Third-party providers may also use
+          cookies or similar tools to help us measure usage and improve performance.
         </p>
 
         <h2 className="text-xl font-semibold text-brand mt-6">How we store and protect data</h2>
@@ -80,7 +120,7 @@ export default function PrivacyPage() {
         <p>
           We do not sell your personal information. We may share limited information with
           service providers that help operate the site, such as hosting, authentication,
-          database, analytics, and crash reporting partners. We may also disclose
+          database, analytics, advertising, and support partners. We may also disclose
           information if required by law or to protect the service and its users.
         </p>
 

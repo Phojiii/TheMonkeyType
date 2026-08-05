@@ -1,8 +1,6 @@
 'use client';
 
 import { ClerkProvider } from "@clerk/nextjs";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
-import GoogleTagManager from "@/components/GoogleTagManager";
 import ChallengeInbox from "@/components/ChallengeInbox";
 import OnlineUsersWidget from "@/components/OnlineUsersWidget";
 
@@ -50,8 +48,6 @@ export default function Providers({ children }) {
         },
       }}
     >
-      <GoogleTagManager />
-      <GoogleAnalytics />
       <ChallengeInbox />
       <OnlineUsersWidget />
       {children}
