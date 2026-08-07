@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
@@ -277,16 +277,11 @@ export default function Home() {
             <span className="sr-only">TMT - Typing Trainer</span>
           </Link>
 
-          <nav className="m-auto block text-center text-sm text-white/70 md:m-0">
-          <button onClick={() => setDonationOpen(true)} className="mx-2 hover:text-white">
+          <nav className="m-auto flex items-center gap-3 text-sm text-white/70 md:m-0">
+            <button onClick={() => setDonationOpen(true)} className="hover:text-white">
               Donate <FaDonate className="inline-block" />
             </button>
-            <Link href="https://discord.gg/5G2WvTYbPR" className="mx-2 hover:text-white">
-              Discord
-            </Link>
-            <a href="https://github.com" className="mx-2 hover:text-white" target="_blank" rel="noreferrer">
-              GitHub
-            </a>
+            <Footer embedded />
           </nav>
         </header>
         
@@ -458,8 +453,9 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {!focus && <Footer />}
+
     </main>
   );
 }
+
+

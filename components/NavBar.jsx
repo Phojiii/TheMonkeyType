@@ -87,7 +87,7 @@ export default function NavBar() {
         </div>
       </nav>
 
-      <div className="fixed right-6 top-3/4 z-50 hidden -translate-y-1/2 flex-col items-center gap-6 rounded-[1.75rem] border border-white/10 bg-[#232325d9] px-3 py-4 shadow-[0_18px_45px_rgba(0,0,0,0.28)] backdrop-blur-md md:flex">
+      <div className="fixed right-6 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-6 rounded-[1.75rem] border border-white/10 bg-[#232325d9] px-3 py-4 shadow-[0_18px_45px_rgba(0,0,0,0.28)] backdrop-blur-md md:flex">
         <button
           onClick={() => setNotifOpen(true)}
           className="relative rounded-2xl p-2 text-white/80 transition hover:bg-white/8 hover:text-yellow-400"

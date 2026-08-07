@@ -44,12 +44,25 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <meta name="google-adsense-account" content="ca-pub-5990942569096205" />
         <Script
           async
           strategy="afterInteractive"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5990942569096205"
-          crossOrigin="anonymous"
+          src="https://www.googletagmanager.com/gtag/js?id=G-FT5G53V5QP"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-FT5G53V5QP');
+          `}
+        </Script>
+        <script
+          type="text/javascript"
+          async
+          data-noptimize="1"
+          data-cfasync="false"
+          src="//scripts.scriptwrapper.com/tags/c6241c47-1bf2-4c26-b1d6-5470da267e98.js"
         />
       </head>
       <body>
