@@ -20,7 +20,6 @@ export default function Footer({ embedded = false } = {}) {
   const pathname = usePathname();
   const [onlineCount, setOnlineCount] = useState(0);
   const [expanded, setExpanded] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
   const lobbyLabel = onlineCount === 1 ? "1 player online" : `${onlineCount} players online`;
 
   useEffect(() => {
@@ -29,40 +28,12 @@ export default function Footer({ embedded = false } = {}) {
       setOnlineCount(Number.isFinite(count) ? count : 0);
     };
 
-    const media = window.matchMedia("(min-width: 768px)");
-    const syncExpanded = () => {
-      const nextIsDesktop = media.matches;
-      setIsDesktop(nextIsDesktop);
-      setExpanded(nextIsDesktop);
-    };
-
-    syncExpanded();
     window.addEventListener("tmt:lobby-count", handleCount);
-    if (typeof media.addEventListener === "function") {
-      media.addEventListener("change", syncExpanded);
-    } else {
-      media.addListener(syncExpanded);
-    }
 
     return () => {
       window.removeEventListener("tmt:lobby-count", handleCount);
-      if (typeof media.removeEventListener === "function") {
-        media.removeEventListener("change", syncExpanded);
-      } else {
-        media.removeListener(syncExpanded);
-      }
     };
   }, []);
-
-  useEffect(() => {
-    if (!isDesktop || !expanded) return;
-
-    const timer = window.setTimeout(() => {
-      setExpanded(false);
-    }, 5000);
-
-    return () => window.clearTimeout(timer);
-  }, [expanded, isDesktop]);
 
   const openLobby = () => {
     window.dispatchEvent(new CustomEvent("tmt:lobby-toggle", { detail: { open: true } }));
