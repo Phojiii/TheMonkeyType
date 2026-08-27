@@ -31,7 +31,7 @@ export default function StatsPage() {
 
   const { user, isSignedIn } = useUser();
 
-  // âœ… migrate legacy -> classic once (so old users see stats)
+  // Migrate legacy data to the classic store once.
   useEffect(() => {
     try {
       const legacy = localStorage.getItem(LEGACY_KEY);
@@ -45,7 +45,7 @@ export default function StatsPage() {
     } catch {}
   }, []);
 
-  // âœ… load stats from selected key
+  // Load stats from the selected store.
   useEffect(() => {
     let stored = [];
     try {
@@ -175,7 +175,7 @@ export default function StatsPage() {
     setChallengeHistory(next);
   }
 
-  // âœ… sync best score to server (includes mode)
+  // Sync the best score to the server for leaderboard use.
   useEffect(() => {
     if (!isSignedIn || !totals) return;
     if (!filter || filter === "all") return;
@@ -273,7 +273,7 @@ export default function StatsPage() {
 
         <nav className="flex gap-4 text-sm">
           <Link href="/" className="mx-2 text-white/70 hover:text-white">
-            â† Back to Test
+            Back to Test
           </Link>
           <Link href="https://ko-fi.com/themonkeytype" target="_blank" rel="noreferrer" className="mx-2 text-white/70 hover:text-white">
             Donate <FaDonate className="inline-block" />
@@ -353,7 +353,7 @@ export default function StatsPage() {
       {/* Chart */}
       <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 stats-stagger">
         <h2 className="text-lg font-semibold mb-4">
-          Performance Over Time ({range}) â€¢ {mode === "competitive" ? "Competitive" : "Classic"}
+          Performance Over Time ({range}) - {mode === "competitive" ? "Competitive" : "Classic"}
         </h2>
 
         <div className="w-full h-72">
@@ -405,7 +405,7 @@ export default function StatsPage() {
       {dataByDuration.length > 0 && (
         <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 overflow-x-auto stats-stagger">
           <h2 className="text-lg font-semibold mb-4">
-            Results ({filter === "all" ? "All" : `${filter}s`}) â€¢{" "}
+            Results ({filter === "all" ? "All" : `${filter}s`}) -{" "}
             {mode === "competitive" ? "Competitive" : "Classic"}
           </h2>
 
@@ -427,7 +427,7 @@ export default function StatsPage() {
                 .map((d, i) => (
                   <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition">
                     <td className="py-2 px-3">{new Date(d.ts).toLocaleString()}</td>
-                    <td className="py-2 px-3">{d.duration != null ? `${d.duration}s` : "â€”"}</td>
+                    <td className="py-2 px-3">{d.duration != null ? `${d.duration}s` : "-"}</td>
                     <td className="py-2 px-3 text-brand">{d.wpm}</td>
                     <td className="py-2 px-3 text-sky-400">{d.accuracy}%</td>
                     <td className="py-2 px-3">{d.words}</td>
@@ -548,4 +548,8 @@ function Badge({ title, value, accent = "brand" }) {
     </div>
   );
 }
+
+
+
+
 

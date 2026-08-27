@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { motion } from "framer-motion";
@@ -290,7 +290,7 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
         <h2 className="mb-1 text-2xl font-bold text-brand">Test Completed!</h2>
 
         <p className="mb-5 text-xs text-white/50">
-          {new Date().toLocaleString()} • {metaLabel} •{" "}
+          {new Date().toLocaleString()} - {metaLabel} -{" "}
           <span className="text-white/60">{mode === "competitive" ? "Competitive" : "Classic"}</span>
         </p>
 
@@ -375,3 +375,6 @@ function Stat({ label, value }) {
     </div>
   );
 }
+
+
+

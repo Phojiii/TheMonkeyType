@@ -18,10 +18,10 @@ const KEYBOARD_ROWS = [
     { label: "0", shift: ")", finger: "right-pinky" },
     { label: "-", shift: "_", finger: "right-pinky" },
     { label: "=", shift: "+", finger: "right-pinky" },
-    { label: "delete", width: 1.55, finger: "right-pinky", align: "end", icon: "âŒ«" },
+    { label: "delete", width: 1.55, finger: "right-pinky", align: "end", icon: "" },
   ],
   [
-    { label: "tab", width: 1.35, finger: "left-pinky", align: "start", icon: "â†¹" },
+    { label: "tab", width: 1.35, finger: "left-pinky", align: "start", icon: "" },
     { label: "q", finger: "left-pinky" },
     { label: "w", finger: "left-ring" },
     { label: "e", finger: "left-middle" },
@@ -37,7 +37,7 @@ const KEYBOARD_ROWS = [
     { label: "\\", shift: "|", finger: "right-pinky" },
   ],
   [
-    { label: "caps lock", width: 1.6, finger: "left-pinky", align: "start", icon: "â‡ª" },
+    { label: "caps lock", width: 1.6, finger: "left-pinky", align: "start", icon: "" },
     { label: "a", finger: "left-pinky", home: true },
     { label: "s", finger: "left-ring", home: true },
     { label: "d", finger: "left-middle", home: true },
@@ -49,10 +49,10 @@ const KEYBOARD_ROWS = [
     { label: "l", finger: "right-ring", home: true },
     { label: ";", shift: ":", finger: "right-pinky", home: true },
     { label: "'", shift: "\"", finger: "right-pinky" },
-    { label: "enter", width: 1.8, finger: "right-pinky", align: "end", icon: "â†µ" },
+    { label: "enter", width: 1.8, finger: "right-pinky", align: "end", icon: "" },
   ],
   [
-    { label: "shift", width: 1.95, finger: "left-pinky", align: "start", icon: "â‡§" },
+    { label: "shift", width: 1.95, finger: "left-pinky", align: "start", icon: "" },
     { label: "z", finger: "left-pinky" },
     { label: "x", finger: "left-ring" },
     { label: "c", finger: "left-middle" },
@@ -63,7 +63,7 @@ const KEYBOARD_ROWS = [
     { label: ",", shift: "<", finger: "right-middle" },
     { label: ".", shift: ">", finger: "right-ring" },
     { label: "/", shift: "?", finger: "right-pinky" },
-    { label: "shift", width: 2.05, finger: "right-pinky", align: "end", icon: "â‡§" },
+    { label: "shift", width: 2.05, finger: "right-pinky", align: "end", icon: "" },
   ],
   [
     { label: "ctrl", width: 1.12, finger: "left-pinky", align: "start" },
@@ -278,7 +278,7 @@ export default function BeginnerKeyboard({
           >
             {focusMode ? "Exit Focus" : "Focus Mode"}
           </button>
-          <span className="text-sm text-[#F9C916]">⚙</span>
+          <span className="text-sm text-[#F9C916]"></span>
           <span className="underline decoration-[#F9C916] decoration-1 underline-offset-2 text-[#F9C916] transition-colors hover:text-[#F9C916]/80">
             Customize Keyboard
           </span>
@@ -338,3 +338,4 @@ export default function BeginnerKeyboard({
     </section>
   );
 }
+

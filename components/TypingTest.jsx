@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
@@ -7,11 +7,11 @@ import BeginnerKeyboard from "./BeginnerKeyboard";
 import ResultModal from "./ResultModal";
 
 /**
- * Streaming + 3-line viewport + focus mode + Tabâ†’Enter restart
+ * Streaming + 3-line viewport + focus mode + Tab then Enter restart
  * - If durationSec === 60: primary = WPM
  * - If durationSec !== 60: primary = Words (session), sub = WPM
  *
- * âœ… Competitive Mode:
+ *  Competitive Mode:
  * - Backspace doesn't delete
  * - Each Backspace press deducts 0.5s from clock
  * - Shows tiny "-0.5s" toast
@@ -29,7 +29,7 @@ export default function TypingTest({
   onRestart,
   onComplete,
   showResultModal = true,
-  competitiveMode = false, // âœ… NEW
+  competitiveMode = false, //  NEW
   trackProfileSession = true,
   beginnerMode = false,
   beginnerLesson = null,
@@ -69,7 +69,7 @@ export default function TypingTest({
   // time left
   const [remaining, setRemaining] = useState(durationSec);
 
-  // âœ… penalty tracking (0.5s per backspace)
+  //  penalty tracking (0.5s per backspace)
   const penaltyMsRef = useRef(0);
   const [showPenaltyToast , setShowPenaltyToast] = useState(false);
   const toastTimerRef = useRef(null);
@@ -102,12 +102,12 @@ export default function TypingTest({
     setShowResults(false);
   }, [ended, showResultModal]);
 
-  // --- Tab â†’ Enter arming ---
+  // --- Tab  Enter arming ---
   const tabArmedRef = useRef(false);
   const tabTimerRef = useRef(null);
   const [showTabHint, setShowTabHint] = useState(false);
 
-  // âœ… penalty toast
+  //  penalty toast
   const [penaltyToastKey, setPenaltyToastKey] = useState(0);
   const completedRef = useRef(false);
   const sessionTrackedRef = useRef(false);
@@ -135,7 +135,7 @@ export default function TypingTest({
     setScrolledLines(0);
     gsap.set(scrollerRef.current, { y: 0 });
 
-    penaltyMsRef.current = 0; // âœ… reset penalty
+    penaltyMsRef.current = 0; //  reset penalty
     setLastPressedKey("");
     setLastPressedCorrect(false);
 
@@ -247,7 +247,7 @@ export default function TypingTest({
     return () => window.removeEventListener("resize", recalc);
   }, [scrolledLines]);
 
-  // âœ… effective elapsed includes penalty
+  //  effective elapsed includes penalty
   const getEffectiveElapsedMs = () => {
     if (!startedAt) return 0;
     return (Date.now() - startedAt) + penaltyMsRef.current;
@@ -325,7 +325,7 @@ export default function TypingTest({
     clearTimeout(toastTimerRef.current);
     gsap.set(scrollerRef.current, { y: 0 });
 
-    penaltyMsRef.current = 0; // âœ… reset penalty
+    penaltyMsRef.current = 0; //  reset penalty
     completedRef.current = false;
     sessionTrackedRef.current = false;
     setLastPressedKey("");
@@ -358,7 +358,7 @@ export default function TypingTest({
   function onKeyDown(e) {
     if (ended) return;
 
-    // Tab â†’ Enter restart (call onRestart for reroll)
+    // Tab  Enter restart (call onRestart for reroll)
     if (e.key === "Tab") {
       e.preventDefault();
       tabArmedRef.current = true;
@@ -378,7 +378,7 @@ export default function TypingTest({
       return;
     }
 
-    // âœ… Competitive Mode: block Backspace + penalty
+    //  Competitive Mode: block Backspace + penalty
     if (e.key === "Backspace") {
       e.preventDefault();
 
@@ -540,7 +540,7 @@ export default function TypingTest({
         </div>
       )}
 
-      {/* âœ… tiny penalty toast */}
+      {/*  tiny penalty toast */}
       <AnimatePresence>
         {competitiveMode && showPenaltyToast && !ended && (
           <motion.div
@@ -558,10 +558,10 @@ export default function TypingTest({
         )}
       </AnimatePresence>
 
-      {/* Tabâ†’Enter hint */}
+      {/* Tab then Enter hint */}
       {showTabHint && !ended && (
         <div className="fixed -bottom-14 left-1/2 -translate-x-1/2 text-xs px-2 py-1 rounded bg-black/60 border border-white/10 text-white/80 z-50">
-          Tab â†’ Enter to restart
+          Tab then Enter to restart
         </div>
       )}
 
@@ -698,4 +698,7 @@ function Stat({ label, value, sub }) {
     </div>
   );
 }
+
+
+
 

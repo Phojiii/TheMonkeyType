@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -41,7 +41,7 @@ export default function Footer({ embedded = false } = {}) {
 
   const linksPanel = (
     <>
-      <div className="grid grid-cols-1 gap-2 pt-3 text-xs">
+      <div className="grid grid-cols-1 gap-2 pt-3 text-xs md:grid-cols-2">
         {footerLinks.map((link) => {
           const isActive = pathname === link.href;
 
@@ -89,7 +89,7 @@ export default function Footer({ embedded = false } = {}) {
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
-          className="inline-flex min-w-[12rem] items-center justify-between gap-3 rounded-full border border-white/10 bg-[#232325e6] px-4 py-2 text-left shadow-[0_18px_45px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-brand/30"
+          className="inline-flex min-w-[11rem] items-center justify-between gap-3 rounded-full border border-brand/25 bg-[#232325e6] px-4 py-2 text-left shadow-[0_18px_45px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-brand/70 hover:bg-[#2a2a2d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
           aria-expanded={expanded}
           aria-controls="footer-links-panel"
         >
@@ -100,7 +100,7 @@ export default function Footer({ embedded = false } = {}) {
         {expanded && (
           <div
             id="footer-links-panel"
-            className="absolute right-0 top-full z-50 mt-2 w-[18rem] overflow-hidden rounded-3xl border border-white/10 bg-[#232325f5] shadow-[0_18px_45px_rgba(0,0,0,0.34)] backdrop-blur-md"
+            className="absolute right-0 top-full z-50 mt-2 w-[19rem] overflow-hidden rounded-3xl border border-white/10 bg-[#232325f5] shadow-[0_18px_45px_rgba(0,0,0,0.34)] backdrop-blur-md md:w-[25rem]"
           >
             <div className="px-3 pb-3">{linksPanel}</div>
           </div>
@@ -135,3 +135,6 @@ export default function Footer({ embedded = false } = {}) {
     </>
   );
 }
+
+
+
