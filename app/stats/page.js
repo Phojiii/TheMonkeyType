@@ -270,21 +270,6 @@ export default function StatsPage() {
             </span>
           </div>
         </div>
-
-        <nav className="flex gap-4 text-sm">
-          <Link href="/" className="mx-2 text-white/70 hover:text-white">
-            Back to Test
-          </Link>
-          <Link href="https://ko-fi.com/themonkeytype" target="_blank" rel="noreferrer" className="mx-2 text-white/70 hover:text-white">
-            Donate <FaDonate className="inline-block" />
-          </Link>
-          <Link href="https://discord.gg/5G2WvTYbPR" className="mx-2 text-white/70 hover:text-white">
-            Discord
-          </Link>
-          <Link href="/stats" className="mx-2 text-white/70 hover:text-white">
-            Refresh
-          </Link>
-        </nav>
       </header>
 
       {/* Filters + Actions */}
@@ -548,6 +533,7 @@ function Badge({ title, value, accent = "brand" }) {
     </div>
   );
 }
+
 
 
 

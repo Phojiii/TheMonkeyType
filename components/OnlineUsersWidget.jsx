@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -49,6 +49,13 @@ export default function OnlineUsersWidget() {
   }, []);
 
   useEffect(() => {
+    if (!authReady) {
+      lastLoadedAtRef.current = 0;
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
 
     const pingPresence = async () => {
@@ -59,7 +66,7 @@ export default function OnlineUsersWidget() {
     };
 
     const loadUsers = async ({ force = false } = {}) => {
-      if (!pageVisible) return;
+      if (!authReady || !pageVisible) return;
 
       const now = Date.now();
       const minAge = open ? OPEN_REFRESH_MS - 2_000 : CLOSED_REFRESH_MS - 5_000;
@@ -104,10 +111,10 @@ export default function OnlineUsersWidget() {
       clearInterval(usersTimer);
       if (presenceTimer) clearInterval(presenceTimer);
     };
-  }, [authReady, open, pageVisible, user?.id, users.length]);
+  }, [authReady, open, pageVisible, user?.id]);
 
   useEffect(() => {
-    if (!open || !pageVisible) return;
+    if (!authReady || !open || !pageVisible) return;
 
     const staleForMs = Date.now() - lastLoadedAtRef.current;
     if (staleForMs < 10_000) return;
@@ -137,7 +144,7 @@ export default function OnlineUsersWidget() {
     return () => {
       cancelled = true;
     };
-  }, [authReady, open, pageVisible, user?.id, users.length]);
+  }, [authReady, open, pageVisible, user?.id]);
 
   useEffect(() => {
     if (!open) return;
@@ -151,6 +158,7 @@ export default function OnlineUsersWidget() {
   }, [open]);
 
   const lobbyLabel = useMemo(() => {
+    if (!authReady) return "Sign in to view";
     if (loading && users.length === 0) return "Loading lobby";
     return onlineCount === 1 ? "1 player online" : `${onlineCount} players online`;
   }, [loading, onlineCount, users.length]);
@@ -242,7 +250,14 @@ export default function OnlineUsersWidget() {
           </div>
 
           <div className="max-h-[24rem] overflow-y-auto px-3 py-3">
-            {loading && users.length === 0 ? (
+            {!authReady ? (
+              <div className="px-3 py-7 text-center">
+                <p className="text-sm text-white/60">Sign in to see online players and start a typing duel.</p>
+                <button type="button" onClick={() => openSignIn?.()} className="btn-primary mt-4 px-4 py-2 text-xs">
+                  Sign in to view lobby
+                </button>
+              </div>
+            ) : loading && users.length === 0 ? (
               <div className="px-3 py-6 text-center text-sm text-white/55">Loading online players...</div>
             ) : users.length === 0 ? (
               <div className="px-3 py-6 text-center text-sm text-white/55">
@@ -321,3 +336,6 @@ export default function OnlineUsersWidget() {
     </div>
   );
 }
+
+
+

@@ -1,9 +1,10 @@
-import "./globals.css";
+﻿import "./globals.css";
 import NavBar from "../components/NavBar";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import Providers from "../components/Providers";
+import SiteHeader from "../components/SiteHeader";
 
 const googleSiteVerification =
   process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
@@ -69,6 +70,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <NavBar />
           <main className="ml-0 mt-[4.85rem] font-mono antialiased md:ml-20 md:mt-0">
+            <SiteHeader />
             {children}
           </main>
           <SpeedInsights />
@@ -78,3 +80,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

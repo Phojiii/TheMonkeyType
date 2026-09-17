@@ -224,35 +224,7 @@ function ReleaseCard({ release }) {
 export default function ReleaseNotesPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pb-4 pt-8">
-        <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/TMT_Logo_2_new.png"
-            alt="TMT Logo"
-            width={150}
-            height={40}
-            priority
-            style={{ width: "auto", height: "auto" }}
-          />
-          <span className="sr-only">TMT - Typing Trainer</span>
-        </Link>
-        <nav className="hidden gap-4 text-sm text-white/70 md:flex">
-          <Link href="/" className="hover:text-white">
-            Test
-          </Link>
-          <Link href="/guide" className="hover:text-white">
-            Guide
-          </Link>
-          <Link href="/about" className="hover:text-white">
-            About
-          </Link>
-          <Link href="/blog" className="hover:text-white">
-            Blog
-          </Link>
-        </nav>
-      </header>
-
-      <section className="flex-1 px-6 py-10">
+<section className="flex-1 px-6 py-10">
         <div className="mx-auto max-w-6xl space-y-8">
           <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8 md:p-10">
             <div className="grid gap-8 lg:grid-cols-[1.35fr_0.85fr] lg:items-start">
@@ -344,3 +316,4 @@ export default function ReleaseNotesPage() {
     </main>
   );
 }
+

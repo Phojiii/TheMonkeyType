@@ -11,26 +11,7 @@ export const metadata = {
 export default function ContactPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/TMT_Logo_2_new.png"
-            alt="TMT Logo"
-            width={150}
-            height={40}
-            priority
-            style={{ width: "auto", height: "auto" }}
-          />
-          <span className="sr-only">TMT - Typing Trainer</span>
-        </Link>
-        <nav className="text-white/70 flex gap-4 text-sm">
-          <Link href="/leaderboard" className="hover:text-white">Leaderboard</Link>
-          <Link href="/stats" className="hover:text-white">Stats</Link>
-          <Link href="/about" className="hover:text-white">About</Link>
-        </nav>
-      </header>
-
-      <section className="flex-1 px-6 py-10">
+<section className="flex-1 px-6 py-10">
         <div className="mx-auto max-w-6xl space-y-8">
           <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8 md:p-10">
             <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
@@ -89,3 +70,4 @@ export default function ContactPage() {
     </main>
   );
 }
+

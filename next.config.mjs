@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+﻿/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   async redirects() {
@@ -36,8 +36,11 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "img.clerk.com" },
       { protocol: "https", hostname: "images.clerk.dev" },
+      { protocol: "https", hostname: "twelve.tools" },
+      { protocol: "https", hostname: "fazier.com" },
     ],
   },
 };
 
 export default nextConfig;
+

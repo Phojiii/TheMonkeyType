@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
+import { getAuth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import Score from "@/models/Score";
 
@@ -8,6 +9,11 @@ export const dynamic = "force-dynamic";
 const ONLINE_WINDOW_MS = 45_000;
 
 export async function GET(req) {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   try {
     await connectDB();
 
@@ -66,3 +72,5 @@ export async function GET(req) {
     return NextResponse.json({ error: "Failed to load online users" }, { status: 500 });
   }
 }
+
+

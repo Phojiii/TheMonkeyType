@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -60,19 +60,6 @@ export default function LeaderboardPage() {
     return `${scopeLabel} ${modeLabel} ${categoryLabel} Leaderboard`;
   }, [scope, mode, category]);
 
-  useEffect(() => {
-    if (!isSignedIn) return;
-
-    const ping = async () => {
-      try {
-        await fetch("/api/presence", { method: "POST" });
-      } catch {}
-    };
-
-    ping();
-    const timer = setInterval(ping, 25000);
-    return () => clearInterval(timer);
-  }, [isSignedIn]);
 
   useEffect(() => {
     let cancelled = false;
@@ -272,10 +259,6 @@ export default function LeaderboardPage() {
                 : "cursor-not-allowed border-white/5 bg-white/5 opacity-50"
             }`}
           />
-
-          <Link href="/" className="btn-ghost ml-1 text-sm">
-            Back
-          </Link>
         </div>
       </header>
 
@@ -497,3 +480,6 @@ export default function LeaderboardPage() {
     </main>
   );
 }
+
+
+

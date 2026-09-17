@@ -1,6 +1,7 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import image from "next/image";
 import { FaRegKeyboard } from "react-icons/fa";
 import { TfiStatsUp } from "react-icons/tfi";
 import { BsClipboardData } from "react-icons/bs";
@@ -57,32 +58,7 @@ const statNotes = [
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-ink text-white flex flex-col">
-      <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/TMT_Logo_2_new.png"
-            alt="TMT Logo"
-            width={150}
-            height={40}
-            priority
-            style={{ width: "auto", height: "auto" }}
-          />
-          <span className="sr-only">TMT - Typing Trainer</span>
-        </Link>
-        <nav className="text-white/70 flex gap-4 text-sm">
-          <Link href="/leaderboard" className="hover:text-white">
-            Leaderboard
-          </Link>
-          <Link href="/stats" className="hover:text-white">
-            Stats
-          </Link>
-          <Link href="/contact" className="hover:text-white">
-            Contact
-          </Link>
-        </nav>
-      </header>
-
-      <section className="flex-1 px-6 py-10">
+<section className="flex-1 px-6 py-10">
         <div className="max-w-6xl mx-auto space-y-10">
           <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-[2rem] p-8 md:p-10 border border-white/10">
             <div className="grid gap-10 lg:grid-cols-[1.4fr_0.9fr] lg:items-center">
@@ -229,6 +205,34 @@ export default function AboutPage() {
                 typing feel less frustrating, then it is doing its job.
               </p>
             </div>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
+              <h2 className="text-2xl font-semibold">Featured on</h2>
+              <p className="mt-4 text-white/75 leading-7">
+                TheMonkeyType has been featured on Twelve Tools and Fazier. We are
+                grateful for the recognition and hope to continue improving the site for
+                everyone who uses it.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <a
+                  href="https://twelve.tools"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group inline-flex min-h-14 items-center rounded-2xl border border-white/10 bg-black/15 px-4 transition hover:-translate-y-0.5 hover:border-brand/50 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                  aria-label="View TheMonkeyType on Twelve Tools"
+                >
+                  <Image src="https://twelve.tools/badge2-dark.svg" alt="Featured on Twelve Tools" width={148} height={40} className="h-10 w-auto opacity-85 transition group-hover:opacity-100" />
+                </a>
+                <a
+                  href="https://fazier.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group inline-flex min-h-14 items-center rounded-2xl border border-white/10 bg-black/15 px-4 transition hover:-translate-y-0.5 hover:border-brand/50 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                  aria-label="View TheMonkeyType on Fazier"
+                >
+                  <Image src="https://fazier.com/api/v1/public/badges/launch_badges.svg?badge_type=featured&theme=dark" alt="Featured on Fazier" width={250} height={40} className="h-10 w-auto max-w-full opacity-85 transition group-hover:opacity-100" />
+                </a>
+              </div>
+            </div>
           </section>
         </div>
       </section>
@@ -237,3 +241,5 @@ export default function AboutPage() {
     </main>
   );
 }
+
+

@@ -112,7 +112,7 @@ export default function Footer({ embedded = false } = {}) {
   return (
     <>
       <div aria-hidden="true" className="h-0" />
-      <footer className="fixed bottom-[10%] right-[5%] z-40 w-[calc(100%-1.5rem)] max-w-[16rem] overflow-hidden rounded-3xl border border-white/10 bg-[#232325e6] shadow-[0_18px_45px_rgba(0,0,0,0.34)] backdrop-blur-md md:bottom-auto md:right-56 md:top-6 md:w-[20rem] lg:w-[22rem]">
+      <footer className="fixed bottom-[10%] right-[5%] z-40 w-[calc(100%-1.5rem)] max-w-[16rem] overflow-hidden rounded-3xl border border-white/10 bg-[#232325e6] shadow-[0_18px_45px_rgba(0,0,0,0.34)] backdrop-blur-md md:hidden">
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
@@ -135,6 +135,7 @@ export default function Footer({ embedded = false } = {}) {
     </>
   );
 }
+
 
 
 
