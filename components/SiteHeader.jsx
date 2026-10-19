@@ -6,13 +6,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaDonate, FaHeart } from "react-icons/fa";
 import Footer from "@/components/Footer";
+import { languageForLocale } from "@/lib/locales";
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const [donationOpen, setDonationOpen] = useState(false);
 
   // The home page owns this same header so beginner focus mode can hide it.
-  if (pathname === "/") return null;
+  if (pathname === "/" || languageForLocale(pathname.slice(1))) return null;
 
   return (
     <>

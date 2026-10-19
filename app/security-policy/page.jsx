@@ -22,7 +22,7 @@ export default function SecurityPolicyPage() {
         <h2 className="text-xl font-semibold text-brand mt-6">How to report a vulnerability</h2>
         <p>
           If you discover a possible security issue, please report it to
-          <em> support@themonkeytype.com</em> with a clear description, affected URLs,
+          <em> info@lemsee.agency</em> with a clear description, affected URLs,
           reproduction steps, impact, and any relevant screenshots or proof of concept.
         </p>
 

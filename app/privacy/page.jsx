@@ -109,7 +109,7 @@ export default function PrivacyPage() {
         <p>
           You can clear browser-stored local data at any time. Subject to applicable law,
           you may also request access, correction, or deletion of account-related data.
-          If you want to make a request, contact us at <em>support@themonkeytype.com</em>.
+          If you want to make a request, contact us at <em>info@lemsee.agency</em>.
         </p>
 
         <h2 className="text-xl font-semibold text-brand mt-6">External links</h2>

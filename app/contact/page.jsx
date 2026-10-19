@@ -56,7 +56,7 @@ export default function ContactPage() {
 
                 <div>
                   <h2 className="text-lg font-semibold text-brand">Direct email</h2>
-                  <p className="mt-2 text-sm leading-7 text-white/72">support@themonkeytype.com</p>
+                  <p className="mt-2 text-sm leading-7 text-white/72">info@lemsee.agency</p>
                 </div>
               </div>
             </div>

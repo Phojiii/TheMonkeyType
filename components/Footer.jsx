@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -20,6 +20,7 @@ export default function Footer({ embedded = false } = {}) {
   const pathname = usePathname();
   const [onlineCount, setOnlineCount] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const footerRef = useRef(null);
   const lobbyLabel = onlineCount === 1 ? "1 player online" : `${onlineCount} players online`;
 
   useEffect(() => {
@@ -34,6 +35,17 @@ export default function Footer({ embedded = false } = {}) {
       window.removeEventListener("tmt:lobby-count", handleCount);
     };
   }, []);
+
+  useEffect(() => {
+    if (!expanded) return;
+
+    const closeOnOutsideClick = (event) => {
+      if (!footerRef.current?.contains(event.target)) setExpanded(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [expanded]);
 
   const openLobby = () => {
     window.dispatchEvent(new CustomEvent("tmt:lobby-toggle", { detail: { open: true } }));
@@ -80,12 +92,28 @@ export default function Footer({ embedded = false } = {}) {
       <div className="mt-3 border-t border-white/8 pt-2 text-[11px] text-white/35">
         Copyright TheMonkeyType
       </div>
+
+      <div className="mt-3 border-t border-white/8 pt-3 text-xs leading-5 text-white/55">
+        <p>The Monkey Type is managed and maintained by <span className="text-white/75">LemSee Agency</span>.</p>
+        <p className="mt-1">For business, partnership, advertising, account support, or bug reports, contact <a href="mailto:info@lemsee.agency" className="text-brand hover:text-white">info@lemsee.agency</a> or use the <Link href="/contact" className="text-brand hover:text-white">contact page</Link>.</p>
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
+          <Link href="/" className="hover:text-brand">Typing Test</Link>
+          <Link href="/stats" className="hover:text-brand">Stats</Link>
+          <Link href="/leaderboard" className="hover:text-brand">Leaderboard</Link>
+          <Link href="/guide" className="hover:text-brand">Guide</Link>
+          <Link href="/blog" className="hover:text-brand">Blog</Link>
+          <Link href="/about" className="hover:text-brand">About</Link>
+          <Link href="/contact" className="hover:text-brand">Contact</Link>
+          <Link href="/privacy" className="hover:text-brand">Privacy</Link>
+          <Link href="/terms" className="hover:text-brand">Terms</Link>
+        </div>
+      </div>
     </>
   );
 
   if (embedded) {
     return (
-      <div className="relative inline-flex shrink-0">
+      <div ref={footerRef} className="relative inline-flex shrink-0">
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
@@ -112,7 +140,7 @@ export default function Footer({ embedded = false } = {}) {
   return (
     <>
       <div aria-hidden="true" className="h-0" />
-      <footer className="fixed bottom-[10%] right-[5%] z-40 w-[calc(100%-1.5rem)] max-w-[16rem] overflow-hidden rounded-3xl border border-white/10 bg-[#232325e6] shadow-[0_18px_45px_rgba(0,0,0,0.34)] backdrop-blur-md md:hidden">
+      <footer ref={footerRef} className="fixed bottom-[10%] right-[5%] z-40 w-[calc(100%-1.5rem)] max-w-[16rem] overflow-hidden rounded-3xl border border-white/10 bg-[#232325e6] shadow-[0_18px_45px_rgba(0,0,0,0.34)] backdrop-blur-md md:hidden">
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}

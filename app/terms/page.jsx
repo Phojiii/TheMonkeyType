@@ -76,7 +76,7 @@ export default function TermsPage() {
         </p>
 
         <p className="mt-6">
-          Questions about these terms can be sent to <em>support@themonkeytype.com</em>.
+          Questions about these terms can be sent to <em>info@lemsee.agency</em>.
         </p>
       </section>
 

@@ -188,7 +188,7 @@ export default function AboutPage() {
                 real users shapes the best updates.
               </p>
               <p className="mt-4 text-white/75 leading-7">
-                You can reach us at <strong>support@themonkeytype.com</strong> or join
+                You can reach us at <a href="mailto:info@lemsee.agency" className="font-semibold text-brand hover:text-white">info@lemsee.agency</a> or join
                 the community through our Discord server from the homepage navigation.
               </p>
             </div>
