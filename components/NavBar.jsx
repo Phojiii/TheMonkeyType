@@ -64,10 +64,6 @@ export default function NavBar() {
   return (
     <>
       <nav className="fixed left-0 top-0 z-50 hidden h-screen w-20 flex-col items-center bg-[#23232583] py-6 shadow-lg backdrop-blur-sm md:flex">
-        <Link href="/">
-          <Image src="/TMT_Logo_new.png" alt="TMT Logo" width={40} height={40} priority style={{ width: "auto", height: "auto" }} />
-        </Link>
-
         <div className="flex flex-1 flex-col justify-center gap-8">
           <NavLink href="/" icon={<FaHome />} label="Home" active={pathname === "/"} />
           <NavLink href="/stats" icon={<FaChartBar />} label="Stats" active={pathname === "/stats"} />

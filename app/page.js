@@ -393,7 +393,7 @@ export default function Home({ locale = "english" }) {
       )}
 
       <section
-        className={`flex flex-1 items-start justify-center px-4 py-8 md:px-6 md:py-10 md:mt-28 `}
+        className={`flex flex-1 items-start justify-center px-4 py-8 md:px-6 md:py-10 md:mt-12`}
       >
         <p className="sr-only">
           Master your typing speed with a customizable minimalist typing test on The Monkey Type
