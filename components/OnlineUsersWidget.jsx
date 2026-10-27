@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useAuth, useClerk, useUser } from "@clerk/nextjs";
 
 const DURATION_OPTIONS = [15, 30, 60, 120];
 const OPEN_REFRESH_MS = 15_000;
@@ -24,6 +24,7 @@ export default function OnlineUsersWidget() {
   const router = useRouter();
   const pathname = usePathname();
   const { openSignIn } = useClerk();
+  const { getToken } = useAuth();
   const { user, isLoaded, isSignedIn } = useUser();
 
   const [open, setOpen] = useState(false);
@@ -61,6 +62,7 @@ export default function OnlineUsersWidget() {
     const pingPresence = async () => {
       if (!authReady || !pageVisible) return;
       try {
+        if (!(await getToken()) || cancelled) return;
         await fetch("/api/presence", { method: "POST" });
       } catch {}
     };
@@ -74,7 +76,14 @@ export default function OnlineUsersWidget() {
 
       if (!cancelled && users.length === 0) setLoading(true);
       try {
-        const res = await fetch("/api/online-users?limit=18", { cache: "no-store" });
+        let res;
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          if (!(await getToken()) || cancelled) return;
+          res = await fetch("/api/online-users?limit=18", { cache: "no-store" });
+          if (res.status !== 401 || attempt === 1) break;
+          await new Promise((resolve) => window.setTimeout(resolve, 400));
+        }
+        if (!res?.ok) throw new Error(`Lobby request failed (${res?.status || "unknown"})`);
         const data = await res.json();
 
         if (!cancelled) {
@@ -111,40 +120,7 @@ export default function OnlineUsersWidget() {
       clearInterval(usersTimer);
       if (presenceTimer) clearInterval(presenceTimer);
     };
-  }, [authReady, open, pageVisible, user?.id]);
-
-  useEffect(() => {
-    if (!authReady || !open || !pageVisible) return;
-
-    const staleForMs = Date.now() - lastLoadedAtRef.current;
-    if (staleForMs < 10_000) return;
-
-    let cancelled = false;
-    const refresh = async () => {
-      setLoading((current) => (users.length === 0 ? true : current));
-      try {
-        const res = await fetch("/api/online-users?limit=18", { cache: "no-store" });
-        const data = await res.json();
-        if (!cancelled) {
-          lastLoadedAtRef.current = Date.now();
-          const nextUsers = Array.isArray(data?.users) ? data.users : [];
-          setUsers(
-            authReady && user?.id
-              ? nextUsers.filter((entry) => entry?.userId !== user.id)
-              : nextUsers
-          );
-        }
-      } catch {
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    refresh();
-    return () => {
-      cancelled = true;
-    };
-  }, [authReady, open, pageVisible, user?.id]);
+  }, [authReady, open, pageVisible, user?.id, getToken]);
 
   useEffect(() => {
     if (!open) return;

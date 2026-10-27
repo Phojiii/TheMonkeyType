@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaDiscord, FaGithub, FaGlobe, FaInstagram, FaTiktok, FaTwitch, FaYoutube } from "react-icons/fa";
+import { TYPING_ACHIEVEMENTS } from "@/lib/typingAchievements";
 
 function formatValue(value, fallback = "-") {
   return value || fallback;
@@ -66,6 +67,15 @@ export default function ProfileView({ bundle, isOwner = false, ownerActions = nu
   const wordBests = profile?.wordBests || {};
   const levelInfo = profile?.levelInfo || { level: 1, progress: 0, needed: 1, xp: 0 };
   const progressPercent = Math.min(100, Math.round((Number(levelInfo.progress || 0) / Math.max(1, Number(levelInfo.needed || 1))) * 100));
+  const unlockedAchievements = new Set((profile?.achievements || []).map((item) => item.id));
+  const earnedBadges = TYPING_ACHIEVEMENTS.filter((achievement) => unlockedAchievements.has(achievement.id));
+  const keyErrors = Array.isArray(profile?.keyErrors) ? profile.keyErrors : [];
+  const drillKeys = keyErrors
+    .slice()
+    .sort((left, right) => Number(right.count || 0) - Number(left.count || 0))
+    .map((item) => String(item.key || "").toLowerCase())
+    .filter((key) => /^[a-z]$/.test(key))
+    .slice(0, 6);
 
   if (!profile) {
     return (
@@ -105,6 +115,14 @@ export default function ProfileView({ bundle, isOwner = false, ownerActions = nu
               <p className="mt-3 text-sm text-white/30">
                 Joined {new Date(profile.joinedAt || Date.now()).toLocaleDateString()}
               </p>
+
+              {earnedBadges.length ? (
+                <div className="mt-4 flex flex-wrap gap-2" aria-label="Earned achievement badges">
+                  {earnedBadges.map((achievement) => (
+                    <AchievementBadge key={achievement.id} achievement={achievement} compact />
+                  ))}
+                </div>
+              ) : null}
 
               <div className="mt-6">
                 <div className="mb-2 flex items-center justify-between text-sm text-white/55">
@@ -187,6 +205,53 @@ export default function ProfileView({ bundle, isOwner = false, ownerActions = nu
         />
       </section>
 
+      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-[1.8rem] border border-white/8 bg-[#2a2b2f] p-5 md:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-brand/75">Milestones</p>
+              <h2 className="mt-2 text-2xl font-semibold text-white">Achievements</h2>
+            </div>
+            <span className="rounded-full bg-brand/10 px-3 py-1 text-xs text-brand">{unlockedAchievements.size}/{TYPING_ACHIEVEMENTS.length} unlocked</span>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {TYPING_ACHIEVEMENTS.map((achievement) => {
+              const unlocked = unlockedAchievements.has(achievement.id);
+              return (
+                <article key={achievement.id} className={`flex items-center gap-4 rounded-2xl border p-4 ${unlocked ? "border-brand/25 bg-brand/[0.07]" : "border-white/8 bg-black/10"}`}>
+                  <AchievementBadge achievement={achievement} unlocked={unlocked} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="font-semibold text-white">{achievement.title}</h3>
+                      <span className={unlocked ? "text-xs text-brand" : "text-xs text-white/30"}>{unlocked ? achievement.tag : "Locked"}</span>
+                    </div>
+                    <p className="mt-1 text-sm leading-5 text-white/55">{achievement.description}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-[1.8rem] border border-white/8 bg-[#2a2b2f] p-5 md:p-6">
+          <p className="text-xs uppercase tracking-[0.18em] text-brand/75">Practice focus</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">Key error heatmap</h2>
+          {keyErrors.length ? (
+            <>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {keyErrors.slice().sort((left, right) => Number(right.count || 0) - Number(left.count || 0)).slice(0, 8).map((item) => (
+                  <span key={item.key} className="rounded-xl border border-brand/20 bg-brand/10 px-3 py-2 text-sm text-brand">
+                    {String(item.key).toUpperCase()} <span className="text-white/55">{item.count}</span>
+                  </span>
+                ))}
+              </div>
+              <p className="mt-4 text-sm leading-6 text-white/55">These are the expected keys missed most often in signed-in runs.</p>
+              {drillKeys.length ? <Link href={`/?drill=${encodeURIComponent(drillKeys.join(","))}`} className="btn-primary mt-5 w-full">Practice {drillKeys.map((key) => key.toUpperCase()).join(" ")}</Link> : null}
+            </>
+          ) : <p className="mt-5 text-sm leading-6 text-white/50">Complete signed-in tests to build a personal key heatmap.</p>}
+        </div>
+      </section>
+
       <section className="grid gap-6 xl:grid-cols-2">
         <div className="rounded-[1.8rem] border border-white/8 bg-[#2a2b2f] p-5">
           <div className="mb-5 flex items-center justify-between">
@@ -248,5 +313,38 @@ export default function ProfileView({ bundle, isOwner = false, ownerActions = nu
         </div>
       </section>
     </div>
+  );
+}
+
+function AchievementBadge({ achievement, unlocked = true, compact = false }) {
+  const tooltip = `${achievement.tag}: ${achievement.description}`;
+
+  return (
+    <span className="group relative inline-flex shrink-0">
+      <span
+        role="img"
+        tabIndex={0}
+        title={tooltip}
+        aria-label={tooltip}
+        aria-describedby={`badge-tip-${achievement.id}`}
+        className={`inline-flex rounded-full transition-transform duration-200 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a2b2f] ${compact ? "h-10 w-10" : "h-14 w-14"} ${unlocked ? "" : "grayscale opacity-50"}`}
+      >
+        <Image
+          src={achievement.badge}
+          alt=""
+          width={compact ? 40 : 56}
+          height={compact ? 40 : 56}
+          className={`h-full w-full object-contain ${unlocked ? "drop-shadow-[0_0_10px_rgba(226,183,20,0.2)]" : ""}`}
+        />
+      </span>
+      <span
+        id={`badge-tip-${achievement.id}`}
+        role="tooltip"
+        className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-56 -translate-x-1/2 rounded-xl border border-white/10 bg-[#191a1c] px-3 py-2 text-center text-xs leading-5 text-white/80 opacity-0 shadow-xl transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+      >
+        <strong className="block text-brand">{achievement.tag}</strong>
+        {achievement.description}
+      </span>
+    </span>
   );
 }

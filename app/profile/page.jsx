@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import Footer from "@/components/Footer";
 import ProfileView from "@/components/ProfileView";
+import FriendsHub from "@/components/FriendsHub";
 
 const EMPTY_SOCIALS = {
   website: "",
@@ -26,6 +27,7 @@ const BEGINNER_PROGRESS_STORAGE_KEYS = [
 
 export default function MyProfilePage() {
   const { user, isLoaded, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const [bundle, setBundle] = useState(null);
   const [form, setForm] = useState({
     bio: "",
@@ -50,20 +52,25 @@ export default function MyProfilePage() {
     let cancelled = false;
     let retryTimer = null;
 
-    const load = async () => {
+    const load = async (attempt = 0) => {
       setLoading(true);
       try {
+        const sessionToken = await getToken();
+        if (!sessionToken || cancelled) return;
+
         const res = await fetch("/api/profile/me", {
           cache: "no-store",
           credentials: "include",
         });
 
+        if (res.status === 401 && attempt < 1) {
+          retryTimer = window.setTimeout(() => {
+            if (!cancelled && isSignedIn) load(attempt + 1);
+          }, 500);
+          return;
+        }
         if (res.status === 401) {
-          if (!cancelled) {
-            retryTimer = window.setTimeout(() => {
-              if (!cancelled && isSignedIn) load();
-            }, 700);
-          }
+          if (!cancelled) setMessage("Your sign-in session could not be verified. Refresh the page or sign in again.");
           return;
         }
 
@@ -98,7 +105,7 @@ export default function MyProfilePage() {
       cancelled = true;
       if (retryTimer) window.clearTimeout(retryTimer);
     };
-  }, [isLoaded, isSignedIn, user?.id]);
+  }, [isLoaded, isSignedIn, user?.id, getToken]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -170,6 +177,11 @@ export default function MyProfilePage() {
   return (
     <main className="min-h-screen bg-ink px-4 py-8 text-white md:px-6 md:py-10">
       <div className="mx-auto max-w-6xl">
+        {message && !bundle ? (
+          <p role="alert" className="mb-5 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100/80">
+            {message}
+          </p>
+        ) : null}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm uppercase tracking-[0.16em] text-white/25">Profile</p>
@@ -253,6 +265,9 @@ export default function MyProfilePage() {
             </form>
           }
         />
+        <div className="mt-6">
+          <FriendsHub />
+        </div>
       </div>
       <Footer />
     </main>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import Challenge from "@/models/Challange";
+import UserProfile from "@/models/UserProfile";
 
 export const runtime = "nodejs";
 
@@ -72,6 +73,13 @@ export async function POST(req, { params }) {
     }
 
     await challenge.save();
+
+    if (challenge.status === "done" && challenge.winnerId) {
+      await UserProfile.updateOne(
+        { userId: challenge.winnerId, "achievements.id": { $ne: "first-1v1-win" } },
+        { $push: { achievements: { id: "first-1v1-win", unlockedAt: new Date() } } }
+      );
+    }
 
     return NextResponse.json({
       success: true,

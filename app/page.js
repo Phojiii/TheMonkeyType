@@ -19,6 +19,16 @@ import { LOCALIZED_HOME_COPY } from "@/lib/localizedHomeCopy";
 const PREF_KEY = "tmt_prefs";
 const BEGINNER_PROGRESS_KEY = "tmt_beginner_progress_v4";
 
+function createKeyDrill(keys, count) {
+  const safeKeys = keys.filter((key) => /^[a-z]$/.test(key));
+  if (!safeKeys.length) return "";
+
+  return Array.from({ length: count }, (_, wordIndex) => {
+    const length = 2 + (wordIndex % 4);
+    return Array.from({ length }, (_, keyIndex) => safeKeys[(wordIndex + keyIndex) % safeKeys.length]).join("");
+  }).join(" ");
+}
+
 export default function Home({ locale = "english" }) {
   const router = useRouter();
   const [lang, setLang] = useState(locale);
@@ -37,6 +47,7 @@ export default function Home({ locale = "english" }) {
   const [sessionId, setSessionId] = useState(0);
   const [donationOpen, setDonationOpen] = useState(false);
   const [showHomeIntro, setShowHomeIntro] = useState(false);
+  const [drillKeys, setDrillKeys] = useState([]);
   const localizedHomeCopy = LOCALIZED_HOME_COPY[locale] || null;
 
   const genRef = useRef(null);
@@ -67,6 +78,19 @@ export default function Home({ locale = "english" }) {
       }
     } catch {}
   }, [locale]);
+
+  useEffect(() => {
+    const rawKeys = new URLSearchParams(window.location.search).get("drill");
+    if (!rawKeys) return;
+
+    const keys = [...new Set(rawKeys.toLowerCase().split(",").filter((key) => /^[a-z]$/.test(key)))].slice(0, 8);
+    if (!keys.length) return;
+
+    setDrillKeys(keys);
+    setBeginnerMode(false);
+    setTestType("words");
+    setWordCount(25);
+  }, []);
 
   useEffect(() => {
     try {
@@ -127,7 +151,9 @@ export default function Home({ locale = "english" }) {
   const rebuildGenerator = useCallback(() => {
     setLoading(true);
     try {
-      if (beginnerMode) {
+      if (drillKeys.length) {
+        setInitialText(createKeyDrill(drillKeys, wordCount));
+      } else if (beginnerMode) {
         const lesson = BEGINNER_LESSONS[beginnerLessonIndex] || BEGINNER_LESSONS[0];
         setInitialText(lesson.text.trim());
       } else {
@@ -146,7 +172,22 @@ export default function Home({ locale = "english" }) {
     setSessionId((current) => current + 1);
     setFocus(false);
     setLoading(false);
-  }, [beginnerLessonIndex, beginnerMode, lang, numbers, punctuation, testType, wordCount]);
+  }, [beginnerLessonIndex, beginnerMode, drillKeys, lang, numbers, punctuation, testType, wordCount]);
+
+  const handleTestTypeChange = useCallback((nextType) => {
+    if (drillKeys.length) setDrillKeys([]);
+    setTestType(nextType);
+  }, [drillKeys.length]);
+
+  const handleBeginnerModeChange = useCallback((enabled) => {
+    if (enabled && drillKeys.length) setDrillKeys([]);
+    setBeginnerMode(enabled);
+  }, [drillKeys.length]);
+
+  const exitKeyDrill = useCallback(() => {
+    setDrillKeys([]);
+    router.replace(window.location.pathname, { scroll: false });
+  }, [router]);
 
   useEffect(() => {
     rebuildGenerator();
@@ -154,6 +195,7 @@ export default function Home({ locale = "english" }) {
 
   const handleLanguageChange = useCallback((nextLanguage) => {
     if (beginnerMode) return;
+    setDrillKeys([]);
     setLang(nextLanguage);
     router.push(localePathForLanguage(nextLanguage));
   }, [beginnerMode, router]);
@@ -374,9 +416,9 @@ export default function Home({ locale = "english" }) {
           lang={lang}
           setLang={handleLanguageChange}
           testType={testType}
-          setTestType={setTestType}
+          setTestType={handleTestTypeChange}
           beginnerMode={beginnerMode}
-          setBeginnerMode={setBeginnerMode}
+          setBeginnerMode={handleBeginnerModeChange}
           duration={duration}
           setDuration={setDuration}
           wordCount={wordCount}
@@ -403,6 +445,13 @@ export default function Home({ locale = "english" }) {
         <h2 className="sr-only">Improve your typing accuracy with focused practice on The Monkey Type</h2>
 
         <div className="w-full max-w-5xl">
+          {drillKeys.length ? (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/20 bg-brand/[0.07] px-4 py-3">
+              <p className="text-sm text-white/75">Focused key drill: <span className="font-semibold uppercase tracking-wider text-brand">{drillKeys.join(" ")}</span></p>
+              <button type="button" onClick={exitKeyDrill} className="btn-secondary px-3 py-1.5 text-xs">Exit drill</button>
+            </div>
+          ) : null}
+
           <div className="mb-8 flex items-center justify-center gap-2 text-base text-white/38 md:hidden">
             <FaGlobeAmericas className="text-sm" />
             <span className="lowercase tracking-[0.08em]">{lang}</span>

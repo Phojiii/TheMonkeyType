@@ -65,6 +65,7 @@ export default function TypingTest({
   const [lastPressedKey, setLastPressedKey] = useState("");
   const [lastPressedCorrect, setLastPressedCorrect] = useState(false);
   const [mistakes, setMistakes] = useState(0);
+  const [keyErrors, setKeyErrors] = useState({});
 
   // time left
   const [remaining, setRemaining] = useState(durationSec);
@@ -129,6 +130,7 @@ export default function TypingTest({
     setIdx(0); setHits(0); setErrors(0);
     setBackspaces(0);
     setMistakes(0);
+    setKeyErrors({});
     setTyped([]);
     setEnded(false); setStartedAt(null); setFinishedElapsedMs(0);
     setRemaining(durationSec);
@@ -316,6 +318,7 @@ export default function TypingTest({
     setHits(0);
     setBackspaces(0);
     setMistakes(0);
+    setKeyErrors({});
     setEnded(false);
     setStartedAt(null);
     setFinishedElapsedMs(0);
@@ -453,6 +456,8 @@ export default function TypingTest({
     } else {
       setErrors(er => er + 1);
       setMistakes((count) => count + 1);
+      const errorKey = ch === " " ? "space" : ch.toLowerCase();
+      setKeyErrors((current) => ({ ...current, [errorKey]: (current[errorKey] || 0) + 1 }));
       gsap.fromTo(wrapRef.current, { x: -3 }, { x: 0, duration: 0.15, ease: "power2.out" });
     }
 
@@ -502,6 +507,7 @@ export default function TypingTest({
     words: grossWords,
     elapsedSec,
     backspaces,
+    keyErrors,
     testType,
     targetWordCount,
     duration: durationSec,

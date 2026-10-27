@@ -20,6 +20,36 @@ const AggregateStatsSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const KeyErrorSchema = new mongoose.Schema(
+  {
+    key: { type: String, required: true },
+    count: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
+
+const RecentRunSchema = new mongoose.Schema(
+  {
+    date: { type: Date, default: Date.now },
+    wpm: { type: Number, default: 0 },
+    accuracy: { type: Number, default: 0 },
+    words: { type: Number, default: 0 },
+    elapsedSec: { type: Number, default: 0 },
+    duration: { type: Number, default: 0 },
+    testType: { type: String, enum: ["time", "words"], default: "time" },
+    backspaces: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
+
+const AchievementSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true },
+    unlockedAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const UserProfileSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true, unique: true, index: true },
@@ -42,6 +72,11 @@ const UserProfileSchema = new mongoose.Schema(
       discord: { type: String, default: "" },
     },
     aggregate: { type: AggregateStatsSchema, default: () => ({}) },
+    keyErrors: { type: [KeyErrorSchema], default: [] },
+    recentRuns: { type: [RecentRunSchema], default: [] },
+    activityDates: { type: [String], default: [] },
+    perfectWords: { type: Number, default: 0 },
+    achievements: { type: [AchievementSchema], default: [] },
     bests: {
       time: {
         type: Map,

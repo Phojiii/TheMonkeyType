@@ -18,6 +18,7 @@ import { FaDonate } from "react-icons/fa";
 const LEGACY_KEY = "tmt_stats";
 const KEY_CLASSIC = "tmt_stats_classic";
 const KEY_COMP = "tmt_stats_competitive";
+const KEY_ERROR_HISTORY = "tmt_key_error_history_v1";
 const CHALLENGE_HISTORY_KEY_PREFIX = "tmt_challenge_history";
 
 export default function StatsPage() {
@@ -25,6 +26,7 @@ export default function StatsPage() {
   const storageKey = mode === "competitive" ? KEY_COMP : KEY_CLASSIC;
 
   const [raw, setRaw] = useState([]);
+  const [wordKeyErrorRuns, setWordKeyErrorRuns] = useState([]);
   const [filter, setFilter] = useState("all");
   const [range, setRange] = useState("7d");
   const [challengeHistory, setChallengeHistory] = useState([]);
@@ -68,12 +70,21 @@ export default function StatsPage() {
 
     setRaw(normalized);
 
+    try {
+      const history = JSON.parse(localStorage.getItem(KEY_ERROR_HISTORY) || "[]");
+      setWordKeyErrorRuns(
+        (Array.isArray(history) ? history : []).filter((run) => run.mode === mode && run.keyErrors)
+      );
+    } catch {
+      setWordKeyErrorRuns([]);
+    }
+
     gsap.fromTo(
       ".stats-stagger",
       { y: 10, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.4, stagger: 0.05 }
     );
-  }, [storageKey]);
+  }, [storageKey, mode]);
 
   const dataByDuration = useMemo(() => {
     const arr = Array.isArray(raw) ? raw : [];
@@ -157,9 +168,31 @@ export default function StatsPage() {
     return { bestWpm, bestAcc, avgWpm, totalWords, totalTests };
   }, [dataByDuration]);
 
+  const keyErrorTotals = useMemo(() => {
+    const totalsByKey = {};
+    for (const run of [...raw, ...wordKeyErrorRuns]) {
+      const errors = run?.keyErrors && typeof run.keyErrors === "object" ? run.keyErrors : {};
+      for (const [key, count] of Object.entries(errors)) {
+        const normalizedKey = String(key).toLowerCase();
+        totalsByKey[normalizedKey] = (totalsByKey[normalizedKey] || 0) + Math.max(0, Number(count) || 0);
+      }
+    }
+    return totalsByKey;
+  }, [raw, wordKeyErrorRuns]);
+
+  const mostMissedKeys = useMemo(
+    () => Object.entries(keyErrorTotals).sort((left, right) => right[1] - left[1]).slice(0, 6),
+    [keyErrorTotals]
+  );
+  const drillKeys = mostMissedKeys.map(([key]) => key).filter((key) => /^[a-z]$/.test(key)).slice(0, 6);
+  const maxKeyErrors = Math.max(1, ...Object.values(keyErrorTotals));
+
   const clearStats = () => {
     localStorage.removeItem(storageKey);
     setRaw([]);
+    const remaining = wordKeyErrorRuns.filter((run) => run.mode !== mode);
+    localStorage.setItem(KEY_ERROR_HISTORY, JSON.stringify(remaining));
+    setWordKeyErrorRuns(remaining);
   };
 
   function clearChallengeHistory() {
@@ -334,6 +367,56 @@ export default function StatsPage() {
           Complete a test to see your stats here.
         </div>
       )}
+
+      <section className="max-w-6xl mx-auto mt-8 rounded-xl border border-white/10 bg-white/5 p-6 stats-stagger">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">Typing error heatmap</h2>
+            <p className="mt-1 text-sm text-white/55">Highlights the expected keys you missed most often in saved tests on this device.</p>
+          </div>
+          {drillKeys.length ? (
+            <Link href={`/?drill=${encodeURIComponent(drillKeys.join(","))}`} className="btn-primary text-sm">
+              Practice {drillKeys.map((key) => key.toUpperCase()).join(" ")}
+            </Link>
+          ) : null}
+        </div>
+
+        {mostMissedKeys.length ? (
+          <>
+            <div className="mt-5 flex flex-wrap gap-2" aria-label="Most frequently missed keys">
+              {mostMissedKeys.map(([key, errors]) => (
+                <span key={key} className="rounded-lg border border-brand/20 bg-brand/[0.08] px-2.5 py-1.5 text-xs text-white/75">
+                  <span className="font-semibold text-brand">{key === "space" ? "Space" : key.toUpperCase()}</span> · {errors} errors
+                </span>
+              ))}
+            </div>
+            <div className="mt-6 grid grid-cols-10 gap-2 sm:grid-cols-[repeat(10,minmax(0,1fr))]">
+              {[..."qwertyuiop", ..."asdfghjkl", ..."zxcvbnm"].map((key) => {
+                const errors = keyErrorTotals[key] || 0;
+                const intensity = errors ? 0.12 + (errors / maxKeyErrors) * 0.72 : 0.04;
+                return (
+                  <div
+                    key={key}
+                    title={`${key.toUpperCase()}: ${errors} missed presses`}
+                    className="flex aspect-square min-w-0 flex-col items-center justify-center rounded-lg border border-white/10 text-xs sm:text-sm"
+                    style={{ backgroundColor: `rgba(226, 183, 20, ${intensity})` }}
+                  >
+                    <span className="font-semibold text-white">{key.toUpperCase()}</span>
+                    <span className="text-[10px] text-white/55">{errors}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {drillKeys.length ? (
+              <p className="mt-4 text-sm text-white/60">
+                Focus keys: <span className="font-semibold uppercase text-brand">{drillKeys.join(" · ")}</span>. The custom drill builds short patterns using those letters.
+              </p>
+            ) : <p className="mt-4 text-sm text-white/60">These keys are not supported by the current letter-only custom drill, but the heatmap still tracks them.</p>}
+          </>
+        ) : (
+          <p className="mt-5 text-sm text-white/50">Complete saved tests to build your key heatmap.</p>
+        )}
+      </section>
 
       {/* Chart */}
       <section className="max-w-6xl mx-auto mt-8 bg-white/5 rounded-xl p-6 border border-white/10 stats-stagger">

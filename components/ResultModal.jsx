@@ -9,6 +9,7 @@ import { buildResultShareAsset } from "@/lib/resultShare";
 const KEY_CLASSIC = "tmt_stats_classic";
 const KEY_COMP = "tmt_stats_competitive";
 const LEGACY_KEY = "tmt_stats";
+const KEY_ERROR_HISTORY = "tmt_key_error_history_v1";
 
 export default function ResultModal({ open, stats, onClose, onRetry, onNextLesson, hasNextLesson = false }) {
   const modalRef = useRef(null);
@@ -16,6 +17,7 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
   const savedOnceRef = useRef(false);
   const pushedToDBRef = useRef(false);
   const profileTrackedRef = useRef(false);
+  const wordErrorsSavedRef = useRef(false);
 
   const [shareBusy, setShareBusy] = useState("");
   const [shareMessage, setShareMessage] = useState("");
@@ -70,10 +72,25 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
       savedOnceRef.current = false;
       pushedToDBRef.current = false;
       profileTrackedRef.current = false;
+      wordErrorsSavedRef.current = false;
       setShareBusy("");
       setShareMessage("");
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !stats || testType !== "words" || wordErrorsSavedRef.current) return;
+
+    try {
+      const stored = JSON.parse(localStorage.getItem(KEY_ERROR_HISTORY) || "[]");
+      const history = Array.isArray(stored) ? stored : [];
+      history.push({ mode, keyErrors: stats.keyErrors || {}, date: new Date().toISOString() });
+      localStorage.setItem(KEY_ERROR_HISTORY, JSON.stringify(history.slice(-500)));
+      wordErrorsSavedRef.current = true;
+    } catch {
+      // Ignore local heatmap storage failures.
+    }
+  }, [open, stats, mode, testType]);
 
   useEffect(() => {
     if (open && modalRef.current) {
@@ -95,6 +112,7 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
       accuracy: Number(stats.accuracy?.toFixed?.(1) ?? stats.accuracy ?? 0),
       words: Number((stats.words ?? 0).toFixed?.(0) ?? stats.words ?? 0),
       hits: Number(stats.hits ?? 0),
+      keyErrors: stats.keyErrors || {},
       duration: Number(stats.duration ?? 60),
       date: new Date().toISOString(),
     };
@@ -175,10 +193,12 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
             targetWordCount: Number(stats.targetWordCount || 0),
             wpm: Number(stats.wpm || 0),
             accuracy: Number(stats.accuracy || 0),
+            words: Number(stats.words || 0),
             elapsedSec: Number(stats.elapsedSec || 0),
             characters: Number(stats.characters ?? stats.hits ?? 0),
             hits: Number(stats.hits || 0),
             backspaces: Number(stats.backspaces || 0),
+            keyErrors: stats.keyErrors || {},
           }),
         });
       } catch (error) {
