@@ -7,6 +7,7 @@ export const metadata = {
   description:
     "Answers to common questions about typing tests, scores, rankings, accounts, beginner lessons, privacy, and support on TheMonkeyType.",
   alternates: { canonical: "/faq" },
+  openGraph: { title: "FAQ | TheMonkeyType", url: "https://themonkeytype.com/faq", siteName: "The Monkey Type", type: "website" },
 };
 
 const faqs = [
@@ -73,7 +74,7 @@ const faqs = [
   {
     question: "Does TheMonkeyType use advertising cookies?",
     answer:
-      "The site may use third-party advertising technologies, including Google AdSense, and those services may rely on cookies or similar technologies to serve ads, measure performance, and personalize experiences where allowed. For more detail, the Privacy Policy explains advertising cookies, third-party vendors, user choices, and consent considerations.",
+      "Advertising is managed through Journey by Mediavine. Journey and its authorized partners may use cookies or similar technologies for ad delivery, measurement, and personalization where permitted. See the Privacy Policy and any consent controls shown on the site for more information.",
   },
   {
     question: "How can I improve faster on the site?",

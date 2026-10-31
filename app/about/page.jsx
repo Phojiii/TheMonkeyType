@@ -12,6 +12,7 @@ export const metadata = {
   description:
     "Learn what TheMonkeyType is, how it works, and how to get the most out of your typing practice.",
   alternates: { canonical: "/about" },
+  openGraph: { title: "About | TheMonkeyType", url: "https://themonkeytype.com/about", siteName: "The Monkey Type", type: "website" },
 };
 
 const highlights = [

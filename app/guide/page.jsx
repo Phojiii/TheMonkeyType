@@ -18,6 +18,7 @@ export const metadata = {
   description:
     "Learn how TheMonkeyType works, including timed and word-based tests, rankings, stats, competitive mode, and 1v1 challenges.",
   alternates: { canonical: "/guide" },
+  openGraph: { title: "Guide | TheMonkeyType", url: "https://themonkeytype.com/guide", siteName: "The Monkey Type", type: "website" },
 };
 
 const overviewCards = [

@@ -15,7 +15,6 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
   const modalRef = useRef(null);
   const firstButtonRef = useRef(null);
   const savedOnceRef = useRef(false);
-  const pushedToDBRef = useRef(false);
   const profileTrackedRef = useRef(false);
   const wordErrorsSavedRef = useRef(false);
 
@@ -33,44 +32,9 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
   const testType = stats?.testType === "words" ? "words" : "time";
   const shouldPersistResult = testType === "time";
 
-  function getLocalBestForDuration(duration) {
-    try {
-      const arr = JSON.parse(localStorage.getItem(storageKey) || "[]");
-      if (!Array.isArray(arr) || arr.length === 0) return null;
-
-      const dur = Number(duration);
-      if (!Number.isFinite(dur)) return null;
-
-      let bestWpm = -1;
-      let bestAccuracy = -1;
-
-      for (const row of arr) {
-        const rowDuration = Number(row?.duration);
-        if (rowDuration !== dur) continue;
-
-        const rowWpm = Number(row?.wpm) || 0;
-        const rowAccuracy = Number(row?.accuracy) || 0;
-
-        if (rowWpm > bestWpm) bestWpm = rowWpm;
-        if (rowAccuracy > bestAccuracy) bestAccuracy = rowAccuracy;
-      }
-
-      if (bestWpm < 0 && bestAccuracy < 0) return null;
-
-      return {
-        bestWpm: Math.max(0, bestWpm),
-        bestAccuracy: Math.max(0, bestAccuracy),
-        duration: dur,
-      };
-    } catch {
-      return null;
-    }
-  }
-
   useEffect(() => {
     if (!open) {
       savedOnceRef.current = false;
-      pushedToDBRef.current = false;
       profileTrackedRef.current = false;
       wordErrorsSavedRef.current = false;
       setShareBusy("");
@@ -136,48 +100,7 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
   }, [open, stats, storageKey, mode, shouldPersistResult]);
 
   useEffect(() => {
-    if (!open || !isSignedIn || !stats || pushedToDBRef.current || !shouldPersistResult) return;
-
-    const sessionDur = Number(stats.duration);
-    if (!Number.isFinite(sessionDur)) return;
-
-    const payload = {
-      bestWpm: Math.round(Number(stats.wpm) || 0),
-      bestAccuracy: Math.round(Number(stats.accuracy) || 0),
-      duration: sessionDur,
-      mode,
-    };
-
-    const localBest = getLocalBestForDuration(sessionDur);
-    if (localBest) {
-      if (localBest.bestWpm > payload.bestWpm) payload.bestWpm = localBest.bestWpm;
-      if (localBest.bestAccuracy > payload.bestAccuracy) payload.bestAccuracy = localBest.bestAccuracy;
-    }
-
-    if (payload.bestWpm > 0) {
-      pushedToDBRef.current = true;
-      (async () => {
-        try {
-          const res = await fetch("/api/saveScore", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(payload),
-          });
-
-          if (!res.ok) {
-            const txt = await res.text().catch(() => "");
-            console.error("saveScore error:", res.status, txt);
-          }
-        } catch (error) {
-          console.error("saveScore fetch failed:", error);
-        }
-      })();
-    }
-  }, [open, isSignedIn, stats, mode, shouldPersistResult, storageKey]);
-
-  useEffect(() => {
-    if (!open || !isSignedIn || !stats || profileTrackedRef.current) return;
+    if (!open || !isSignedIn || !stats || !stats.testSessionId || profileTrackedRef.current) return;
 
     profileTrackedRef.current = true;
     (async () => {
@@ -187,6 +110,7 @@ export default function ResultModal({ open, stats, onClose, onRetry, onNextLesso
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
+            testSessionId: stats.testSessionId,
             mode,
             testType,
             duration: Number(stats.duration || 0),

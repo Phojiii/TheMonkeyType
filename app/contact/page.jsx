@@ -7,6 +7,7 @@ export const metadata = {
   title: "Contact | TheMonkeyType",
   description: "Contact TheMonkeyType for support, partnerships, bug reports, or general inquiries.",
   alternates: { canonical: "/contact" },
+  openGraph: { title: "Contact | TheMonkeyType", url: "https://themonkeytype.com/contact", siteName: "The Monkey Type", type: "website" },
 };
 
 export default function ContactPage() {

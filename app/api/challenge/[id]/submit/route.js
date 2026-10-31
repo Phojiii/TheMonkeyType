@@ -34,14 +34,6 @@ export async function POST(req, { params }) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const result = {
-      wpm: Math.max(0, Math.round(Number(body?.wpm) || 0)),
-      accuracy: Math.max(0, Math.round(Number(body?.accuracy) || 0)),
-      words: Math.max(0, Math.round(Number(body?.words) || 0)),
-      hits: Math.max(0, Math.round(Number(body?.hits) || 0)),
-      finishedAt: new Date(),
-    };
-
     await connectDB();
 
     const challenge = await Challenge.findById(id);
@@ -58,6 +50,41 @@ export async function POST(req, { params }) {
       challenge.status = "expired";
       await challenge.save();
       return NextResponse.json({ error: "Challenge expired" }, { status: 409 });
+    }
+
+    const result = {
+      wpm: Number(body?.wpm),
+      accuracy: Number(body?.accuracy),
+      words: Number(body?.words),
+      hits: Number(body?.hits),
+      characters: Number(body?.characters),
+      elapsedSec: Number(body?.elapsedSec),
+      finishedAt: new Date(),
+    };
+    const calculatedWpm = (result.hits / 5 / result.elapsedSec) * 60;
+    const calculatedAccuracy = result.characters > 0
+      ? (result.hits / result.characters) * 100
+      : 0;
+
+    if (
+      ![
+        result.wpm,
+        result.accuracy,
+        result.words,
+        result.hits,
+        result.characters,
+        result.elapsedSec,
+      ].every(Number.isFinite) ||
+      result.wpm < 0 || result.wpm > 300 ||
+      result.accuracy < 0 || result.accuracy > 100 ||
+      result.words < 0 || result.hits < 0 ||
+      result.characters < result.hits || result.characters > 100_000 ||
+      result.elapsedSec <= 0 || result.elapsedSec > challenge.duration + 5 ||
+      Math.abs(result.words - result.hits / 5) > 0.2 ||
+      Math.abs(result.wpm - calculatedWpm) > 1.5 ||
+      Math.abs(result.accuracy - calculatedAccuracy) > 1.5
+    ) {
+      return NextResponse.json({ error: "Submitted challenge result is inconsistent" }, { status: 400 });
     }
 
     if (challenge.createdBy === userId) {

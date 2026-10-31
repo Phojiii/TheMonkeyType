@@ -6,6 +6,7 @@ export const metadata = {
   title: "Security Policy | TheMonkeyType",
   description: "How to responsibly report security issues affecting TheMonkeyType.",
   alternates: { canonical: "/security-policy" },
+  openGraph: { title: "Security Policy | TheMonkeyType", url: "https://themonkeytype.com/security-policy", siteName: "The Monkey Type", type: "website" },
 };
 
 export default function SecurityPolicyPage() {

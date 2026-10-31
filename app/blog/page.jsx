@@ -8,6 +8,7 @@ export const metadata = {
   title: "Blog | TheMonkeyType",
   description: "Typing guides, updates, and insights from TheMonkeyType team.",
   alternates: { canonical: "/blog" },
+  openGraph: { title: "Blog | TheMonkeyType", url: "https://themonkeytype.com/blog", siteName: "The Monkey Type", type: "website" },
 };
 
 export default async function BlogPage() {

@@ -208,40 +208,6 @@ export default function StatsPage() {
     setChallengeHistory(next);
   }
 
-  // Sync the best score to the server for leaderboard use.
-  useEffect(() => {
-    if (!isSignedIn || !totals) return;
-    if (!filter || filter === "all") return;
-
-    const duration = Number(filter);
-    const ALLOWED = [15, 30, 60, 120];
-    if (!ALLOWED.includes(duration)) return;
-
-    const payload = {
-      mode,
-      bestWpm: Math.round(totals.bestWpm),
-      bestAccuracy: Math.round(totals.bestAcc),
-      duration,
-    };
-
-    (async () => {
-      try {
-        const res = await fetch("/api/saveScore", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          console.error("SaveScore failed:", res.status, text);
-        }
-      } catch (err) {
-        console.error("SaveScore request error:", err);
-      }
-    })();
-  }, [isSignedIn, totals, filter, mode]);
-
   const removeEntry = (iFromEnd) => {
     const arr = Array.isArray(raw) ? [...raw] : [];
     const idx = arr.length - 1 - iFromEnd;

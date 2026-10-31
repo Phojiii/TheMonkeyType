@@ -1,4 +1,5 @@
-﻿import { getAllPosts } from "@/lib/blog";
+import { getAllPosts } from "@/lib/blog";
+import { LOCALE_PATHS } from "@/lib/locales";
 
 export default async function sitemap() {
   const baseUrl = "https://themonkeytype.com";
@@ -15,7 +16,17 @@ export default async function sitemap() {
     { url: `${baseUrl}/terms`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${baseUrl}/security-policy`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${baseUrl}/blog`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/faq`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/release-notes`, changeFrequency: "monthly", priority: 0.5 },
   ];
+
+  const localizedRoutes = Object.values(LOCALE_PATHS)
+    .filter(Boolean)
+    .map((locale) => ({
+      url: `${baseUrl}/${locale}`,
+      changeFrequency: "yearly",
+      priority: 0.8,
+    }));
 
   const blogRoutes = posts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
@@ -24,7 +35,7 @@ export default async function sitemap() {
     priority: 0.6,
   }));
 
-  return [...routes, ...blogRoutes].map((route) => ({
+  return [...routes, ...localizedRoutes, ...blogRoutes].map((route) => ({
     url: route.url,
     lastModified: route.lastModified || new Date(),
     changeFrequency: route.changeFrequency,

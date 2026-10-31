@@ -159,24 +159,50 @@ export async function GET(req) {
         const matchAll = { mode };
         if (scope === "country" && country) matchAll.country = country;
 
-        const ranked = await Score.aggregate([
-          { $match: matchAll },
-          { $sort: { bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
-          { $group: { _id: "$userId", doc: { $first: "$$ROOT" } } },
-          { $replaceRoot: { newRoot: "$doc" } },
-          { $sort: { bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
-          { $project: { userId: 1 } },
+        const [rankRows, totalRows] = await Promise.all([
+          Score.aggregate([
+            { $match: matchAll },
+            { $sort: { bestWpm: -1, bestAccuracy: -1, updatedAt: -1 } },
+            { $group: { _id: "$userId", doc: { $first: "$$ROOT" } } },
+            { $replaceRoot: { newRoot: "$doc" } },
+            {
+              $setWindowFields: {
+                sortBy: { bestWpm: -1, bestAccuracy: -1, updatedAt: -1 },
+                output: { rank: { $documentNumber: {} } },
+              },
+            },
+            { $match: { userId } },
+            { $project: { _id: 0, rank: 1 } },
+          ]),
+          Score.aggregate([
+            { $match: matchAll },
+            { $group: { _id: "$userId" } },
+            { $count: "total" },
+          ]),
         ]);
 
-        const myIndex = ranked.findIndex((r) => r.userId === userId);
-        if (myIndex >= 0) me = { userId, rank: myIndex + 1, total: ranked.length };
+        if (rankRows[0]) me = { userId, rank: rankRows[0].rank, total: totalRows[0]?.total || 0 };
       } else {
-        const forRank = await Score.find(baseMatch, { userId: 1 })
-          .sort({ bestWpm: -1, bestAccuracy: -1, updatedAt: -1 })
-          .lean();
-
-        const myIndex = forRank.findIndex((r) => r.userId === userId);
-        if (myIndex >= 0) me = { userId, rank: myIndex + 1, total: forRank.length };
+        const ownScore = await Score.findOne({ ...baseMatch, userId }).lean();
+        if (ownScore) {
+          const aheadFilter = {
+            ...baseMatch,
+            $or: [
+              { bestWpm: { $gt: ownScore.bestWpm } },
+              { bestWpm: ownScore.bestWpm, bestAccuracy: { $gt: ownScore.bestAccuracy } },
+              {
+                bestWpm: ownScore.bestWpm,
+                bestAccuracy: ownScore.bestAccuracy,
+                updatedAt: { $gt: ownScore.updatedAt },
+              },
+            ],
+          };
+          const [ahead, total] = await Promise.all([
+            Score.countDocuments(aheadFilter),
+            Score.countDocuments(baseMatch),
+          ]);
+          me = { userId, rank: ahead + 1, total };
+        }
       }
     }
 

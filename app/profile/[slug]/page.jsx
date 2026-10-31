@@ -16,6 +16,13 @@ export async function generateMetadata({ params }) {
     alternates: {
       canonical: `/profile/${encodeURIComponent(resolved.slug)}`,
     },
+    openGraph: {
+      title: `${name} | TheMonkeyType`,
+      description: bundle?.profile?.bio || `${name}'s public typing profile on TheMonkeyType.`,
+      url: `https://themonkeytype.com/profile/${encodeURIComponent(resolved.slug)}`,
+      siteName: "The Monkey Type",
+      type: "profile",
+    },
   };
 }
 

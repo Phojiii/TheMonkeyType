@@ -174,6 +174,8 @@ export default function ChallengePage({ params }) {
       accuracy: Math.max(0, Math.round(Number(stats?.accuracy) || 0)),
       words: Math.max(0, Math.round(Number(stats?.words) || 0)),
       hits: Math.max(0, Math.round(Number(stats?.hits) || 0)),
+      characters: Math.max(0, Math.round(Number(stats?.characters) || 0)),
+      elapsedSec: Number(stats?.elapsedSec) || 0,
     };
 
     setChallenge((current) => {

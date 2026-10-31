@@ -44,7 +44,6 @@ export default function LeaderboardPage() {
   const [country, setCountry] = useState("");
   const [payload, setPayload] = useState({ scores: [], meta: {}, me: null });
   const [loading, setLoading] = useState(false);
-  const [updating, setUpdating] = useState(false);
   const [challenging, setChallenging] = useState("");
 
   const subtitle = useMemo(() => {
@@ -122,61 +121,6 @@ export default function LeaderboardPage() {
     }
   }
 
-  async function handleUpdateRecords() {
-    if (!isSignedIn) return;
-    setUpdating(true);
-
-    const keys = [
-      { key: "tmt_stats_classic", mode: "classic" },
-      { key: "tmt_stats_competitive", mode: "competitive" },
-    ];
-
-    try {
-      for (const entry of keys) {
-        const raw = JSON.parse(localStorage.getItem(entry.key) || "[]");
-        if (!Array.isArray(raw)) continue;
-
-        const bestByDuration = {};
-
-        for (const record of raw) {
-          const duration = Number(record.duration);
-          if (![15, 30, 60, 120].includes(duration)) continue;
-
-          const wpm = Math.round(Number(record.wpm) || 0);
-          const acc = Math.round(Number(record.accuracy) || 0);
-
-          if (!bestByDuration[duration]) {
-            bestByDuration[duration] = { wpm, acc };
-          } else {
-            bestByDuration[duration].wpm = Math.max(bestByDuration[duration].wpm, wpm);
-            bestByDuration[duration].acc = Math.max(bestByDuration[duration].acc, acc);
-          }
-        }
-
-        for (const [duration, value] of Object.entries(bestByDuration)) {
-          await fetch("/api/saveScore", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              mode: entry.mode,
-              duration: Number(duration),
-              bestWpm: value.wpm,
-              bestAccuracy: value.acc,
-            }),
-          });
-        }
-      }
-
-      alert("Records updated successfully");
-    } catch (error) {
-      console.error("Update records failed:", error);
-      alert("Failed to update records");
-    } finally {
-      setUpdating(false);
-    }
-  }
-
   return (
     <main className="min-h-screen bg-ink px-4 py-6 text-white md:px-6 md:py-10">
       <header className="mx-auto mb-4 hidden max-w-6xl flex-col items-start justify-between gap-4 sm:flex-row sm:items-center md:flex">
@@ -184,14 +128,6 @@ export default function LeaderboardPage() {
           <h1 className="text-2xl font-bold text-brand">Leaderboard</h1>
           <p className="text-sm text-white/60">{subtitle}</p>
         </div>
-
-        <button
-          onClick={handleUpdateRecords}
-          disabled={!isSignedIn || updating}
-          className={`text-sm ${!isSignedIn ? "btn-secondary" : "btn-primary"}`}
-        >
-          {updating ? "Updating..." : "Update Records"}
-        </button>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex gap-2" role="tablist" aria-label="Mode filters">

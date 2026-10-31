@@ -20,6 +20,13 @@ export async function generateMetadata({ params }) {
     alternates: {
       canonical: `/blog/${encodeURIComponent(slug)}`,
     },
+    openGraph: {
+      title: post?.title || "Blog | TheMonkeyType",
+      description: post?.excerpt || "",
+      url: `https://themonkeytype.com/blog/${encodeURIComponent(slug)}`,
+      siteName: "The Monkey Type",
+      type: "article",
+    },
   };
 }
 

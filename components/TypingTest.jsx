@@ -112,6 +112,7 @@ export default function TypingTest({
   const [penaltyToastKey, setPenaltyToastKey] = useState(0);
   const completedRef = useRef(false);
   const sessionTrackedRef = useRef(false);
+  const [testSessionId, setTestSessionId] = useState("");
   const bodyScrollLockRef = useRef({ scrollY: 0, locked: false });
   const [beginnerKeyboardFocus, setBeginnerKeyboardFocus] = useState(false);
 
@@ -331,6 +332,7 @@ export default function TypingTest({
     penaltyMsRef.current = 0; //  reset penalty
     completedRef.current = false;
     sessionTrackedRef.current = false;
+    setTestSessionId("");
     setLastPressedKey("");
     setLastPressedCorrect(false);
 
@@ -419,7 +421,22 @@ export default function TypingTest({
       setStartedAt(Date.now());
       if (trackProfileSession && isSignedIn && !sessionTrackedRef.current) {
         sessionTrackedRef.current = true;
-        fetch("/api/profile/test-start", { method: "POST" }).catch(() => {});
+        fetch("/api/profile/test-start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            testType,
+            duration: durationSec,
+            targetWordCount,
+            mode: competitiveMode ? "competitive" : "classic",
+          }),
+        })
+          .then((response) => response.ok ? response.json() : null)
+          .then((data) => {
+            if (data?.sessionId) setTestSessionId(data.sessionId);
+          })
+          .catch(() => {});
       }
       if (beginnerMode) {
         if (!beginnerKeyboardFocus) {
@@ -517,6 +534,7 @@ export default function TypingTest({
     lessonId: beginnerLesson?.id || "",
     lessonIndex: beginnerLessonIndex,
     lessonTitle: beginnerLesson?.title || "",
+    testSessionId,
   };
 
   useEffect(() => {

@@ -26,6 +26,7 @@ export default function ContactForm() {
     email: user?.primaryEmailAddress?.emailAddress || "",
     category: categories[0],
     message: "",
+    companyWebsite: "",
   });
   const [image, setImage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -48,6 +49,7 @@ export default function ContactForm() {
       payload.append("email", form.email);
       payload.append("category", form.category);
       payload.append("message", form.message);
+      payload.append("companyWebsite", form.companyWebsite);
       if (isSignedIn && effectiveUsername) {
         payload.append("username", effectiveUsername);
       }
@@ -73,6 +75,7 @@ export default function ContactForm() {
         email: user?.primaryEmailAddress?.emailAddress || "",
         category: categories[0],
         message: "",
+        companyWebsite: "",
         username: defaultUsername,
       }));
       setImage(null);
@@ -87,6 +90,18 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+      <div className="fixed left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+        <label htmlFor="contact-company-website">Leave this field empty</label>
+        <input
+          id="contact-company-website"
+          name="companyWebsite"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={form.companyWebsite}
+          onChange={(event) => updateField("companyWebsite", event.target.value)}
+        />
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.28em] text-brand/75">Contact Form</p>

@@ -6,6 +6,7 @@ export const metadata = {
   title: "Terms of Service | TheMonkeyType",
   description: "Read the terms governing use of TheMonkeyType, including accounts, content, and acceptable use.",
   alternates: { canonical: "/terms" },
+  openGraph: { title: "Terms of Service | TheMonkeyType", url: "https://themonkeytype.com/terms", siteName: "The Monkey Type", type: "website" },
 };
 
 export default function TermsPage() {

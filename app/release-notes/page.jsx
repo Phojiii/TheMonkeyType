@@ -20,6 +20,7 @@ export const metadata = {
   description:
     "Read the full release history of TheMonkeyType, from the first launch through major updates like competitive mode, live challenges, profiles, beginner mode, blogs, guides, and more.",
   alternates: { canonical: "/release-notes" },
+  openGraph: { title: "Release Notes | TheMonkeyType", url: "https://themonkeytype.com/release-notes", siteName: "The Monkey Type", type: "website" },
 };
 
 const releases = [

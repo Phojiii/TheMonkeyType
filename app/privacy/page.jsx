@@ -6,6 +6,7 @@ export const metadata = {
   title: "Privacy Policy | TheMonkeyType",
   description: "Learn what data TheMonkeyType collects, how we use it, and what choices you have.",
   alternates: { canonical: "/privacy" },
+  openGraph: { title: "Privacy Policy | TheMonkeyType", url: "https://themonkeytype.com/privacy", siteName: "The Monkey Type", type: "website" },
 };
 
 export default function PrivacyPage() {
@@ -46,42 +47,24 @@ export default function PrivacyPage() {
 
         <h2 className="text-xl font-semibold text-brand mt-6">Advertising, cookies, and third-party vendors</h2>
         <p>
-          We may display advertising on TheMonkeyType using third-party advertising partners,
-          including Google AdSense. Third-party vendors, including Google, may use cookies,
-          web beacons, IP addresses, local storage, or similar technologies to serve ads
-          based on a user&apos;s prior visits to this website or other websites.
+          Advertising on TheMonkeyType is managed through Journey by Mediavine. Journey and
+          its authorized advertising partners may use cookies, web beacons, IP addresses,
+          local storage, or similar technologies to deliver ads, measure performance, and
+          personalize advertising where permitted.
         </p>
         <p>
-          Google&apos;s use of advertising cookies enables it and its partners to serve ads to
-          users based on visits to this site and/or other sites on the Internet. Users may
-          opt out of personalized advertising by visiting Google&apos;s Ads Settings at{" "}
-          <a
-            href="https://www.google.com/settings/ads"
-            target="_blank"
-            rel="noreferrer"
-            className="text-brand hover:text-white"
-          >
-            google.com/settings/ads
-          </a>
-          . You can also learn more about how Google uses information from sites and apps at{" "}
-          <a
-            href="https://policies.google.com/technologies/partner-sites"
-            target="_blank"
-            rel="noreferrer"
-            className="text-brand hover:text-white"
-          >
-            policies.google.com/technologies/partner-sites
-          </a>
-          .
+          The advertising partners used on the site can change as Journey manages ad
+          inventory. For details about a partner&apos;s data practices and available opt-out
+          choices, review the consent controls presented on the site and the partner&apos;s
+          privacy information.
         </p>
 
         <h2 className="text-xl font-semibold text-brand mt-6">Consent and regional privacy choices</h2>
         <p>
-          Where required by law, including for users in the EEA, the UK, and Switzerland,
-          we may show a consent message or use a consent management platform before serving
-          certain personalised ads or using certain advertising technologies. Users in these
-          regions may be asked to review or update their privacy choices before ad-supported
-          features are fully enabled.
+          Where consent is required, applicable personalized ads should only be served after
+          the required choices are collected through the consent solution configured by
+          Journey. Use the site&apos;s consent controls to review or change your choices. If
+          you do not see those controls, please contact us so we can review the configuration.
         </p>
 
         <h2 className="text-xl font-semibold text-brand mt-6">Analytics and essential cookies</h2>
