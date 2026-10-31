@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "Terms of Service | TheMonkeyType",
   description: "Read the terms governing use of TheMonkeyType, including accounts, content, and acceptable use.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

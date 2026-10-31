@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "Privacy Policy | TheMonkeyType",
   description: "Learn what data TheMonkeyType collects, how we use it, and what choices you have.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

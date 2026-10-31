@@ -17,6 +17,9 @@ export async function generateMetadata({ params }) {
   return {
     title: `${post?.title || "Blog"}`,
     description: post?.excerpt || "",
+    alternates: {
+      canonical: `/blog/${encodeURIComponent(slug)}`,
+    },
   };
 }
 

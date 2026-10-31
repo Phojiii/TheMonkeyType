@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "Blog | TheMonkeyType",
   description: "Typing guides, updates, and insights from TheMonkeyType team.",
+  alternates: { canonical: "/blog" },
 };
 
 export default async function BlogPage() {

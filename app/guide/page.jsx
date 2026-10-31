@@ -17,6 +17,7 @@ export const metadata = {
   title: "Guide | TheMonkeyType",
   description:
     "Learn how TheMonkeyType works, including timed and word-based tests, rankings, stats, competitive mode, and 1v1 challenges.",
+  alternates: { canonical: "/guide" },
 };
 
 const overviewCards = [

@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
+import Follow from "@/models/Follow";
 import Score from "@/models/Score";
 
 export const runtime = "nodejs";
@@ -46,6 +47,11 @@ export async function GET(req) {
         },
       },
     ]);
+    const followingIds = users.length
+      ? await Follow.find({ followerUserId: userId, followedUserId: { $in: users.map((entry) => entry.userId) } })
+          .distinct("followedUserId")
+      : [];
+    const followingSet = new Set(followingIds);
 
     return NextResponse.json(
       {
@@ -59,11 +65,12 @@ export async function GET(req) {
           country: (entry.country || "").toUpperCase(),
           mode: entry.mode || "classic",
           lastSeenAt: entry.lastSeenAt || null,
+          isFollowing: followingSet.has(entry.userId),
         })),
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=20",
+          "Cache-Control": "private, no-store",
         },
       }
     );

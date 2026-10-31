@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignInButton, UserButton, useAuth, useUser } from "@clerk/nextjs";
 import { FaBell, FaBlog, FaChartBar, FaHome, FaInfoCircle, FaTrophy, FaUserCircle } from "react-icons/fa";
 import { MdAdminPanelSettings } from "react-icons/md";
 import { ADMINS } from "@/lib/admins";
@@ -16,10 +16,38 @@ const ANNOUNCEMENT_VERSION = SITE_ANNOUNCEMENT.version;
 export default function NavBar() {
   const pathname = usePathname();
   const { user, isLoaded, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const isAdmin = isLoaded && user && ADMINS.includes(user.id);
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [hasNewAnnouncement, setHasNewAnnouncement] = useState(false);
+  const [followNotifications, setFollowNotifications] = useState([]);
+  const [unreadFollowCount, setUnreadFollowCount] = useState(0);
+
+  const loadFollowNotifications = useCallback(async (markRead = false) => {
+    if (!isSignedIn) return;
+    try {
+      if (!(await getToken())) return;
+      const response = await fetch("/api/notifications/follows", { cache: "no-store", credentials: "include" });
+      if (!response.ok) return;
+      const data = await response.json();
+      const notifications = Array.isArray(data.notifications) ? data.notifications : [];
+      setFollowNotifications(notifications);
+      setUnreadFollowCount(Number(data.unreadCount || 0));
+
+      if (markRead && Number(data.unreadCount || 0) > 0) {
+        const readResponse = await fetch("/api/notifications/follows", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (readResponse.ok) {
+          const readAt = new Date().toISOString();
+          setFollowNotifications((current) => current.map((notification) => ({ ...notification, readAt: notification.readAt || readAt })));
+          setUnreadFollowCount(0);
+        }
+      }
+    } catch {}
+  }, [getToken, isSignedIn]);
 
   useEffect(() => {
     const lastSeen = localStorage.getItem("announcement_seen");
@@ -35,10 +63,29 @@ export default function NavBar() {
     }
   }, []);
 
-  const closeAnnouncement = () => {
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      setFollowNotifications([]);
+      setUnreadFollowCount(0);
+      return;
+    }
+
+    setFollowNotifications([]);
+    setUnreadFollowCount(0);
+    loadFollowNotifications();
+    const refreshTimer = window.setInterval(() => loadFollowNotifications(), 45_000);
+    return () => window.clearInterval(refreshTimer);
+  }, [isLoaded, isSignedIn, user?.id, loadFollowNotifications]);
+
+  const closeAnnouncement = useCallback(() => {
     setNotifOpen(false);
     setHasNewAnnouncement(false);
-  };
+  }, []);
+
+  const openNotifications = useCallback(() => {
+    setNotifOpen(true);
+    loadFollowNotifications(true);
+  }, [loadFollowNotifications]);
 
   const mobileLinks = [
     {
@@ -85,18 +132,18 @@ export default function NavBar() {
 
       <div className="fixed right-6 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-6 rounded-[1.75rem] border border-white/10 bg-[#232325d9] px-3 py-4 shadow-[0_18px_45px_rgba(0,0,0,0.28)] backdrop-blur-md md:flex">
         <button
-          onClick={() => setNotifOpen(true)}
+          onClick={openNotifications}
           className="relative rounded-2xl p-2 text-white/80 transition hover:bg-white/8 hover:text-yellow-400"
           aria-label="Notifications"
         >
           <FaBell
             className={`text-xl transition ${
-              hasNewAnnouncement ? "animate-pulse text-yellow-400" : "text-white/80 hover:text-yellow-400"
+              hasNewAnnouncement || unreadFollowCount ? "animate-pulse text-yellow-400" : "text-white/80 hover:text-yellow-400"
             }`}
           />
-          {hasNewAnnouncement && (
-            <span className="absolute -right-2 -top-2 rounded-full bg-yellow-400 px-1 text-xs font-bold text-black">
-              !
+          {(hasNewAnnouncement || unreadFollowCount > 0) && (
+            <span className="absolute -right-2 -top-2 min-w-4 rounded-full bg-yellow-400 px-1 text-center text-xs font-bold text-black">
+              {unreadFollowCount > 0 ? unreadFollowCount : "!"}
             </span>
           )}
         </button>
@@ -115,7 +162,13 @@ export default function NavBar() {
         )}
       </div>
 
-      {notifOpen && <AnnouncementModal onClose={closeAnnouncement} />}
+      {notifOpen && (
+        <AnnouncementModal
+          onClose={closeAnnouncement}
+          followNotifications={followNotifications}
+          isSignedIn={Boolean(isSignedIn)}
+        />
+      )}
 
       <nav className="fixed left-0 top-0 z-50 w-full border-b border-white/8 bg-[#2f3134]/96 px-4 pb-3 pt-4 backdrop-blur-md md:hidden">
         <div className="mx-auto max-w-md">
@@ -144,18 +197,18 @@ export default function NavBar() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setNotifOpen(true)}
+                onClick={openNotifications}
                 className="relative rounded-xl p-2 text-white/55 transition hover:bg-white/5 hover:text-white"
                 aria-label="Notifications"
               >
                 <FaBell
                   className={`text-base transition ${
-                    hasNewAnnouncement ? "animate-pulse text-yellow-400" : "text-white/55 hover:text-yellow-400"
+                    hasNewAnnouncement || unreadFollowCount ? "animate-pulse text-yellow-400" : "text-white/55 hover:text-yellow-400"
                   }`}
                 />
-                {hasNewAnnouncement && (
-                  <span className="absolute -right-1 -top-1 rounded-full bg-yellow-400 px-1 text-[10px] font-bold text-black">
-                    !
+                {(hasNewAnnouncement || unreadFollowCount > 0) && (
+                  <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-yellow-400 px-1 text-center text-[10px] font-bold text-black">
+                    {unreadFollowCount > 0 ? unreadFollowCount : "!"}
                   </span>
                 )}
               </button>

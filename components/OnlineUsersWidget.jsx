@@ -32,6 +32,8 @@ export default function OnlineUsersWidget() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [challenging, setChallenging] = useState("");
+  const [followingBusy, setFollowingBusy] = useState("");
+  const [followError, setFollowError] = useState("");
   const [pageVisible, setPageVisible] = useState(true);
 
   const authReady = isLoaded && isSignedIn;
@@ -190,6 +192,35 @@ export default function OnlineUsersWidget() {
     }
   }
 
+  async function handleFollow(entry) {
+    if (!entry?.userId || followingBusy) return;
+    if (!isSignedIn) {
+      openSignIn?.();
+      return;
+    }
+
+    setFollowingBusy(entry.userId);
+    setFollowError("");
+    try {
+      if (!(await getToken())) throw new Error("Please sign in again to follow this typist.");
+      const response = await fetch("/api/friends", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId: entry.userId, action: entry.isFollowing ? "unfollow" : "follow" }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "Could not update follow.");
+      setUsers((current) => current.map((userEntry) =>
+        userEntry.userId === entry.userId ? { ...userEntry, isFollowing: Boolean(data.isFollowing) } : userEntry
+      ));
+    } catch (error) {
+      setFollowError(error.message || "Could not update follow.");
+    } finally {
+      setFollowingBusy("");
+    }
+  }
+
   return (
     <div className={`fixed right-4 z-[85] ${isChallengePage ? "bottom-28" : "bottom-[20%] md:bottom-24"}`}>
       {open && (
@@ -226,6 +257,7 @@ export default function OnlineUsersWidget() {
           </div>
 
           <div className="max-h-[24rem] overflow-y-auto px-3 py-3">
+            {followError ? <p role="status" className="mb-3 rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-200">{followError}</p> : null}
             {!authReady ? (
               <div className="px-3 py-7 text-center">
                 <p className="text-sm text-white/60">Sign in to see online players and start a typing duel.</p>
@@ -264,11 +296,22 @@ export default function OnlineUsersWidget() {
                       )}
 
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                          <Link href={toProfilePath(entry.username)} className="truncate font-medium text-white hover:text-brand">
-                            {entry.username}
-                          </Link>
+                        <div className="flex min-w-0 items-center justify-between gap-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-400" />
+                            <Link href={toProfilePath(entry.username)} className="truncate font-medium text-white hover:text-brand">
+                              {entry.username}
+                            </Link>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleFollow(entry)}
+                            disabled={followingBusy === entry.userId}
+                            aria-pressed={Boolean(entry.isFollowing)}
+                            className={`${entry.isFollowing ? "btn-secondary" : "btn-primary"} shrink-0 px-3 py-1 text-[11px] disabled:opacity-60`}
+                          >
+                            {followingBusy === entry.userId ? "..." : entry.isFollowing ? "Unfollow" : "Follow"}
+                          </button>
                         </div>
                         <p className="mt-1 text-xs text-white/55">
                           Best {entry.bestWpm} WPM

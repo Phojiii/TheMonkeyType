@@ -11,6 +11,7 @@ export const metadata = {
   title: "About | TheMonkeyType",
   description:
     "Learn what TheMonkeyType is, how it works, and how to get the most out of your typing practice.",
+  alternates: { canonical: "/about" },
 };
 
 const highlights = [

@@ -13,6 +13,9 @@ export async function generateMetadata({ params }) {
   return {
     title: `${name} | TheMonkeyType`,
     description: bundle?.profile?.bio || `${name}'s public typing profile on TheMonkeyType.`,
+    alternates: {
+      canonical: `/profile/${encodeURIComponent(resolved.slug)}`,
+    },
   };
 }
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import Follow from "@/models/Follow";
+import FollowNotification from "@/models/FollowNotification";
 import Score from "@/models/Score";
 import UserProfile from "@/models/UserProfile";
 
@@ -106,18 +107,32 @@ export async function POST(req) {
     }
 
     await connectDB();
-    const targetExists = await UserProfile.exists({ userId: targetId });
+    const [targetProfile, targetScore] = await Promise.all([
+      UserProfile.exists({ userId: targetId }),
+      Score.exists({ userId: targetId }),
+    ]);
+    const targetExists = targetProfile || targetScore;
     if (!targetExists) return NextResponse.json({ error: "Typist not found" }, { status: 404 });
 
     if (action === "follow") {
+      let createdFollow = false;
       try {
-        await Follow.updateOne(
+        const result = await Follow.updateOne(
           { followerUserId: userId, followedUserId: targetId },
           { $setOnInsert: { followerUserId: userId, followedUserId: targetId } },
           { upsert: true }
         );
+        createdFollow = result.upsertedCount > 0;
       } catch (error) {
         if (error?.code !== 11000) throw error;
+      }
+      if (createdFollow) {
+        try {
+          await FollowNotification.create({ recipientUserId: targetId, actorUserId: userId });
+        } catch (error) {
+          await Follow.deleteOne({ followerUserId: userId, followedUserId: targetId });
+          throw error;
+        }
       }
     } else {
       await Follow.deleteOne({ followerUserId: userId, followedUserId: targetId });

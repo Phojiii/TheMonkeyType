@@ -19,6 +19,7 @@ export const metadata = {
   title: "Release Notes | TheMonkeyType",
   description:
     "Read the full release history of TheMonkeyType, from the first launch through major updates like competitive mode, live challenges, profiles, beginner mode, blogs, guides, and more.",
+  alternates: { canonical: "/release-notes" },
 };
 
 const releases = [

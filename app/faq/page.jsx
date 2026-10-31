@@ -6,6 +6,7 @@ export const metadata = {
   title: "FAQ | TheMonkeyType",
   description:
     "Answers to common questions about typing tests, scores, rankings, accounts, beginner lessons, privacy, and support on TheMonkeyType.",
+  alternates: { canonical: "/faq" },
 };
 
 const faqs = [

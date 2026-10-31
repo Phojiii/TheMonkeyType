@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaDiscord, FaGithub, FaGlobe, FaInstagram, FaTiktok, FaTwitch, FaYoutube } from "react-icons/fa";
+import FollowButton from "@/components/FollowButton";
 import { TYPING_ACHIEVEMENTS } from "@/lib/typingAchievements";
 
 function formatValue(value, fallback = "-") {
@@ -111,6 +112,7 @@ export default function ProfileView({ bundle, isOwner = false, ownerActions = nu
                 <span className="rounded-full bg-brand px-3 py-1 text-sm font-semibold text-ink">
                   {profile.title || "Rising"}
                 </span>
+                {!isOwner ? <FollowButton targetUserId={profile.userId} compact /> : null}
               </div>
               <p className="mt-3 text-sm text-white/30">
                 Joined {new Date(profile.joinedAt || Date.now()).toLocaleDateString()}

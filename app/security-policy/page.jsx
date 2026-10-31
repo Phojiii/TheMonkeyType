@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "Security Policy | TheMonkeyType",
   description: "How to responsibly report security issues affecting TheMonkeyType.",
+  alternates: { canonical: "/security-policy" },
 };
 
 export default function SecurityPolicyPage() {

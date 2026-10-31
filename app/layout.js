@@ -16,9 +16,6 @@ export const metadata = {
   description:
     "Free Online Typing Trainer takes free typing tests, tracks accuracy, and boosts speed effortlessly. Enhance your typing performance with The Monkey Type",
   metadataBase: new URL("https://themonkeytype.com"),
-  alternates: {
-    canonical: "/",
-  },
   verification: googleSiteVerification
     ? {
         google: googleSiteVerification,
